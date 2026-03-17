@@ -1,4 +1,5 @@
 # Default ignored files
+.cursor/rules/
 /shelf/
 /workspace.xml
 .idea/
@@ -6,3 +7,5 @@ author.md
 /nul
 config.bat
 build/
+
+
