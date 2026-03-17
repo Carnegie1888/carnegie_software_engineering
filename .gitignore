@@ -4,3 +4,5 @@
 .idea/
 author.md
 /nul
+config.bat
+build/

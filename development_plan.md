@@ -52,9 +52,9 @@ main
 
 | 周次 | 日期 | 活动 | 人员 |
 |:----:|:------:|:-------|:----:|
-| 周4 | 3月23-29日 | 迭代1：核心功能开发(v1) | 5开发+1测试 |
-| 周5 | 3月30-4月5日 | 迭代2：功能完善(v2) + 集成测试 | 5开发+1测试 |
-| 周6 | 4月6-11日 | 准备中期演示 + 测试修复 | 5开发+1测试 |
+| 周4 | 3月23-29日 | 迭代1：核心功能开发(v1) | 4后端+2前端 |
+| 周5 | 3月30-4月5日 | 迭代2：功能完善(v2) + 集成测试 | 4后端+2前端 |
+| 周6 | 4月6-11日 | 准备中期演示 + 测试修复 | 4后端+2前端 |
 
 **核心功能 (MVP)**:
 
@@ -64,19 +64,21 @@ main
 4. TA 查看申请状态
 5. MO 选择申请人
 
-**Git 分支策略 (6人)**: 5人开发 + 1人测试
+**Git 分支策略 (6人)**: 4后端 + 2前端 (前后端功能对称)
 
 ```
 main
-├── feat/auth-login/          # 成员1: 登录注册 + Session管理
-├── feat/applicant-profile/   # 成员2: TA档案创建 + 简历上传
-├── feat/job-posting/         # 成员3: MO发布职位 + 职位列表
-├── feat/job-application/     # 成员4: TA申请职位
-├── feat/application-status/  # 成员5: 查看申请状态 + MO选择
-└── test/core-functions/      # 成员6: 核心功能测试
+├── backend/auth-login/           # 成员1(后端): 登录注册 + Session管理
+├── frontend/auth-login/          # 成员5(前端): 登录注册界面
+├── backend/applicant-profile/    # 成员2(后端): TA档案创建 + 简历上传
+├── frontend/applicant-profile/   # 成员5(前端): TA档案界面
+├── backend/job-posting/           # 成员3(后端): MO发布职位 + 职位列表
+├── frontend/job-posting/          # 成员6(前端): 职位浏览界面
+├── backend/application-status/    # 成员4(后端): 查看申请状态 + MO选择
+├── frontend/application-status/  # 成员6(前端): 申请状态界面
 ```
 
-**每人预计提交次数**: 8-12次/阶段
+**每人预计提交次数**: 4-6次/阶段
 
 ---
 
@@ -88,12 +90,12 @@ main
 
 | 周次 | 日期 | 活动 | 人员 |
 |:----:|:------:|:-------|:----:|
-| 周7 | 4月13-19日 | 迭代3：AI功能开发 | 5开发+1测试 |
-| 周8 | 4月20-26日 | 迭代3：优化完善 + 测试 | 5开发+1测试 |
-| 周9 | 4月27-5月3日 | 迭代4：完善功能 + 测试 | 5开发+1测试 |
-| 周10 | 5月4-10日 | 迭代4：最终优化 | 5开发+1测试 |
-| 周11 | 5月11-17日 | 准备最终交付 + 演示视频 | 5开发+1测试 |
-| 周12 | 5月18-24日 | 最终测试 + 打包提交 | 5开发+1测试 |
+| 周7 | 4月13-19日 | 迭代3：AI功能开发 | 4后端+2前端 |
+| 周8 | 4月20-26日 | 迭代3：优化完善 + 测试 | 4后端+2前端 |
+| 周9 | 4月27-5月3日 | 迭代4：完善功能 + 测试 | 4后端+2前端 |
+| 周10 | 5月4-10日 | 迭代4：最终优化 | 4后端+2前端 |
+| 周11 | 5月11-17日 | 准备最终交付 + 演示视频 | 4后端+2前端 |
+| 周12 | 5月18-24日 | 最终测试 + 打包提交 | 4后端+2前端 |
 
 **交付物**:
 
@@ -101,16 +103,19 @@ main
 - `Report_groupXXX.pdf` - 完整报告 (小组10页 + 个人300字)
 - 演示视频 (不超过10分钟，英语配音)
 
-**Git 分支策略 (6人)**: 5人开发 + 1人测试
+**Git 分支策略 (6人)**: 4后端 + 2前端 (前后端功能对称)
 
 ```
 main
-├── feat/ai-skill-match/    # 1: AI技能匹配
-├── feat/ai-missing-skills/ # 2: AI识别缺失技能
-├── feat/admin-workload/    # 3: 管理员工作量统计
-├── docs/user-manual/       # 4: 用户手册 + README
-├── perf/                  # 5: 性能优化
-└── test/full-test/         # 6: 完整测试 + release
+├── backend/ai-skill-match/      # 成员1(后端): AI技能匹配
+├── frontend/ai-skill-match/     # 成员5(前端): AI技能匹配界面
+├── backend/ai-missing-skills/   # 成员2(后端): AI识别缺失技能
+├── frontend/ai-missing-skills/  # 成员5(前端): AI缺失技能展示界面
+├── backend/admin-workload/      # 成员3(后端): 管理员工作量统计
+├── frontend/admin-workload/     # 成员6(前端): 管理统计仪表盘
+├── backend/integration-test/    # 成员4(后端): 集成测试 + 打包
+├── docs/user-manual/            # 成员4(后端): 用户手册
+├── frontend/responsive/         # 成员6(前端): 响应式设计 + UI优化
 ```
 
 > 注：演示视频在第11周统一录制，不设专门分支
@@ -170,20 +175,22 @@ main
 
 ## 6人团队分工建议
 
-| 成员 | 第一阶段 | 第二阶段 | 第三阶段 |
-|:----:|:--------:|:--------:|:--------:|
-| 1 | 用户故事 | auth-login | ai-skill-match |
-| 2 | 用户故事 | applicant-profile | ai-missing-skills |
-| 3 | 原型-登录页 | job-posting | admin-workload |
-| 4 | 原型-职位页 | job-application | user-manual |
-| 5 | 原型-申请页 | application-status | **performance** |
-| 6 | 报告撰写 | **test** | **test + release** |
+| 角色 | 成员 | 第一阶段 | 第二阶段 | 第三阶段 |
+|:----:|:----:|:--------:|:--------:|:--------:|
+| 后端 | 1 | 用户故事 | auth-login | ai-skill-match |
+| 后端 | 2 | 用户故事 | applicant-profile | ai-missing-skills |
+| 后端 | 3 | 原型-登录页 | job-posting | admin-workload |
+| 后端 | 4 | 原型-职位页 | application-status | 集成测试 + 打包 + 用户手册 |
+| 前端 | 5 | 原型-申请页 | auth-login + applicant-profile | ai-skill-match + ai-missing-skills |
+| 前端 | 6 | 报告撰写 | job-posting + application-status | admin-workload + responsive + 演示视频 |
+
+> 前后端对称: 4后端(成员1-4) + 2前端(成员5-6)，前端2人各负责2个模块的界面开发
 
 **每人提交次数统计**:
 
 - 第一阶段: 3-5次
-- 第二阶段: 8-12次
-- 第三阶段: 12-18次
-- **总计: 23-35次提交/人**
+- 第二阶段: 4-6次
+- 第三阶段: 4-6次
+- **总计: 11-17次提交/人**
 
 ---
