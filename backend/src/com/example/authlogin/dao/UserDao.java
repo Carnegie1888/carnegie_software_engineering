@@ -18,7 +18,9 @@ import java.util.stream.Collectors;
  */
 public class UserDao {
 
-    private static final String DATA_DIR = "data";
+    // 项目数据目录 - 使用固定绝对路径
+    // 如果部署到Tomcat，需要确保此路径可写
+    private static final String DATA_DIR = "D:/HuaweiMoveData/Users/Carne/Desktop/SoftwareEngineering/data";
     private static final String USER_FILE = DATA_DIR + File.separator + "users.csv";
     private static final String CSV_HEADER = "userId,username,password,email,role,createdAt,lastLoginAt";
 
