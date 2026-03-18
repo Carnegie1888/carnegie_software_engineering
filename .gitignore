@@ -8,6 +8,7 @@ author.md
 .cursor/rules/
 data/logs/
 /shelf/
+docs/proto/TADesign/
 
 # =========================
 # Java / Compiled Class
