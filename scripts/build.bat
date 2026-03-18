@@ -19,6 +19,12 @@ echo   Servlet/JSP Build Script
 echo ========================================
 echo.
 
+REM Clean old build directory
+if exist "%BUILD_DIR%" (
+    echo [1/3] Cleaning old build files...
+    rmdir /S /Q "%BUILD_DIR%"
+)
+
 REM Create output directory
 if not exist "%BUILD_DIR%\WEB-INF\classes" mkdir "%BUILD_DIR%\WEB-INF\classes"
 
@@ -29,7 +35,7 @@ if not exist "%TOMCAT_HOME%" (
     exit /b 1
 )
 
-echo [1/2] Compiling Java source files...
+echo [2/3] Compiling Java source files...
 
 REM Compile all .java files in subdirectories
 for /r "%SRC_DIR%" %%f in (*.java) do (
@@ -41,7 +47,7 @@ for /r "%SRC_DIR%" %%f in (*.java) do (
     )
 )
 
-echo [2/2] Copying resource files...
+echo [3/3] Copying resource files...
 
 REM Copy web.xml
 if exist "%WEBAPP_DIR%\WEB-INF\web.xml" (
