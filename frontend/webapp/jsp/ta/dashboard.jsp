@@ -210,6 +210,16 @@
             </section>
 
             <aside class="profile-side-panel" aria-label="profile setup guidance">
+                <section class="side-card quick-links-card" aria-labelledby="quick-links-title">
+                    <p class="side-card-label">Workspace shortcuts</p>
+                    <h3 id="quick-links-title">Continue your TA workflow</h3>
+                    <p class="side-card-copy">After setting up your profile, continue browsing jobs and tracking application status.</p>
+                    <div class="quick-links">
+                        <a class="quick-link-item" href="<%= contextPath %>/jsp/ta/job-list.jsp">Browse positions</a>
+                        <a class="quick-link-item" href="<%= contextPath %>/jsp/ta/application-status.jsp">View application status</a>
+                    </div>
+                </section>
+
                 <section class="side-card">
                     <p class="side-card-label">Profile checklist</p>
                     <h3>What to prepare now</h3>

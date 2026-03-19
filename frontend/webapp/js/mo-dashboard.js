@@ -46,7 +46,12 @@
         });
     }
 
-    loadMyJobs();
+    if (!currentUserId) {
+        showMessage("Unable to identify current MO account. Please login again.", "error");
+        jobsSummaryNode.textContent = "Cannot load postings without a valid MO account.";
+    } else {
+        loadMyJobs();
+    }
 
     function submitCreate() {
         if (state.submitting) {
@@ -127,14 +132,17 @@
             return;
         }
 
+        if (!currentUserId) {
+            jobsListNode.innerHTML = "";
+            jobsSummaryNode.textContent = "Cannot load postings without a valid MO account.";
+            return;
+        }
+
         setLoadingJobs(true);
         jobsListNode.innerHTML = "";
         jobsSummaryNode.textContent = "Loading your jobs...";
 
-        var url = contextPath + "/jobs";
-        if (currentUserId) {
-            url += "?moId=" + encodeURIComponent(currentUserId);
-        }
+        var url = contextPath + "/jobs?moId=" + encodeURIComponent(currentUserId);
 
         request(url, {
             method: "GET",
@@ -192,6 +200,8 @@
             courseText += " · " + safeText(job.courseName);
         }
 
+        var applicantReviewHref = contextPath + "/jsp/mo/applicant-selection.jsp?jobId=" + encodeURIComponent(safeText(job.jobId, ""));
+
         item.innerHTML =
             "<header class=\"job-item-header\">" +
                 "<h4>" + escapeHtml(safeText(job.title, "Untitled position")) + "</h4>" +
@@ -201,6 +211,9 @@
             "<div class=\"job-item-meta\">" +
                 "<span>Positions: " + escapeHtml(String(job.positions || 0)) + "</span>" +
                 "<span>Deadline: " + escapeHtml(formatDateTime(job.deadline)) + "</span>" +
+            "</div>" +
+            "<div class=\"job-item-actions\">" +
+                "<a class=\"inline-link\" href=\"" + applicantReviewHref + "\">Review applicants</a>" +
             "</div>";
 
         return item;
