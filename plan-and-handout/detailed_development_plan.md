@@ -169,7 +169,7 @@
 | 周7  | #1     | `feat: 创建WorkloadStats统计服务类` | ✅   | `git commit -m "feat: 创建WorkloadStats统计服务类" --author="member3 <member3@edu.com>"` |
 | 周7  | #2     | `feat: 实现申请数量统计API`          | ✅   | `git commit -m "feat: 实现申请数量统计API" --author="member3 <member3@edu.com>"`          |
 | 周8  | #3     | `feat: 实现MO处理工作量统计`          | ✅   | `git commit -m "feat: 实现MO处理工作量统计" --author="member3 <member3@edu.com>"`          |
-| 周9  | #4     | `feat: 添加时间段筛选和导出功能`         | ⏳   | `git commit -m "feat: 添加时间段筛选和导出功能" --author="member3 <member3@edu.com>"`         |
+| 周9  | #4     | `feat: 添加时间段筛选和导出功能`         | ✅   | `git commit -m "feat: 添加时间段筛选和导出功能" --author="member3 <member3@edu.com>"`         |
 | 周10 | #5     | `perf: 优化大数据量统计查询性能`         | ⏳   | `git commit -m "perf: 优化大数据量统计查询性能" --author="member3 <member3@edu.com>"`         |
 
 
