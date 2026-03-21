@@ -76,7 +76,9 @@
                 showMessage("Login successful! Redirecting...", "success");
 
                 var redirect = "";
-                if (typeof payload.redirect === "string") {
+                if (payload && payload.data && typeof payload.data.redirect === "string") {
+                    redirect = payload.data.redirect.trim();
+                } else if (typeof payload.redirect === "string") {
                     redirect = payload.redirect.trim();
                 }
                 if (!redirect) {
@@ -255,47 +257,6 @@
     }
 
     function parseLoginResponse(bodyText) {
-        try {
-            return JSON.parse(bodyText);
-        } catch (error) {
-            return parseLegacyLoginResponse(bodyText);
-        }
-    }
-
-    // 兼容后端当前返回的非标准 JSON 文本格式。
-    function parseLegacyLoginResponse(bodyText) {
-        if (typeof bodyText !== "string") {
-            return null;
-        }
-
-        var successMatch = bodyText.match(/"success"\s*:\s*(true|false)/i);
-        if (!successMatch) {
-            return null;
-        }
-
-        var payload = {
-            success: successMatch[1].toLowerCase() === "true"
-        };
-
-        var messageMatch = bodyText.match(/"message"\s*:\s*"([^"]*)"/i);
-        if (messageMatch) {
-            payload.message = decodeEscapedText(messageMatch[1]);
-        }
-
-        var redirectMatch = bodyText.match(/"redirect"\s*:\s*"([^"]*)"/i);
-        if (redirectMatch) {
-            payload.redirect = decodeEscapedText(redirectMatch[1]);
-        }
-
-        return payload;
-    }
-
-    function decodeEscapedText(value) {
-        return value
-            .replace(/\\"/g, "\"")
-            .replace(/\\\\/g, "\\")
-            .replace(/\\n/g, "\n")
-            .replace(/\\r/g, "\r")
-            .replace(/\\t/g, "\t");
+        return JSON.parse(bodyText);
     }
 })();

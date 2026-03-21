@@ -229,7 +229,7 @@
                     return;
                 }
 
-                applyExistingProfile(payload, settings.afterCreate === true);
+                applyExistingProfile(extractData(payload), settings.afterCreate === true);
             })
             .catch(function () {
                 enableCreateMode();
@@ -456,7 +456,8 @@
                 }
 
                 updateResumeProgress(100, "Upload completed");
-                state.resumePath = typeof payload.resumePath === "string" ? payload.resumePath : state.resumePath;
+                var uploadData = extractData(payload);
+                state.resumePath = typeof uploadData.resumePath === "string" ? uploadData.resumePath : state.resumePath;
                 setSelectedResumeFile(null);
                 showResumeMessage("Resume uploaded successfully.", "success");
 
@@ -1204,32 +1205,16 @@
     }
 
     function parseResponse(bodyText) {
-        try {
-            return JSON.parse(bodyText);
-        } catch (error) {
-            return parseLegacyResponse(bodyText);
-        }
+        return JSON.parse(bodyText);
     }
 
-    function parseLegacyResponse(bodyText) {
-        if (typeof bodyText !== "string") {
-            return null;
+    function extractData(payload) {
+        if (!payload || typeof payload !== "object") {
+            return {};
         }
-
-        var successMatch = bodyText.match(/"success"\s*:\s*(true|false)/i);
-        if (!successMatch) {
-            return null;
+        if (payload.data && typeof payload.data === "object") {
+            return payload.data;
         }
-
-        var payload = {
-            success: successMatch[1].toLowerCase() === "true"
-        };
-
-        var messageMatch = bodyText.match(/"message"\s*:\s*"([^"]*)"/i);
-        if (messageMatch) {
-            payload.message = decodeEscapedText(messageMatch[1]);
-        }
-
         return payload;
     }
 
@@ -1325,12 +1310,4 @@
         }, 1000);
     }
 
-    function decodeEscapedText(value) {
-        return value
-            .replace(/\\"/g, "\"")
-            .replace(/\\\\/g, "\\")
-            .replace(/\\n/g, "\n")
-            .replace(/\\r/g, "\r")
-            .replace(/\\t/g, "\t");
-    }
 })();

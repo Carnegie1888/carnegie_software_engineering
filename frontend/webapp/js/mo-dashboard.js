@@ -159,7 +159,7 @@
                     return;
                 }
 
-                var jobs = Array.isArray(payload.jobs) ? payload.jobs : [];
+                var jobs = getPayloadDataArray(payload, "jobs");
                 renderJobs(jobs);
             })
             .catch(function () {
@@ -377,42 +377,20 @@
     }
 
     function parseJson(text) {
-        try {
-            return JSON.parse(text);
-        } catch (error) {
-            return parseLegacyResponse(text);
-        }
+        return JSON.parse(text);
     }
 
-    function parseLegacyResponse(text) {
-        if (typeof text !== "string") {
-            return null;
+    function getPayloadDataArray(payload, key) {
+        if (!payload || typeof payload !== "object") {
+            return [];
         }
-
-        var successMatch = text.match(/"success"\s*:\s*(true|false)/i);
-        if (!successMatch) {
-            return null;
+        if (payload.data && Array.isArray(payload.data[key])) {
+            return payload.data[key];
         }
-
-        var payload = {
-            success: successMatch[1].toLowerCase() === "true"
-        };
-
-        var messageMatch = text.match(/"message"\s*:\s*"([^"]*)"/i);
-        if (messageMatch) {
-            payload.message = decodeEscapedText(messageMatch[1]);
+        if (Array.isArray(payload[key])) {
+            return payload[key];
         }
-
-        return payload;
-    }
-
-    function decodeEscapedText(value) {
-        return value
-            .replace(/\\"/g, "\"")
-            .replace(/\\\\/g, "\\")
-            .replace(/\\n/g, "\n")
-            .replace(/\\r/g, "\r")
-            .replace(/\\t/g, "\t");
+        return [];
     }
 
     function normalizeSkillsForSubmit(value) {

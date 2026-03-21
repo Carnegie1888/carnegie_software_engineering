@@ -294,33 +294,7 @@
     }
 
     function parseResponse(bodyText) {
-        try {
-            return JSON.parse(bodyText);
-        } catch (error) {
-            return parseLegacyResponse(bodyText);
-        }
-    }
-
-    function parseLegacyResponse(bodyText) {
-        if (typeof bodyText !== "string") {
-            return null;
-        }
-
-        var successMatch = bodyText.match(/"success"\s*:\s*(true|false)/i);
-        if (!successMatch) {
-            return null;
-        }
-
-        var payload = {
-            success: successMatch[1].toLowerCase() === "true"
-        };
-
-        var messageMatch = bodyText.match(/"message"\s*:\s*"([^"]*)"/i);
-        if (messageMatch) {
-            payload.message = decodeEscapedText(messageMatch[1]);
-        }
-
-        return payload;
+        return JSON.parse(bodyText);
     }
 
     function decodeEscapedText(value) {

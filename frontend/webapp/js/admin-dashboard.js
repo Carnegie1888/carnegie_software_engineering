@@ -110,8 +110,8 @@
             if (!moResult.ok) {
                 showMessage(moResult.message || "Failed to load MO workloads.", "error");
             }
-            var moWorkloads = moResult.ok && Array.isArray(moResult.payload.moWorkloads)
-                ? moResult.payload.moWorkloads
+            var moWorkloads = moResult.ok && Array.isArray(getPayloadDataArray(moResult.payload, "moWorkloads"))
+                ? getPayloadDataArray(moResult.payload, "moWorkloads")
                 : [];
             renderMoList(moWorkloads);
             renderMoChart(moWorkloads);
@@ -228,12 +228,13 @@
         if (!payload || typeof payload !== "object") {
             return EMPTY_COUNTS;
         }
+        var data = payload && payload.data && typeof payload.data === "object" ? payload.data : payload;
         return {
-            total: toNumber(payload.total),
-            pending: toNumber(payload.pending),
-            accepted: toNumber(payload.accepted),
-            rejected: toNumber(payload.rejected),
-            withdrawn: toNumber(payload.withdrawn)
+            total: toNumber(data.total),
+            pending: toNumber(data.pending),
+            accepted: toNumber(data.accepted),
+            rejected: toNumber(data.rejected),
+            withdrawn: toNumber(data.withdrawn)
         };
     }
 
@@ -421,37 +422,20 @@
     }
 
     function parseJson(text) {
-        try {
-            return JSON.parse(text);
-        } catch (error) {
-            return parseLegacyResponse(text);
-        }
+        return JSON.parse(text);
     }
 
-    function parseLegacyResponse(text) {
-        if (typeof text !== "string") {
-            return null;
+    function getPayloadDataArray(payload, key) {
+        if (!payload || typeof payload !== "object") {
+            return [];
         }
-        var successMatch = text.match(/"success"\s*:\s*(true|false)/i);
-        if (!successMatch) {
-            return null;
+        if (payload.data && Array.isArray(payload.data[key])) {
+            return payload.data[key];
         }
-        var payload = {
-            success: successMatch[1].toLowerCase() === "true"
-        };
-        var messageMatch = text.match(/"message"\s*:\s*"([^"]*)"/i);
-        if (messageMatch) {
-            payload.message = decodeEscapedText(messageMatch[1]);
+        if (Array.isArray(payload[key])) {
+            return payload[key];
         }
-        var numberFields = ["total", "pending", "accepted", "rejected", "withdrawn"];
-        numberFields.forEach(function (field) {
-            var regex = new RegExp("\"" + field + "\"\\s*:\\s*(-?\\d+)", "i");
-            var match = text.match(regex);
-            if (match) {
-                payload[field] = Number(match[1]);
-            }
-        });
-        return payload;
+        return [];
     }
 
     function decodeEscapedText(value) {
