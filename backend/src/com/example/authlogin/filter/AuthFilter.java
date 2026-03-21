@@ -40,10 +40,11 @@ public class AuthFilter implements Filter {
         "/login",
         "/register",
         "/logout",
-        "/HelloServlet",
+        "/hello",
         "/index.jsp",
         "/login.jsp",
         "/register.jsp",
+        "/admin-register.jsp",
         "/test_applicant.jsp",
         "/jobs"
     ));

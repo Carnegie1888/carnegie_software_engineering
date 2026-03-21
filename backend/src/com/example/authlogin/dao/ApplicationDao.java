@@ -4,6 +4,9 @@ import com.example.authlogin.model.Application;
 import com.example.authlogin.util.StoragePaths;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,10 +95,36 @@ public class ApplicationDao {
      * 写入所有申请
      */
     private void writeAllApplications(List<Application> applications) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(APPLICATION_FILE))) {
-            writer.println(CSV_HEADER);
-            for (Application app : applications) {
-                writer.println(app.toCsv());
+        try {
+            Path targetPath = Path.of(APPLICATION_FILE);
+            Path parent = targetPath.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            Path tempFile = Files.createTempFile(parent, "applications", ".csv.tmp");
+            try (PrintWriter writer = new PrintWriter(new FileWriter(tempFile.toFile()))) {
+                writer.println(CSV_HEADER);
+                for (Application app : applications) {
+                    writer.println(app.toCsv());
+                }
+            }
+            Files.move(tempFile, targetPath,
+                    StandardCopyOption.REPLACE_EXISTING,
+                    StandardCopyOption.ATOMIC_MOVE);
+        } catch (java.nio.file.AtomicMoveNotSupportedException e) {
+            try {
+                Path targetPath = Path.of(APPLICATION_FILE);
+                Path parent = targetPath.getParent();
+                Path tempFile = Files.createTempFile(parent, "applications", ".csv.tmp");
+                try (PrintWriter writer = new PrintWriter(new FileWriter(tempFile.toFile()))) {
+                    writer.println(CSV_HEADER);
+                    for (Application app : applications) {
+                        writer.println(app.toCsv());
+                    }
+                }
+                Files.move(tempFile, targetPath, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException inner) {
+                throw new RuntimeException("Failed to write applications file", inner);
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to write applications file", e);

@@ -4,6 +4,9 @@ import com.example.authlogin.model.Job;
 import com.example.authlogin.util.StoragePaths;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,12 +95,21 @@ public class JobDao {
      * 写入所有职位
      */
     private void writeAllJobs(List<Job> jobs) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(JOB_FILE))) {
+        Path targetPath = Path.of(JOB_FILE);
+        Path tempPath = Path.of(JOB_FILE + ".tmp");
+        try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(tempPath))) {
             writer.println(CSV_HEADER);
             for (Job job : jobs) {
                 writer.println(job.toCsv());
             }
+            writer.flush();
+            Files.move(tempPath, targetPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException e) {
+            try {
+                Files.deleteIfExists(tempPath);
+            } catch (IOException ignored) {
+                // best effort cleanup
+            }
             throw new RuntimeException("Failed to write jobs file", e);
         }
     }

@@ -4,6 +4,9 @@ import com.example.authlogin.model.User;
 import com.example.authlogin.util.StoragePaths;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -122,11 +125,15 @@ public class UserDao {
      * 写入所有用户
      */
     private void writeUsersToFile(String filePath, List<User> users) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
+        Path targetPath = Path.of(filePath);
+        Path tempPath = targetPath.resolveSibling(targetPath.getFileName() + ".tmp");
+        try (PrintWriter writer = new PrintWriter(new FileWriter(tempPath.toFile()))) {
             writer.println(CSV_HEADER);
             for (User user : users) {
                 writer.println(user.toCsv());
             }
+            writer.flush();
+            Files.move(tempPath, targetPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException e) {
             throw new RuntimeException("Failed to write users file", e);
         }

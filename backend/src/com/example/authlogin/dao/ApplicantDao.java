@@ -4,6 +4,9 @@ import com.example.authlogin.model.Applicant;
 import com.example.authlogin.util.StoragePaths;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -91,11 +94,15 @@ public class ApplicantDao {
      * 写入所有申请人
      */
     private void writeAllApplicants(List<Applicant> applicants) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(APPLICANT_FILE))) {
+        Path targetPath = Path.of(APPLICANT_FILE);
+        Path tempPath = targetPath.resolveSibling(targetPath.getFileName() + ".tmp");
+        try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(tempPath))) {
             writer.println(CSV_HEADER);
             for (Applicant applicant : applicants) {
                 writer.println(applicant.toCsv());
             }
+            writer.flush();
+            Files.move(tempPath, targetPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException e) {
             throw new RuntimeException("Failed to write applicants file", e);
         }
