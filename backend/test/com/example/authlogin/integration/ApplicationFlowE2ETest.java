@@ -9,6 +9,7 @@ import com.example.authlogin.model.Application;
 import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
 import com.example.authlogin.service.MissingSkillsService;
+import com.example.authlogin.service.SkillMatchService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -237,6 +238,24 @@ public class ApplicationFlowE2ETest {
                 Applicant lookedUpByUserId = applicantDao.findByUserId(firstJobApplications.get(0).getApplicantId()).orElseThrow();
                 assert lookedUpByUserId.getApplicantId().equals(firstApplicant.getApplicantId())
                         : "application applicantId should be resolved via applicant userId";
+            });
+
+            test("End-to-end: skill match should use applicant profile skills", () -> {
+                Job firstJob = jobDao.findByCourseCode("CS601").stream().findFirst().orElseThrow();
+                Application firstApplication = applicationDao.findByJobId(firstJob.getJobId()).stream().findFirst().orElseThrow();
+                Applicant firstApplicant = applicantDao.findByUserId(firstApplication.getApplicantId()).orElseThrow();
+
+                SkillMatchService skillMatchService = new SkillMatchService((required, applicant) -> java.util.Optional.empty());
+                SkillMatchService.SkillMatchResult result = skillMatchService.matchByKeywords(
+                        firstJob.getRequiredSkills(),
+                        firstJob.getDescription(),
+                        firstApplicant.getSkills(),
+                        String.join(" ", firstApplicant.getSkills())
+                );
+
+                assert result.getMatchedSkills().contains("java") : "matched skills should include java";
+                assert result.getMatchedSkills().contains("sql") : "matched skills should include sql";
+                assert result.getScore() >= 100.0 : "profile skills should fully match required skills";
             });
         } finally {
             applicationDao.deleteAll();
