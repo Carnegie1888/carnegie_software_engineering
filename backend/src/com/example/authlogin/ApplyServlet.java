@@ -1,7 +1,9 @@
 package com.example.authlogin;
 
+import com.example.authlogin.dao.ApplicantDao;
 import com.example.authlogin.dao.ApplicationDao;
 import com.example.authlogin.dao.JobDao;
+import com.example.authlogin.model.Applicant;
 import com.example.authlogin.model.Application;
 import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
@@ -14,6 +16,7 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,6 +33,7 @@ import java.util.stream.Collectors;
 @WebServlet("/apply")
 public class ApplyServlet extends HttpServlet {
 
+    private ApplicantDao applicantDao;
     private ApplicationDao applicationDao;
     private JobDao jobDao;
     private static final int MAX_COVER_LETTER_LENGTH = 2000;
@@ -48,6 +52,7 @@ public class ApplyServlet extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
+        applicantDao = ApplicantDao.getInstance();
         applicationDao = ApplicationDao.getInstance();
         jobDao = JobDao.getInstance();
         logInfo("ApplyServlet initialized");
@@ -237,6 +242,23 @@ public class ApplyServlet extends HttpServlet {
                 return;
             }
 
+            if (job.getDeadline() != null && job.getDeadline().isBefore(LocalDateTime.now())) {
+                writeJsonResponse(response, 400, false, "The application deadline for this job has passed", null);
+                return;
+            }
+
+            Optional<Applicant> applicantOpt = applicantDao.findByUserId(currentUser.getUserId());
+            if (applicantOpt.isEmpty()) {
+                writeJsonResponse(response, 400, false, "Please create your applicant profile before applying", null);
+                return;
+            }
+
+            Applicant applicant = applicantOpt.get();
+            if (applicant.getResumePath() == null || applicant.getResumePath().trim().isEmpty()) {
+                writeJsonResponse(response, 400, false, "Please upload your resume before applying", null);
+                return;
+            }
+
             // 检查是否已申请
             if (applicationDao.hasApplied(normalizedJobId, currentUser.getUserId())) {
                 writeJsonResponse(response, 400, false, "You have already applied for this job", null);
@@ -351,9 +373,36 @@ public class ApplyServlet extends HttpServlet {
             return;
         }
 
+        Optional<Job> jobOpt = jobDao.findById(application.getJobId());
+        if (jobOpt.isEmpty()) {
+            writeJsonResponse(response, 404, false, "Job not found for this application", null);
+            return;
+        }
+
+        Job job = jobOpt.get();
+        if (job.getStatus() != Job.Status.OPEN) {
+            writeJsonResponse(response, 400, false, "This job is no longer open for accepting applications", null);
+            return;
+        }
+
+        long acceptedCount = applicationDao.countAcceptedByJobId(job.getJobId());
+        if (acceptedCount >= job.getPositions()) {
+            if (job.getStatus() != Job.Status.FILLED) {
+                job.setStatus(Job.Status.FILLED);
+                jobDao.update(job);
+            }
+            writeJsonResponse(response, 400, false, "This job has already filled all available positions", null);
+            return;
+        }
+
         // 接受申请
         boolean updated = applicationDao.accept(application.getApplicationId());
         if (updated) {
+            long updatedAcceptedCount = applicationDao.countAcceptedByJobId(job.getJobId());
+            if (updatedAcceptedCount >= job.getPositions() && job.getStatus() != Job.Status.FILLED) {
+                job.setStatus(Job.Status.FILLED);
+                jobDao.update(job);
+            }
             // 获取更新后的申请状态
             Optional<Application> updatedApp = applicationDao.findById(application.getApplicationId());
             if (updatedApp.isPresent()) {

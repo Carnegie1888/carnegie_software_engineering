@@ -300,6 +300,15 @@ public class ApplicationDao {
     }
 
     /**
+     * 获取指定职位已接受申请数量
+     */
+    public long countAcceptedByJobId(String jobId) {
+        return readAllApplications().stream()
+                .filter(a -> a.getJobId().equals(jobId) && a.getStatus() == Application.Status.ACCEPTED)
+                .count();
+    }
+
+    /**
      * 清空所有申请（仅用于测试）
      */
     public void deleteAll() {

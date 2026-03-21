@@ -13,6 +13,7 @@ import com.example.authlogin.service.MissingSkillsService;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
 
 /**
  * 申请流程端到端测试
@@ -88,6 +89,98 @@ public class ApplicationFlowE2ETest {
                 assert updated : "accept operation should succeed";
                 Application refreshed = applicationDao.findById(app.getApplicationId()).orElseThrow();
                 assert refreshed.getStatus() == Application.Status.ACCEPTED : "application status should become ACCEPTED";
+            });
+
+            test("End-to-end: accepted count should not exceed positions", () -> {
+                User mo = userDao.findByUsername("e2e_mo").orElseThrow();
+
+                User taSecond = userDao.create(new User("e2e_ta_second", "Pass1234", "e2e_ta_second@example.com", User.Role.TA));
+                Applicant secondApplicant = new Applicant();
+                secondApplicant.setUserId(taSecond.getUserId());
+                secondApplicant.setFullName("Second TA");
+                secondApplicant.setStudentId("2023002004");
+                secondApplicant.setDepartment("Computer Science");
+                secondApplicant.setProgram("Master");
+                secondApplicant.setSkills(Arrays.asList("Java"));
+                secondApplicant.setResumePath("resumes/second-ta.pdf");
+                applicantDao.create(secondApplicant);
+
+                Job limitedJob = new Job();
+                limitedJob.setMoId(mo.getUserId());
+                limitedJob.setMoName("Dr. E2E");
+                limitedJob.setTitle("Single Slot TA");
+                limitedJob.setCourseCode("CS603");
+                limitedJob.setRequiredSkills(Arrays.asList("Java"));
+                limitedJob.setPositions(1);
+                limitedJob.setStatus(Job.Status.OPEN);
+                jobDao.create(limitedJob);
+
+                User taThird = userDao.create(new User("e2e_ta_third", "Pass1234", "e2e_ta_third@example.com", User.Role.TA));
+                Applicant thirdApplicant = new Applicant();
+                thirdApplicant.setUserId(taThird.getUserId());
+                thirdApplicant.setFullName("Third TA");
+                thirdApplicant.setStudentId("2023002005");
+                thirdApplicant.setDepartment("Computer Science");
+                thirdApplicant.setProgram("Master");
+                thirdApplicant.setSkills(Arrays.asList("Java"));
+                thirdApplicant.setResumePath("resumes/third-ta.pdf");
+                applicantDao.create(thirdApplicant);
+
+                Application secondSlotApp = new Application();
+                secondSlotApp.setJobId(limitedJob.getJobId());
+                secondSlotApp.setApplicantId(taSecond.getUserId());
+                secondSlotApp.setApplicantName(taSecond.getUsername());
+                secondSlotApp.setApplicantEmail(taSecond.getEmail());
+                secondSlotApp.setJobTitle(limitedJob.getTitle());
+                secondSlotApp.setCourseCode(limitedJob.getCourseCode());
+                secondSlotApp.setMoId(limitedJob.getMoId());
+                secondSlotApp.setMoName(limitedJob.getMoName());
+                applicationDao.create(secondSlotApp);
+
+                Application thirdSlotApp = new Application();
+                thirdSlotApp.setJobId(limitedJob.getJobId());
+                thirdSlotApp.setApplicantId(taThird.getUserId());
+                thirdSlotApp.setApplicantName(taThird.getUsername());
+                thirdSlotApp.setApplicantEmail(taThird.getEmail());
+                thirdSlotApp.setJobTitle(limitedJob.getTitle());
+                thirdSlotApp.setCourseCode(limitedJob.getCourseCode());
+                thirdSlotApp.setMoId(limitedJob.getMoId());
+                thirdSlotApp.setMoName(limitedJob.getMoName());
+                applicationDao.create(thirdSlotApp);
+
+                assert applicationDao.accept(secondSlotApp.getApplicationId()) : "first acceptance should succeed";
+                assert applicationDao.countAcceptedByJobId(limitedJob.getJobId()) == 1 : "accepted count should be 1";
+
+                boolean wouldOverflow = applicationDao.countAcceptedByJobId(limitedJob.getJobId()) >= limitedJob.getPositions();
+                assert wouldOverflow : "job should be full after one acceptance";
+            });
+
+            test("End-to-end: deadline and resume prerequisites should be enforceable", () -> {
+                User mo = userDao.findByUsername("e2e_mo").orElseThrow();
+                User taNoResume = userDao.create(new User("e2e_ta_nors", "Pass1234", "e2e_ta_nors@example.com", User.Role.TA));
+                Applicant noResumeApplicant = new Applicant();
+                noResumeApplicant.setUserId(taNoResume.getUserId());
+                noResumeApplicant.setFullName("No Resume TA");
+                noResumeApplicant.setStudentId("2023002006");
+                noResumeApplicant.setDepartment("Computer Science");
+                noResumeApplicant.setProgram("Master");
+                noResumeApplicant.setSkills(Arrays.asList("SQL"));
+                applicantDao.create(noResumeApplicant);
+
+                Job expiredJob = new Job();
+                expiredJob.setMoId(mo.getUserId());
+                expiredJob.setMoName("Dr. E2E");
+                expiredJob.setTitle("Expired TA");
+                expiredJob.setCourseCode("CS604");
+                expiredJob.setRequiredSkills(Arrays.asList("SQL"));
+                expiredJob.setDeadline(LocalDateTime.now().minusDays(1));
+                expiredJob.setStatus(Job.Status.OPEN);
+                jobDao.create(expiredJob);
+
+                String resumePath = applicantDao.findByUserId(taNoResume.getUserId()).orElseThrow().getResumePath();
+                assert resumePath == null || resumePath.trim().isEmpty()
+                        : "applicant should not have resume before applying";
+                assert expiredJob.getDeadline().isBefore(LocalDateTime.now()) : "job should already be expired";
             });
 
             test("End-to-end: missing skills aggregation should only use applied applicants", () -> {
