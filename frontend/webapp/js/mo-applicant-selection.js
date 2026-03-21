@@ -31,6 +31,7 @@
         reviewingId: "",
         jobs: [],
         applications: [],
+        applicantDetailsByApplicationId: {},
         initialJobId: initialJobIdFromQuery,
         hasAppliedUrlFilters: false
     };
@@ -91,10 +92,12 @@
                 }
 
                 if (!response.ok || !payload || payload.success !== true) {
+                    state.jobs = [];
+                    renderJobOptions([]);
                     return;
                 }
 
-                var jobs = Array.isArray(payload.jobs) ? payload.jobs : [];
+                var jobs = getPayloadDataArray(payload, "jobs");
                 state.jobs = jobs;
                 renderJobOptions(jobs);
             })
@@ -144,6 +147,7 @@
         hideMessage();
         listSummaryNode.textContent = "Loading applications...";
         listNode.innerHTML = "";
+        state.applicantDetailsByApplicationId = {};
 
         var url = buildApplyUrl();
 
@@ -185,9 +189,12 @@
                     return;
                 }
 
-                state.applications = Array.isArray(payload.applications) ? payload.applications : [];
-                renderSummary(state.applications);
-                renderList(state.applications);
+                state.applications = getPayloadDataArray(payload, "applications");
+                return loadApplicantDetails(state.applications)
+                    .then(function () {
+                        renderSummary(state.applications);
+                        renderList(state.applications);
+                    });
             })
             .catch(function () {
                 showMessage("Network error. Please try again.", "error");
@@ -198,6 +205,37 @@
             .finally(function () {
                 setLoading(false);
             });
+    }
+
+    function loadApplicantDetails(applications) {
+        if (!Array.isArray(applications) || applications.length === 0) {
+            return Promise.resolve();
+        }
+
+        var detailRequests = applications.map(function (application) {
+            var applicationId = safeText(application.applicationId, "");
+            if (!applicationId) {
+                return Promise.resolve();
+            }
+
+            return request(contextPath + "/api/applicants/detail?applicationId=" + encodeURIComponent(applicationId), {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            }).then(function (result) {
+                var response = result.response;
+                var payload = result.payload;
+                if (!response.ok || !payload || payload.success !== true) {
+                    return;
+                }
+                state.applicantDetailsByApplicationId[applicationId] = getPayloadDataObject(payload);
+            }).catch(function () {
+                // keep partial rendering, detail can fail independently
+            });
+        });
+
+        return Promise.all(detailRequests);
     }
 
     function buildApplyUrl() {
@@ -257,11 +295,11 @@
 
         listSummaryNode.textContent = "Showing " + applications.length + " application" + (applications.length > 1 ? "s" : "") + ".";
         applications.forEach(function (application) {
-            listNode.appendChild(createApplicationCard(application));
+            listNode.appendChild(createApplicationCard(application, state.applicantDetailsByApplicationId[safeText(application.applicationId, "")]));
         });
     }
 
-    function createApplicationCard(application) {
+    function createApplicationCard(application, detail) {
         var card = document.createElement("article");
         card.className = "application-card";
 
@@ -285,6 +323,7 @@
                 "<p><span>Course</span><strong>" + escapeHtml(safeText(application.courseCode, "-")) + "</strong></p>" +
                 "<p><span>Applied at</span><strong>" + escapeHtml(formatDateTime(application.appliedAt)) + "</strong></p>" +
             "</div>" +
+            buildDetailBlock(detail, applicationId) +
             "<div class=\"cover-letter-block\">" +
                 "<p class=\"cover-letter-label\">Cover letter</p>" +
                 "<p class=\"cover-letter-content\">" + escapeHtml(coverLetterText) + "</p>" +
@@ -317,6 +356,59 @@
         }
 
         return card;
+    }
+
+    function buildDetailBlock(detail, applicationId) {
+        if (!detail) {
+            return "<section class=\"applicant-detail-block\">" +
+                "<p class=\"detail-title\">Applicant profile</p>" +
+                "<p class=\"detail-empty\">Applicant profile details are temporarily unavailable.</p>" +
+            "</section>";
+        }
+
+        var skills = Array.isArray(detail.skills) ? detail.skills : [];
+        var skillsMarkup = skills.length
+            ? skills.map(function (skill) {
+                return "<span class=\"detail-chip\">" + escapeHtml(safeText(skill, "")) + "</span>";
+            }).join("")
+            : "<span class=\"detail-chip muted\">No skills listed</span>";
+
+        var resumeAction = detail.hasResume
+            ? "<a class=\"inline-link\" href=\"" + contextPath + "/api/applicants/resume?applicationId=" + encodeURIComponent(applicationId) + "\" target=\"_blank\" rel=\"noopener\">View resume</a>"
+            : "<span class=\"detail-muted\">Resume not uploaded</span>";
+
+        return "<section class=\"applicant-detail-block\">" +
+            "<p class=\"detail-title\">Applicant profile</p>" +
+            "<div class=\"detail-grid\">" +
+                buildDetailItem("Department", detail.department) +
+                buildDetailItem("Program", detail.program) +
+                buildDetailItem("GPA", detail.gpa) +
+                buildDetailItem("Phone", detail.phone) +
+            "</div>" +
+            "<div class=\"detail-section\">" +
+                "<p class=\"detail-label\">Skills</p>" +
+                "<div class=\"detail-chips\">" + skillsMarkup + "</div>" +
+            "</div>" +
+            "<div class=\"detail-section\">" +
+                "<p class=\"detail-label\">Experience</p>" +
+                "<p class=\"detail-copy\">" + escapeHtml(safeText(detail.experience, "No experience provided.")) + "</p>" +
+            "</div>" +
+            "<div class=\"detail-section\">" +
+                "<p class=\"detail-label\">Motivation</p>" +
+                "<p class=\"detail-copy\">" + escapeHtml(safeText(detail.motivation, "No motivation statement provided.")) + "</p>" +
+            "</div>" +
+            "<div class=\"detail-section detail-actions\">" +
+                "<p class=\"detail-label\">Resume</p>" +
+                resumeAction +
+            "</div>" +
+        "</section>";
+    }
+
+    function buildDetailItem(label, value) {
+        return "<div class=\"detail-item\">" +
+            "<span>" + escapeHtml(label) + "</span>" +
+            "<strong>" + escapeHtml(safeText(value, "-")) + "</strong>" +
+        "</div>";
     }
 
     function handleReview(applicationId, action) {
@@ -459,41 +551,30 @@
     }
 
     function parseJson(text) {
-        try {
-            return JSON.parse(text);
-        } catch (error) {
-            return parseLegacyResponse(text);
-        }
+        return JSON.parse(text);
     }
 
-    function parseLegacyResponse(text) {
-        if (typeof text !== "string") {
-            return null;
+    function getPayloadDataArray(payload, key) {
+        if (!payload || typeof payload !== "object") {
+            return [];
         }
-
-        var successMatch = text.match(/"success"\s*:\s*(true|false)/i);
-        if (!successMatch) {
-            return null;
+        if (payload.data && Array.isArray(payload.data[key])) {
+            return payload.data[key];
         }
+        if (Array.isArray(payload[key])) {
+            return payload[key];
+        }
+        return [];
+    }
 
-        var payload = {
-            success: successMatch[1].toLowerCase() === "true"
-        };
-
-        var messageMatch = text.match(/"message"\s*:\s*"([^"]*)"/i);
-        if (messageMatch) {
-            payload.message = decodeEscapedText(messageMatch[1]);
+    function getPayloadDataObject(payload) {
+        if (!payload || typeof payload !== "object") {
+            return {};
+        }
+        if (payload.data && typeof payload.data === "object") {
+            return payload.data;
         }
         return payload;
-    }
-
-    function decodeEscapedText(value) {
-        return value
-            .replace(/\\"/g, "\"")
-            .replace(/\\\\/g, "\\")
-            .replace(/\\n/g, "\n")
-            .replace(/\\r/g, "\r")
-            .replace(/\\t/g, "\t");
     }
 
     function safeText(value, fallback) {

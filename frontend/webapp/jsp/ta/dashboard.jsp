@@ -264,6 +264,8 @@
                         <button id="profile-submit" class="profile-submit-btn" type="submit">
                             Create profile
                         </button>
+                        <button id="profile-edit-btn" class="ghost-btn" type="button" hidden>Edit profile</button>
+                        <button id="profile-cancel-btn" class="ghost-btn" type="button" hidden>Cancel</button>
                         <p class="action-hint">You can continue to enrich this profile later in the next planned steps.</p>
                     </div>
                 </form>

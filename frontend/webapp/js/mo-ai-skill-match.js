@@ -82,7 +82,7 @@
                 renderJobOptions([]);
                 return;
             }
-            state.jobs = Array.isArray(payload.jobs) ? payload.jobs : [];
+            state.jobs = getPayloadDataArray(payload, "jobs");
             renderJobOptions(state.jobs);
         }).catch(function () {
             showMessage("Network error while loading jobs.", "error");
@@ -131,7 +131,7 @@
         listSummaryNode.textContent = "Loading match results...";
         listNode.innerHTML = "";
 
-        var url = contextPath + "/apply?jobId=" + encodeURIComponent(selectedJobId);
+        var url = contextPath + "/api/mo/skill-match?jobId=" + encodeURIComponent(selectedJobId);
         return request(url, {
             method: "GET",
             headers: { "X-Requested-With": "XMLHttpRequest" }
@@ -159,10 +159,7 @@
                 return;
             }
 
-            var applications = Array.isArray(payload.applications) ? payload.applications : [];
-            state.matches = applications.map(function (application) {
-                return buildMatchModel(application, state.selectedJob);
-            });
+            state.matches = getPayloadDataArray(payload, "matches").map(buildMatchModel);
             renderSummary(state.matches);
             renderList(state.matches);
         }).catch(function () {
@@ -176,54 +173,32 @@
         });
     }
 
-    function buildMatchModel(application, job) {
-        var requiredSkills = parseRequiredSkills(job && job.requiredSkills);
-        var coverText = safeText(application.coverLetter, "");
-        var score = estimateMatchScore(requiredSkills, coverText);
+    function buildMatchModel(match) {
+        var matchedSkills = getSafeArray(match.matchedSkills);
+        var missingSkills = getSafeArray(match.missingSkills);
+        var matchedKeywords = getSafeArray(match.matchedKeywords);
+        var missingKeywords = getSafeArray(match.missingKeywords);
+        var score = Number(match.score || 0);
         return {
-            applicationId: safeText(application.applicationId, ""),
-            applicantId: safeText(application.applicantId, ""),
-            applicantName: safeText(application.applicantName, "Unknown applicant"),
-            applicantEmail: safeText(application.applicantEmail, "-"),
-            status: safeText(application.status, "PENDING").toUpperCase(),
-            appliedAt: safeText(application.appliedAt, ""),
-            courseCode: safeText(application.courseCode, "-"),
-            jobTitle: safeText(application.jobTitle, "Untitled position"),
-            requiredSkills: requiredSkills,
+            applicationId: safeText(match.applicationId, ""),
+            applicantId: safeText(match.applicantId, ""),
+            applicantName: safeText(match.applicantName, "Unknown applicant"),
+            applicantEmail: safeText(match.applicantEmail, "-"),
+            status: safeText(match.applicationStatus, "PENDING").toUpperCase(),
+            appliedAt: safeText(match.appliedAt, ""),
+            courseCode: safeText(match.courseCode, "-"),
+            jobTitle: safeText(match.jobTitle, "Untitled position"),
             score: score,
             scoreLevel: score >= 85 ? "high" : (score >= 60 ? "medium" : "low"),
-            coverLetter: coverText
+            matchedSkills: matchedSkills,
+            missingSkills: missingSkills,
+            matchedKeywords: matchedKeywords,
+            missingKeywords: missingKeywords,
+            aiEnhanced: !!match.aiEnhanced,
+            aiReason: safeText(match.aiReason, ""),
+            skillScore: Number(match.skillScore || score),
+            keywordScore: Number(match.keywordScore || score)
         };
-    }
-
-    function parseRequiredSkills(raw) {
-        if (typeof raw !== "string" || !raw.trim()) {
-            return [];
-        }
-        return raw.split(/[;,]/).map(function (item) {
-            return item.trim();
-        }).filter(function (item) {
-            return item.length > 0;
-        });
-    }
-
-    function estimateMatchScore(requiredSkills, coverText) {
-        if (!requiredSkills.length) {
-            return 100;
-        }
-        var lowerCover = coverText.toLowerCase();
-        var matched = 0;
-        requiredSkills.forEach(function (skill) {
-            var skillLower = skill.toLowerCase();
-            if (lowerCover.indexOf(skillLower) >= 0) {
-                matched += 1;
-            }
-        });
-        var base = Math.round((matched * 100) / requiredSkills.length);
-        if (matched === 0 && coverText.length > 0) {
-            return 35;
-        }
-        return Math.max(0, Math.min(100, base));
     }
 
     function renderSummary(matches) {
@@ -269,7 +244,8 @@
     function createMatchCard(match) {
         var card = document.createElement("article");
         card.className = "match-card";
-        var skillsPreview = buildSkillPreview(match.requiredSkills, match.coverLetter);
+        var skillsPreview = buildSkillPreview(match.matchedSkills, match.missingSkills);
+        var keywordPreview = buildKeywordPreview(match.matchedKeywords, match.missingKeywords);
         var ringStyle = buildRingStyle(match.score);
         card.innerHTML =
             "<header class=\"match-card-header\">" +
@@ -285,8 +261,14 @@
                 "<p><span>Job</span><strong>" + escapeHtml(match.jobTitle) + "</strong></p>" +
                 "<p><span>Course</span><strong>" + escapeHtml(match.courseCode) + "</strong></p>" +
                 "<p><span>Status</span><strong>" + escapeHtml(match.status) + "</strong></p>" +
+                "<p><span>Skill score</span><strong>" + escapeHtml(String(Math.round(match.skillScore))) + "%</strong></p>" +
+                "<p><span>Keyword score</span><strong>" + escapeHtml(String(Math.round(match.keywordScore))) + "%</strong></p>" +
             "</div>" +
-            "<div class=\"skills-preview\">" + skillsPreview + "</div>";
+            "<div class=\"skills-preview\">" + skillsPreview + "</div>" +
+            "<div class=\"skills-preview keyword-preview\">" + keywordPreview + "</div>" +
+            (match.aiEnhanced || match.aiReason
+                ? "<p class=\"match-ai-reason\">" + escapeHtml(match.aiReason || "AI-enhanced matching applied.") + "</p>"
+                : "");
         return card;
     }
 
@@ -348,15 +330,32 @@
         return "conic-gradient(" + color + " 0turn, " + color + " " + turn + "turn, #e8ecf1 " + turn + "turn)";
     }
 
-    function buildSkillPreview(requiredSkills, coverText) {
-        if (!requiredSkills.length) {
-            return "<span class=\"skill-chip\">No required skills configured</span>";
+    function buildSkillPreview(matchedSkills, missingSkills) {
+        var html = [];
+        if (!matchedSkills.length && !missingSkills.length) {
+            return "<span class=\"skill-chip\">No structured skill data available</span>";
         }
-        var lowerCover = coverText.toLowerCase();
-        return requiredSkills.map(function (skill) {
-            var hit = lowerCover.indexOf(skill.toLowerCase()) >= 0;
-            return "<span class=\"skill-chip" + (hit ? " is-hit" : "") + "\">" + escapeHtml(skill) + "</span>";
-        }).join("");
+        matchedSkills.forEach(function (skill) {
+            html.push("<span class=\"skill-chip is-hit\">Matched: " + escapeHtml(skill) + "</span>");
+        });
+        missingSkills.forEach(function (skill) {
+            html.push("<span class=\"skill-chip\">Missing: " + escapeHtml(skill) + "</span>");
+        });
+        return html.join("");
+    }
+
+    function buildKeywordPreview(matchedKeywords, missingKeywords) {
+        var html = [];
+        if (!matchedKeywords.length && !missingKeywords.length) {
+            return "<span class=\"skill-chip\">No keyword insights available</span>";
+        }
+        matchedKeywords.slice(0, 5).forEach(function (keyword) {
+            html.push("<span class=\"skill-chip is-hit\">Keyword: " + escapeHtml(keyword) + "</span>");
+        });
+        missingKeywords.slice(0, 5).forEach(function (keyword) {
+            html.push("<span class=\"skill-chip\">Gap keyword: " + escapeHtml(keyword) + "</span>");
+        });
+        return html.join("");
     }
 
     function createEmptyState() {
@@ -433,38 +432,24 @@
     }
 
     function parseJson(text) {
-        try {
-            return JSON.parse(text);
-        } catch (error) {
-            return parseLegacyResponse(text);
-        }
+        return JSON.parse(text);
     }
 
-    function parseLegacyResponse(text) {
-        if (typeof text !== "string") {
-            return null;
+    function getPayloadDataArray(payload, key) {
+        if (!payload || typeof payload !== "object") {
+            return [];
         }
-        var successMatch = text.match(/"success"\s*:\s*(true|false)/i);
-        if (!successMatch) {
-            return null;
+        if (payload.data && Array.isArray(payload.data[key])) {
+            return payload.data[key];
         }
-        var payload = {
-            success: successMatch[1].toLowerCase() === "true"
-        };
-        var messageMatch = text.match(/"message"\s*:\s*"([^"]*)"/i);
-        if (messageMatch) {
-            payload.message = decodeEscapedText(messageMatch[1]);
+        if (Array.isArray(payload[key])) {
+            return payload[key];
         }
-        return payload;
+        return [];
     }
 
-    function decodeEscapedText(value) {
-        return value
-            .replace(/\\"/g, "\"")
-            .replace(/\\\\/g, "\\")
-            .replace(/\\n/g, "\n")
-            .replace(/\\r/g, "\r")
-            .replace(/\\t/g, "\t");
+    function getSafeArray(value) {
+        return Array.isArray(value) ? value : [];
     }
 
     function safeText(value, fallback) {

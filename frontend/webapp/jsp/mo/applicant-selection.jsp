@@ -154,6 +154,60 @@
                             </article>
                         </section>
 
+                        <section id="applicant-detail-panel" class="selection-detail-panel hidden" aria-label="申请人详细信息">
+                            <header class="selection-detail-header">
+                                <div>
+                                    <p class="selection-detail-label">Applicant profile</p>
+                                    <h2 id="detail-full-name">Select an applicant</h2>
+                                </div>
+                                <a id="detail-resume-link" class="ghost-btn hidden" href="#" target="_blank" rel="noopener noreferrer">View resume</a>
+                            </header>
+
+                            <div id="detail-message" class="form-message hidden" role="status" aria-live="polite"></div>
+
+                            <div class="selection-detail-grid">
+                                <article class="detail-card">
+                                    <p class="detail-card-label">Academic</p>
+                                    <dl class="detail-list">
+                                        <div><dt>Student ID</dt><dd id="detail-student-id">-</dd></div>
+                                        <div><dt>Department</dt><dd id="detail-department">-</dd></div>
+                                        <div><dt>Program</dt><dd id="detail-program">-</dd></div>
+                                        <div><dt>GPA</dt><dd id="detail-gpa">-</dd></div>
+                                    </dl>
+                                </article>
+
+                                <article class="detail-card">
+                                    <p class="detail-card-label">Contact</p>
+                                    <dl class="detail-list">
+                                        <div><dt>Email</dt><dd id="detail-email">-</dd></div>
+                                        <div><dt>Phone</dt><dd id="detail-phone">-</dd></div>
+                                        <div><dt>Address</dt><dd id="detail-address">-</dd></div>
+                                        <div><dt>Application</dt><dd id="detail-application-status">-</dd></div>
+                                    </dl>
+                                </article>
+                            </div>
+
+                            <article class="detail-card">
+                                <p class="detail-card-label">Skills</p>
+                                <div id="detail-skills" class="selection-detail-skills"></div>
+                            </article>
+
+                            <article class="detail-card">
+                                <p class="detail-card-label">Experience</p>
+                                <p id="detail-experience" class="selection-detail-copy">-</p>
+                            </article>
+
+                            <article class="detail-card">
+                                <p class="detail-card-label">Motivation</p>
+                                <p id="detail-motivation" class="selection-detail-copy">-</p>
+                            </article>
+
+                            <article class="detail-card">
+                                <p class="detail-card-label">Cover letter</p>
+                                <p id="detail-cover-letter" class="selection-detail-copy">-</p>
+                            </article>
+                        </section>
+
                         <p id="selection-list-summary" class="list-summary">Loading applications...</p>
                         <div id="applications-list" class="applications-list" aria-live="polite"></div>
                     </section>

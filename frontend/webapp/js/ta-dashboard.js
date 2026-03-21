@@ -8,6 +8,8 @@
     var messageBox = document.getElementById("form-message");
     var bannerBox = document.getElementById("existing-profile-banner");
     var submitButton = document.getElementById("profile-submit");
+    var editButton = document.getElementById("profile-edit-btn");
+    var cancelEditButton = document.getElementById("profile-cancel-btn");
     var formFields = form.querySelectorAll("input, select, textarea");
     var resumeFileInput = document.getElementById("resume-file-input");
     var resumeFileName = document.getElementById("resume-file-name");
@@ -37,6 +39,7 @@
 
     var state = {
         hasExistingProfile: false,
+        isEditing: false,
         isSubmitting: false,
         isLoading: false,
         isUploadingResume: false,
@@ -68,12 +71,39 @@
     form.addEventListener("submit", function (event) {
         event.preventDefault();
 
-        if (state.hasExistingProfile || state.isSubmitting || state.isLoading) {
+        if (state.isSubmitting || state.isLoading) {
+            return;
+        }
+
+        if (state.hasExistingProfile) {
+            if (!state.isEditing) {
+                return;
+            }
+            handleUpdate();
             return;
         }
 
         handleCreate();
     });
+
+    if (editButton) {
+        editButton.addEventListener("click", function () {
+            if (!state.hasExistingProfile || state.isSubmitting || state.isLoading) {
+                return;
+            }
+            enterEditMode();
+        });
+    }
+
+    if (cancelEditButton) {
+        cancelEditButton.addEventListener("click", function () {
+            if (!state.hasExistingProfile || state.isSubmitting || state.isLoading) {
+                return;
+            }
+            state.isEditing = false;
+            loadExistingProfile({ afterCreate: false, silentWhenMissing: false });
+        });
+    }
 
     if (resumeFileInput) {
         resumeFileInput.addEventListener("change", handleResumeFileChange);
@@ -237,6 +267,7 @@
 
     function applyExistingProfile(payload, createdNow) {
         state.hasExistingProfile = true;
+        state.isEditing = false;
         state.resumePath = payload && typeof payload.resumePath === "string" ? payload.resumePath : "";
 
         setFieldValue(inputs.fullName, payload.fullName);
@@ -267,8 +298,7 @@
         }
 
         showBanner(bannerMessage);
-        submitButton.textContent = "Profile already created";
-        submitButton.disabled = true;
+        updateProfileActionState();
         refreshResumeArea();
 
         if (createdNow) {
@@ -280,6 +310,7 @@
 
     function enableCreateMode() {
         state.hasExistingProfile = false;
+        state.isEditing = false;
         state.resumePath = "";
         setFormDisabled(false);
         form.classList.remove("is-readonly");
@@ -291,9 +322,8 @@
     }
 
     function refreshSubmitButton() {
-        if (state.hasExistingProfile) {
-            submitButton.textContent = "Profile already created";
-            submitButton.disabled = true;
+        if (state.hasExistingProfile && !state.isEditing) {
+            updateProfileActionState();
             return;
         }
 

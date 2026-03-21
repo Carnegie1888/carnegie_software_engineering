@@ -73,7 +73,7 @@
                 renderJobOptions([]);
                 return;
             }
-            state.jobs = Array.isArray(payload.jobs) ? payload.jobs : [];
+            state.jobs = getPayloadDataArray(payload, "jobs");
             renderJobOptions(state.jobs);
         }).catch(function () {
             showMessage("Network error while loading jobs.", "error");
@@ -144,10 +144,11 @@
                 return;
             }
 
-            var frequency = Array.isArray(payload.missingSkillFrequency) ? payload.missingSkillFrequency : [];
-            var scoreBuckets = payload.scoreBuckets && typeof payload.scoreBuckets === "object" ? payload.scoreBuckets : {};
-            var applicantCount = Number(payload.applicantCount || 0);
-            var requiredCount = Number(payload.requiredSkillCount || 0);
+            var data = getPayloadDataObject(payload);
+            var frequency = Array.isArray(data.missingSkillFrequency) ? data.missingSkillFrequency : [];
+            var scoreBuckets = data.scoreBuckets && typeof data.scoreBuckets === "object" ? data.scoreBuckets : {};
+            var applicantCount = Number(data.applicantCount || 0);
+            var requiredCount = Number(data.requiredSkillCount || 0);
             updateSummary(applicantCount, requiredCount, frequency.length);
             renderFrequencyChart(frequency);
             renderScoreBucketChart(scoreBuckets, applicantCount);
@@ -340,38 +341,30 @@
     }
 
     function parseJson(text) {
-        try {
-            return JSON.parse(text);
-        } catch (error) {
-            return parseLegacyResponse(text);
-        }
+        return JSON.parse(text);
     }
 
-    function parseLegacyResponse(text) {
-        if (typeof text !== "string") {
-            return null;
+    function getPayloadDataArray(payload, key) {
+        if (!payload || typeof payload !== "object") {
+            return [];
         }
-        var successMatch = text.match(/"success"\s*:\s*(true|false)/i);
-        if (!successMatch) {
-            return null;
+        if (payload.data && Array.isArray(payload.data[key])) {
+            return payload.data[key];
         }
-        var payload = {
-            success: successMatch[1].toLowerCase() === "true"
-        };
-        var messageMatch = text.match(/"message"\s*:\s*"([^"]*)"/i);
-        if (messageMatch) {
-            payload.message = decodeEscapedText(messageMatch[1]);
+        if (Array.isArray(payload[key])) {
+            return payload[key];
+        }
+        return [];
+    }
+
+    function getPayloadDataObject(payload) {
+        if (!payload || typeof payload !== "object") {
+            return {};
+        }
+        if (payload.data && typeof payload.data === "object") {
+            return payload.data;
         }
         return payload;
-    }
-
-    function decodeEscapedText(value) {
-        return value
-            .replace(/\\"/g, "\"")
-            .replace(/\\\\/g, "\\")
-            .replace(/\\n/g, "\n")
-            .replace(/\\r/g, "\r")
-            .replace(/\\t/g, "\t");
     }
 
     function safeText(value, fallback) {
