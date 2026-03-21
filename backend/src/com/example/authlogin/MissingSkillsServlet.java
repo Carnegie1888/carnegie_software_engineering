@@ -1,8 +1,10 @@
 package com.example.authlogin;
 
 import com.example.authlogin.dao.ApplicantDao;
+import com.example.authlogin.dao.ApplicationDao;
 import com.example.authlogin.dao.JobDao;
 import com.example.authlogin.model.Applicant;
+import com.example.authlogin.model.Application;
 import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
 import com.example.authlogin.service.MissingSkillsService;
@@ -16,6 +18,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,12 +31,14 @@ import java.util.Optional;
 public class MissingSkillsServlet extends HttpServlet {
 
     private JobDao jobDao;
+    private ApplicationDao applicationDao;
     private ApplicantDao applicantDao;
     private MissingSkillsService missingSkillsService;
 
     @Override
     public void init() throws ServletException {
         jobDao = JobDao.getInstance();
+        applicationDao = ApplicationDao.getInstance();
         applicantDao = ApplicantDao.getInstance();
         missingSkillsService = new MissingSkillsService();
     }
@@ -81,7 +86,7 @@ public class MissingSkillsServlet extends HttpServlet {
     }
 
     private void handleSingleApplicant(HttpServletResponse response, Job job, String applicantId) throws IOException {
-        Optional<Applicant> applicantOpt = applicantDao.findById(applicantId);
+        Optional<Applicant> applicantOpt = resolveApplicantByIdentifier(applicantId);
         if (applicantOpt.isEmpty()) {
             writeJsonResponse(response, 404, false, "Applicant not found", null);
             return;
@@ -117,7 +122,7 @@ public class MissingSkillsServlet extends HttpServlet {
     }
 
     private void handleAggregateApplicants(HttpServletResponse response, Job job) throws IOException {
-        List<Applicant> applicants = applicantDao.findAll();
+        List<Applicant> applicants = resolveApplicantsForJob(job.getJobId());
         List<List<String>> applicantSkillLists = new ArrayList<>();
         int high = 0;
         int medium = 0;
@@ -155,6 +160,43 @@ public class MissingSkillsServlet extends HttpServlet {
         data.append("\"missingSkillFrequency\": ").append(skillFrequencyToJson(frequency));
 
         writeJsonResponse(response, 200, true, "Aggregate missing skills visualization data generated", data.toString());
+    }
+
+    Optional<Applicant> resolveApplicantByIdentifier(String applicantIdentifier) {
+        if (applicantIdentifier == null || applicantIdentifier.trim().isEmpty()) {
+            return Optional.empty();
+        }
+
+        String normalizedIdentifier = applicantIdentifier.trim();
+        Optional<Applicant> applicantByUserId = applicantDao.findByUserId(normalizedIdentifier);
+        if (applicantByUserId.isPresent()) {
+            return applicantByUserId;
+        }
+
+        return applicantDao.findById(normalizedIdentifier);
+    }
+
+    List<Applicant> resolveApplicantsForJob(String jobId) {
+        if (jobId == null || jobId.trim().isEmpty()) {
+            return List.of();
+        }
+
+        Map<String, Applicant> applicantsByUserId = new LinkedHashMap<>();
+        for (Application application : applicationDao.findByJobId(jobId.trim())) {
+            if (application == null || application.getApplicantId() == null || application.getApplicantId().trim().isEmpty()) {
+                continue;
+            }
+
+            String applicantUserId = application.getApplicantId().trim();
+            if (applicantsByUserId.containsKey(applicantUserId)) {
+                continue;
+            }
+
+            applicantDao.findByUserId(applicantUserId)
+                    .ifPresent(applicant -> applicantsByUserId.put(applicantUserId, applicant));
+        }
+
+        return new ArrayList<>(applicantsByUserId.values());
     }
 
     private User getCurrentUser(HttpServletRequest request) {

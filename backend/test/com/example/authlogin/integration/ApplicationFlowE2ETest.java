@@ -8,8 +8,11 @@ import com.example.authlogin.model.Applicant;
 import com.example.authlogin.model.Application;
 import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
+import com.example.authlogin.service.MissingSkillsService;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 申请流程端到端测试
@@ -85,6 +88,62 @@ public class ApplicationFlowE2ETest {
                 assert updated : "accept operation should succeed";
                 Application refreshed = applicationDao.findById(app.getApplicationId()).orElseThrow();
                 assert refreshed.getStatus() == Application.Status.ACCEPTED : "application status should become ACCEPTED";
+            });
+
+            test("End-to-end: missing skills aggregation should only use applied applicants", () -> {
+                User mo = userDao.findByUsername("e2e_mo").orElseThrow();
+                User ta = userDao.findByUsername("e2e_ta").orElseThrow();
+
+                User taExtra = userDao.create(new User("e2e_ta_extra", "Pass1234", "e2e_ta_extra@example.com", User.Role.TA));
+                Applicant extraApplicant = new Applicant();
+                extraApplicant.setUserId(taExtra.getUserId());
+                extraApplicant.setFullName("Extra TA");
+                extraApplicant.setStudentId("2023002003");
+                extraApplicant.setDepartment("Computer Science");
+                extraApplicant.setProgram("Master");
+                extraApplicant.setSkills(Arrays.asList("Python"));
+                applicantDao.create(extraApplicant);
+
+                Job secondJob = new Job();
+                secondJob.setMoId(mo.getUserId());
+                secondJob.setMoName("Dr. E2E");
+                secondJob.setTitle("Another TA Position");
+                secondJob.setCourseCode("CS602");
+                secondJob.setRequiredSkills(Arrays.asList("Python"));
+                secondJob.setStatus(Job.Status.OPEN);
+                jobDao.create(secondJob);
+
+                Application secondApplication = new Application();
+                secondApplication.setJobId(secondJob.getJobId());
+                secondApplication.setApplicantId(taExtra.getUserId());
+                secondApplication.setApplicantName(taExtra.getUsername());
+                secondApplication.setApplicantEmail(taExtra.getEmail());
+                secondApplication.setJobTitle(secondJob.getTitle());
+                secondApplication.setCourseCode(secondJob.getCourseCode());
+                secondApplication.setMoId(secondJob.getMoId());
+                secondApplication.setMoName(secondJob.getMoName());
+                applicationDao.create(secondApplication);
+
+                Job firstJob = jobDao.findByCourseCode("CS601").stream().findFirst().orElseThrow();
+                Applicant firstApplicant = applicantDao.findByUserId(ta.getUserId()).orElseThrow();
+
+                List<Application> firstJobApplications = applicationDao.findByJobId(firstJob.getJobId());
+                List<List<String>> appliedApplicantSkills = firstJobApplications.stream()
+                        .map(application -> applicantDao.findByUserId(application.getApplicantId()).orElseThrow().getSkills())
+                        .toList();
+
+                MissingSkillsService missingSkillsService = new MissingSkillsService();
+                Map<String, Integer> frequency = missingSkillsService.aggregateMissingSkillFrequency(
+                        firstJob.getRequiredSkills(),
+                        appliedApplicantSkills
+                );
+
+                assert !frequency.containsKey("python") : "python should not be included from applicants of other jobs";
+                assert frequency.isEmpty() : "first job applicant already matches all required skills";
+
+                Applicant lookedUpByUserId = applicantDao.findByUserId(firstJobApplications.get(0).getApplicantId()).orElseThrow();
+                assert lookedUpByUserId.getApplicantId().equals(firstApplicant.getApplicantId())
+                        : "application applicantId should be resolved via applicant userId";
             });
         } finally {
             applicationDao.deleteAll();
