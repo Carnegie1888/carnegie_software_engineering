@@ -8,6 +8,7 @@ import com.example.authlogin.model.Application;
 import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
 import com.example.authlogin.service.MissingSkillsService;
+import com.example.authlogin.util.JsonResponseUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -16,7 +17,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -49,30 +49,30 @@ public class MissingSkillsServlet extends HttpServlet {
 
         User currentUser = getCurrentUser(request);
         if (currentUser == null) {
-            writeJsonResponse(response, 401, false, "Please login first", null);
+            JsonResponseUtil.writeJsonResponse(response, 401, false, "Please login first", null);
             return;
         }
 
         if (currentUser.getRole() != User.Role.MO && currentUser.getRole() != User.Role.ADMIN) {
-            writeJsonResponse(response, 403, false, "Only MO or ADMIN can access missing skills data", null);
+            JsonResponseUtil.writeJsonResponse(response, 403, false, "Only MO or ADMIN can access missing skills data", null);
             return;
         }
 
         String jobId = request.getParameter("jobId");
         if (jobId == null || jobId.trim().isEmpty()) {
-            writeJsonResponse(response, 400, false, "jobId is required", null);
+            JsonResponseUtil.writeJsonResponse(response, 400, false, "jobId is required", null);
             return;
         }
 
         Optional<Job> jobOpt = jobDao.findById(jobId.trim());
         if (jobOpt.isEmpty()) {
-            writeJsonResponse(response, 404, false, "Job not found", null);
+            JsonResponseUtil.writeJsonResponse(response, 404, false, "Job not found", null);
             return;
         }
         Job job = jobOpt.get();
 
         if (currentUser.getRole() == User.Role.MO && !job.getMoId().equals(currentUser.getUserId())) {
-            writeJsonResponse(response, 403, false, "You can only access missing skills for your own jobs", null);
+            JsonResponseUtil.writeJsonResponse(response, 403, false, "You can only access missing skills for your own jobs", null);
             return;
         }
 
@@ -88,7 +88,7 @@ public class MissingSkillsServlet extends HttpServlet {
     private void handleSingleApplicant(HttpServletResponse response, Job job, String applicantId) throws IOException {
         Optional<Applicant> applicantOpt = resolveApplicantByIdentifier(applicantId);
         if (applicantOpt.isEmpty()) {
-            writeJsonResponse(response, 404, false, "Applicant not found", null);
+            JsonResponseUtil.writeJsonResponse(response, 404, false, "Applicant not found", null);
             return;
         }
 
@@ -118,7 +118,7 @@ public class MissingSkillsServlet extends HttpServlet {
         data.append("\"gapFrequency\": ").append(skillFrequencyToJson(visualizationData.getGapFrequency()));
         data.append("}");
 
-        writeJsonResponse(response, 200, true, "Missing skills visualization data generated", data.toString());
+        JsonResponseUtil.writeResponse(response, 200, true, "Missing skills visualization data generated", data.toString());
     }
 
     private void handleAggregateApplicants(HttpServletResponse response, Job job) throws IOException {
@@ -159,7 +159,7 @@ public class MissingSkillsServlet extends HttpServlet {
         data.append("}, ");
         data.append("\"missingSkillFrequency\": ").append(skillFrequencyToJson(frequency));
 
-        writeJsonResponse(response, 200, true, "Aggregate missing skills visualization data generated", data.toString());
+        JsonResponseUtil.writeResponse(response, 200, true, "Aggregate missing skills visualization data generated", data.toString());
     }
 
     Optional<Applicant> resolveApplicantByIdentifier(String applicantIdentifier) {
@@ -205,21 +205,6 @@ public class MissingSkillsServlet extends HttpServlet {
             return null;
         }
         return (User) session.getAttribute("user");
-    }
-
-    private void writeJsonResponse(HttpServletResponse response, int status, boolean success, String message, String data)
-            throws IOException {
-        response.setStatus(status);
-        PrintWriter out = response.getWriter();
-        StringBuilder json = new StringBuilder();
-        json.append("{");
-        json.append("\"success\": ").append(success).append(", ");
-        json.append("\"message\": \"").append(escapeJson(message)).append("\"");
-        if (data != null) {
-            json.append(", ").append(data);
-        }
-        json.append("}");
-        out.write(json.toString());
     }
 
     private String stringListToJson(List<String> values) {

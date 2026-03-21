@@ -2,6 +2,7 @@ package com.example.authlogin;
 
 import com.example.authlogin.dao.UserDao;
 import com.example.authlogin.model.User;
+import com.example.authlogin.util.JsonResponseUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -9,7 +10,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -56,7 +56,7 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        writeJsonResponse(response, 200, true, "Use POST to login", null);
+        JsonResponseUtil.write(response, 200, true, "Use POST to login", null);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class LoginServlet extends HttpServlet {
 
             if (INVALID_ROLE.equals(requestedRole)) {
                 logInfo("Validation failed: Invalid role parameter");
-                writeJsonResponse(response, 400, false, "Invalid role parameter", null);
+                JsonResponseUtil.write(response, 400, false, "Invalid role parameter", null);
                 return;
             }
 
@@ -80,7 +80,7 @@ public class LoginServlet extends HttpServlet {
             String validationError = validateInput(loginIdentifier, password);
             if (validationError != null) {
                 logInfo("Validation failed: " + validationError);
-                writeJsonResponse(response, 400, false, validationError, null);
+                JsonResponseUtil.write(response, 400, false, validationError, null);
                 return;
             }
 
@@ -99,7 +99,7 @@ public class LoginServlet extends HttpServlet {
                 if (requestedRole != null && !requestedRole.equals(user.getRole().name())) {
                     logInfo("Login failed for identifier: " + loginIdentifier + " - Role mismatch. accountRole="
                         + user.getRole().name() + ", requestedRole=" + requestedRole);
-                    writeJsonResponse(response, 403, false, "Selected login role does not match account role", null);
+                    JsonResponseUtil.write(response, 403, false, "Selected login role does not match account role", null);
                     return;
                 }
 
@@ -115,15 +115,19 @@ public class LoginServlet extends HttpServlet {
 
                 // 返回成功响应
                 String redirectPage = determineRedirectPage(user.getRole());
-                writeJsonResponse(response, 200, true, "Login successful",
-                    "{\"username\": \"" + user.getUsername() + "\", \"role\": \"" + user.getRole().name() + "\", \"redirect\": \"" + redirectPage + "\"}");
+                JsonResponseUtil.write(response, 200, true, "Login successful",
+                        JsonResponseUtil.objectMap(
+                                "username", user.getUsername(),
+                                "role", user.getRole().name(),
+                                "redirect", redirectPage
+                        ));
             } else {
                 logInfo("Login failed for identifier: " + loginIdentifier + " - Invalid credentials");
-                writeJsonResponse(response, 401, false, "Invalid username/email or password", null);
+                JsonResponseUtil.write(response, 401, false, "Invalid username/email or password", null);
             }
         } catch (Exception e) {
             logError("Unexpected error during login", e);
-            writeJsonResponse(response, 500, false, "An error occurred during login. Please try again later.", null);
+            JsonResponseUtil.write(response, 500, false, "An error occurred during login. Please try again later.", null);
         }
     }
 
@@ -230,39 +234,6 @@ public class LoginServlet extends HttpServlet {
         }
 
         return INVALID_ROLE;
-    }
-
-    /**
-     * 统一的JSON响应写入方法
-     */
-    private void writeJsonResponse(HttpServletResponse response, int status, boolean success, String message, String data)
-            throws IOException {
-        response.setStatus(status);
-        PrintWriter out = response.getWriter();
-
-        StringBuilder json = new StringBuilder();
-        json.append("{");
-        json.append("\"success\": ").append(success).append(", ");
-        json.append("\"message\": \"").append(escapeJson(message)).append("\"");
-
-        if (data != null) {
-            json.append(", ").append(data);
-        }
-
-        json.append("}");
-        out.write(json.toString());
-    }
-
-    /**
-     * JSON字符串转义
-     */
-    private String escapeJson(String str) {
-        if (str == null) return "";
-        return str.replace("\\", "\\\\")
-                  .replace("\"", "\\\"")
-                  .replace("\n", "\\n")
-                  .replace("\r", "\\r")
-                  .replace("\t", "\\t");
     }
 
     /**

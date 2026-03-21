@@ -7,6 +7,7 @@ import com.example.authlogin.model.Applicant;
 import com.example.authlogin.model.Application;
 import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
+import com.example.authlogin.util.JsonResponseUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -61,13 +62,11 @@ public class ApplyServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("application/json;charset=UTF-8");
-
         try {
             // 获取当前登录用户
             User currentUser = getCurrentUser(request);
             if (currentUser == null) {
-                writeJsonResponse(response, 401, false, "Please login first", null);
+                JsonResponseUtil.writeJsonResponse(response, 401, false, "Please login first", null);
                 return;
             }
 
@@ -100,7 +99,7 @@ public class ApplyServlet extends HttpServlet {
                 applications = applicationDao.findAll();
             }
             else {
-                writeJsonResponse(response, 403, false, "Unauthorized role", null);
+                JsonResponseUtil.writeJsonResponse(response, 403, false, "Unauthorized role", null);
                 return;
             }
 
@@ -141,13 +140,17 @@ public class ApplyServlet extends HttpServlet {
                 }
             }
 
-            // 构建JSON响应
-            String data = buildApplicationListJson(applications);
-            writeJsonResponse(response, 200, true, "Applications retrieved successfully", data);
+            JsonResponseUtil.writeJsonResponse(
+                    response,
+                    200,
+                    true,
+                    "Applications retrieved successfully",
+                    buildApplicationListPayload(applications)
+            );
 
         } catch (Exception e) {
             logError("Error retrieving applications", e);
-            writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
+            JsonResponseUtil.writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
         }
     }
 
@@ -159,7 +162,7 @@ public class ApplyServlet extends HttpServlet {
         Optional<Application> appOpt = applicationDao.findById(applicationId);
 
         if (appOpt.isEmpty()) {
-            writeJsonResponse(response, 404, false, "Application not found", null);
+            JsonResponseUtil.writeJsonResponse(response, 404, false, "Application not found", null);
             return;
         }
 
@@ -176,30 +179,33 @@ public class ApplyServlet extends HttpServlet {
         }
 
         if (!hasPermission) {
-            writeJsonResponse(response, 403, false, "You don't have permission to view this application", null);
+            JsonResponseUtil.writeJsonResponse(response, 403, false, "You don't have permission to view this application", null);
             return;
         }
 
-        String data = buildApplicationJson(app);
-        writeJsonResponse(response, 200, true, "Application retrieved successfully", data);
+        JsonResponseUtil.writeJsonResponse(
+                response,
+                200,
+                true,
+                "Application retrieved successfully",
+                buildApplicationPayload(app)
+        );
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("application/json;charset=UTF-8");
-
         try {
             // 获取当前登录用户
             User currentUser = getCurrentUser(request);
             if (currentUser == null) {
-                writeJsonResponse(response, 401, false, "Please login first", null);
+                JsonResponseUtil.writeJsonResponse(response, 401, false, "Please login first", null);
                 return;
             }
 
             // 检查用户角色（只有TA可以申请职位）
             if (currentUser.getRole() != User.Role.TA) {
-                writeJsonResponse(response, 403, false, "Only TA can apply for jobs", null);
+                JsonResponseUtil.writeJsonResponse(response, 403, false, "Only TA can apply for jobs", null);
                 return;
             }
 
@@ -211,26 +217,26 @@ public class ApplyServlet extends HttpServlet {
 
             // 输入验证
             if (normalizedJobId.isEmpty()) {
-                writeJsonResponse(response, 400, false, "Job ID is required", null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, "Job ID is required", null);
                 return;
             }
             if (hasControlChars(jobId) || containsDangerousMarkup(jobId)) {
-                writeJsonResponse(response, 400, false, "Job ID contains unsupported characters", null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, "Job ID contains unsupported characters", null);
                 return;
             }
             if (normalizedCoverLetter.length() > MAX_COVER_LETTER_LENGTH) {
-                writeJsonResponse(response, 400, false, "Cover letter must be 2000 characters or fewer", null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, "Cover letter must be 2000 characters or fewer", null);
                 return;
             }
             if (hasControlChars(coverLetter) || containsDangerousMarkup(coverLetter)) {
-                writeJsonResponse(response, 400, false, "Cover letter contains unsupported characters", null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, "Cover letter contains unsupported characters", null);
                 return;
             }
 
             // 检查职位是否存在
             Optional<Job> jobOpt = jobDao.findById(normalizedJobId);
             if (jobOpt.isEmpty()) {
-                writeJsonResponse(response, 404, false, "Job not found", null);
+                JsonResponseUtil.writeJsonResponse(response, 404, false, "Job not found", null);
                 return;
             }
 
@@ -238,30 +244,30 @@ public class ApplyServlet extends HttpServlet {
 
             // 检查职位是否开放
             if (job.getStatus() != Job.Status.OPEN) {
-                writeJsonResponse(response, 400, false, "This job is no longer accepting applications", null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, "This job is no longer accepting applications", null);
                 return;
             }
 
             if (job.getDeadline() != null && job.getDeadline().isBefore(LocalDateTime.now())) {
-                writeJsonResponse(response, 400, false, "The application deadline for this job has passed", null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, "The application deadline for this job has passed", null);
                 return;
             }
 
             Optional<Applicant> applicantOpt = applicantDao.findByUserId(currentUser.getUserId());
             if (applicantOpt.isEmpty()) {
-                writeJsonResponse(response, 400, false, "Please create your applicant profile before applying", null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, "Please create your applicant profile before applying", null);
                 return;
             }
 
             Applicant applicant = applicantOpt.get();
             if (applicant.getResumePath() == null || applicant.getResumePath().trim().isEmpty()) {
-                writeJsonResponse(response, 400, false, "Please upload your resume before applying", null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, "Please upload your resume before applying", null);
                 return;
             }
 
             // 检查是否已申请
             if (applicationDao.hasApplied(normalizedJobId, currentUser.getUserId())) {
-                writeJsonResponse(response, 400, false, "You have already applied for this job", null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, "You have already applied for this job", null);
                 return;
             }
 
@@ -281,28 +287,31 @@ public class ApplyServlet extends HttpServlet {
             Application savedApp = applicationDao.create(application);
             logInfo("Application created successfully: " + savedApp.getApplicationId() + " by TA: " + currentUser.getUsername());
 
-            String data = "{\"applicationId\": \"" + savedApp.getApplicationId() + "\"}";
-            writeJsonResponse(response, 201, true, "Application submitted successfully!", data);
+            JsonResponseUtil.writeJsonResponse(
+                    response,
+                    201,
+                    true,
+                    "Application submitted successfully!",
+                    JsonResponseUtil.objectMap("applicationId", savedApp.getApplicationId())
+            );
 
         } catch (IllegalArgumentException e) {
             logInfo("Application submission failed: " + e.getMessage());
-            writeJsonResponse(response, 400, false, e.getMessage(), null);
+            JsonResponseUtil.writeJsonResponse(response, 400, false, e.getMessage(), null);
         } catch (Exception e) {
             logError("Unexpected error during application submission", e);
-            writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
+            JsonResponseUtil.writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
         }
     }
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("application/json;charset=UTF-8");
-
         try {
             // 获取当前登录用户
             User currentUser = getCurrentUser(request);
             if (currentUser == null) {
-                writeJsonResponse(response, 401, false, "Please login first", null);
+                JsonResponseUtil.writeJsonResponse(response, 401, false, "Please login first", null);
                 return;
             }
 
@@ -311,19 +320,19 @@ public class ApplyServlet extends HttpServlet {
             String action = request.getParameter("action");
 
             if (applicationId == null || applicationId.trim().isEmpty()) {
-                writeJsonResponse(response, 400, false, "Application ID is required", null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, "Application ID is required", null);
                 return;
             }
 
             if (action == null || action.trim().isEmpty()) {
-                writeJsonResponse(response, 400, false, "Action is required", null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, "Action is required", null);
                 return;
             }
 
             // 查找申请
             Optional<Application> appOpt = applicationDao.findById(applicationId.trim());
             if (appOpt.isEmpty()) {
-                writeJsonResponse(response, 404, false, "Application not found", null);
+                JsonResponseUtil.writeJsonResponse(response, 404, false, "Application not found", null);
                 return;
             }
 
@@ -341,12 +350,12 @@ public class ApplyServlet extends HttpServlet {
                     handleWithdraw(response, application, currentUser);
                     break;
                 default:
-                    writeJsonResponse(response, 400, false, "Invalid action. Use 'accept', 'reject', or 'withdraw'", null);
+                    JsonResponseUtil.writeJsonResponse(response, 400, false, "Invalid action. Use 'accept', 'reject', or 'withdraw'", null);
             }
 
         } catch (Exception e) {
             logError("Unexpected error during application update", e);
-            writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
+            JsonResponseUtil.writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
         }
     }
 
@@ -357,31 +366,31 @@ public class ApplyServlet extends HttpServlet {
             throws IOException {
         // 只有MO可以接受申请
         if (currentUser.getRole() != User.Role.MO) {
-            writeJsonResponse(response, 403, false, "Only MO can accept applications", null);
+            JsonResponseUtil.writeJsonResponse(response, 403, false, "Only MO can accept applications", null);
             return;
         }
 
         // MO只能操作自己职位的申请
         if (!application.getMoId().equals(currentUser.getUserId())) {
-            writeJsonResponse(response, 403, false, "You can only review applications for your own jobs", null);
+            JsonResponseUtil.writeJsonResponse(response, 403, false, "You can only review applications for your own jobs", null);
             return;
         }
 
         // 检查申请状态
         if (application.getStatus() != Application.Status.PENDING) {
-            writeJsonResponse(response, 400, false, "This application has already been reviewed", null);
+            JsonResponseUtil.writeJsonResponse(response, 400, false, "This application has already been reviewed", null);
             return;
         }
 
         Optional<Job> jobOpt = jobDao.findById(application.getJobId());
         if (jobOpt.isEmpty()) {
-            writeJsonResponse(response, 404, false, "Job not found for this application", null);
+            JsonResponseUtil.writeJsonResponse(response, 404, false, "Job not found for this application", null);
             return;
         }
 
         Job job = jobOpt.get();
         if (job.getStatus() != Job.Status.OPEN) {
-            writeJsonResponse(response, 400, false, "This job is no longer open for accepting applications", null);
+            JsonResponseUtil.writeJsonResponse(response, 400, false, "This job is no longer open for accepting applications", null);
             return;
         }
 
@@ -391,7 +400,7 @@ public class ApplyServlet extends HttpServlet {
                 job.setStatus(Job.Status.FILLED);
                 jobDao.update(job);
             }
-            writeJsonResponse(response, 400, false, "This job has already filled all available positions", null);
+            JsonResponseUtil.writeJsonResponse(response, 400, false, "This job has already filled all available positions", null);
             return;
         }
 
@@ -406,14 +415,19 @@ public class ApplyServlet extends HttpServlet {
             // 获取更新后的申请状态
             Optional<Application> updatedApp = applicationDao.findById(application.getApplicationId());
             if (updatedApp.isPresent()) {
-                String data = "{" + buildApplicationJson(updatedApp.get()) + "}";
                 logInfo("Application accepted: " + application.getApplicationId() + " by MO: " + currentUser.getUsername());
-                writeJsonResponse(response, 200, true, "Application accepted successfully!", data);
+                JsonResponseUtil.writeJsonResponse(
+                        response,
+                        200,
+                        true,
+                        "Application accepted successfully!",
+                        buildApplicationPayload(updatedApp.get())
+                );
             } else {
-                writeJsonResponse(response, 500, false, "Failed to retrieve updated application", null);
+                JsonResponseUtil.writeJsonResponse(response, 500, false, "Failed to retrieve updated application", null);
             }
         } else {
-            writeJsonResponse(response, 500, false, "Failed to accept application", null);
+            JsonResponseUtil.writeJsonResponse(response, 500, false, "Failed to accept application", null);
         }
     }
 
@@ -424,19 +438,19 @@ public class ApplyServlet extends HttpServlet {
             throws IOException {
         // 只有MO可以拒绝申请
         if (currentUser.getRole() != User.Role.MO) {
-            writeJsonResponse(response, 403, false, "Only MO can reject applications", null);
+            JsonResponseUtil.writeJsonResponse(response, 403, false, "Only MO can reject applications", null);
             return;
         }
 
         // MO只能操作自己职位的申请
         if (!application.getMoId().equals(currentUser.getUserId())) {
-            writeJsonResponse(response, 403, false, "You can only review applications for your own jobs", null);
+            JsonResponseUtil.writeJsonResponse(response, 403, false, "You can only review applications for your own jobs", null);
             return;
         }
 
         // 检查申请状态
         if (application.getStatus() != Application.Status.PENDING) {
-            writeJsonResponse(response, 400, false, "This application has already been reviewed", null);
+            JsonResponseUtil.writeJsonResponse(response, 400, false, "This application has already been reviewed", null);
             return;
         }
 
@@ -446,14 +460,19 @@ public class ApplyServlet extends HttpServlet {
             // 获取更新后的申请状态
             Optional<Application> updatedApp = applicationDao.findById(application.getApplicationId());
             if (updatedApp.isPresent()) {
-                String data = "{" + buildApplicationJson(updatedApp.get()) + "}";
                 logInfo("Application rejected: " + application.getApplicationId() + " by MO: " + currentUser.getUsername());
-                writeJsonResponse(response, 200, true, "Application rejected successfully!", data);
+                JsonResponseUtil.writeJsonResponse(
+                        response,
+                        200,
+                        true,
+                        "Application rejected successfully!",
+                        buildApplicationPayload(updatedApp.get())
+                );
             } else {
-                writeJsonResponse(response, 500, false, "Failed to retrieve updated application", null);
+                JsonResponseUtil.writeJsonResponse(response, 500, false, "Failed to retrieve updated application", null);
             }
         } else {
-            writeJsonResponse(response, 500, false, "Failed to reject application", null);
+            JsonResponseUtil.writeJsonResponse(response, 500, false, "Failed to reject application", null);
         }
     }
 
@@ -474,13 +493,13 @@ public class ApplyServlet extends HttpServlet {
         }
 
         if (!canWithdraw) {
-            writeJsonResponse(response, 403, false, "You don't have permission to withdraw this application", null);
+            JsonResponseUtil.writeJsonResponse(response, 403, false, "You don't have permission to withdraw this application", null);
             return;
         }
 
         // 检查申请状态
         if (application.getStatus() != Application.Status.PENDING) {
-            writeJsonResponse(response, 400, false, "This application can no longer be withdrawn", null);
+            JsonResponseUtil.writeJsonResponse(response, 400, false, "This application can no longer be withdrawn", null);
             return;
         }
 
@@ -490,14 +509,19 @@ public class ApplyServlet extends HttpServlet {
             // 获取更新后的申请状态
             Optional<Application> updatedApp = applicationDao.findById(application.getApplicationId());
             if (updatedApp.isPresent()) {
-                String data = "{" + buildApplicationJson(updatedApp.get()) + "}";
                 logInfo("Application withdrawn: " + application.getApplicationId());
-                writeJsonResponse(response, 200, true, "Application withdrawn successfully!", data);
+                JsonResponseUtil.writeJsonResponse(
+                        response,
+                        200,
+                        true,
+                        "Application withdrawn successfully!",
+                        buildApplicationPayload(updatedApp.get())
+                );
             } else {
-                writeJsonResponse(response, 500, false, "Failed to retrieve updated application", null);
+                JsonResponseUtil.writeJsonResponse(response, 500, false, "Failed to retrieve updated application", null);
             }
         } else {
-            writeJsonResponse(response, 500, false, "Failed to withdraw application", null);
+            JsonResponseUtil.writeJsonResponse(response, 500, false, "Failed to withdraw application", null);
         }
     }
 
@@ -549,43 +573,36 @@ public class ApplyServlet extends HttpServlet {
     /**
      * 构建申请列表JSON
      */
-    private String buildApplicationListJson(List<Application> applications) {
-        StringBuilder json = new StringBuilder();
-        json.append("\"applications\": [");
-
-        for (int i = 0; i < applications.size(); i++) {
-            json.append("{");
-            json.append(buildApplicationJson(applications.get(i)));
-            json.append("}");
-            if (i < applications.size() - 1) {
-                json.append(", ");
-            }
+    private java.util.Map<String, Object> buildApplicationListPayload(List<Application> applications) {
+        java.util.List<java.util.Map<String, Object>> items = new java.util.ArrayList<>();
+        for (Application application : applications) {
+            items.add(buildApplicationPayload(application));
         }
-
-        json.append("], ");
-        json.append("\"total\": ").append(applications.size());
-        return json.toString();
+        return JsonResponseUtil.objectMap(
+                "applications", items,
+                "total", applications.size()
+        );
     }
 
-    /**
-     * 统一的JSON响应写入方法
-     */
-    private void writeJsonResponse(HttpServletResponse response, int status, boolean success, String message, String data)
-            throws IOException {
-        response.setStatus(status);
-        PrintWriter out = response.getWriter();
+    private java.util.Map<String, Object> buildApplicationPayload(Application app) {
+        return JsonResponseUtil.objectMap(
+                "applicationId", safeText(app.getApplicationId()),
+                "jobId", safeText(app.getJobId()),
+                "applicantId", safeText(app.getApplicantId()),
+                "applicantName", safeText(app.getApplicantName()),
+                "applicantEmail", safeText(app.getApplicantEmail()),
+                "jobTitle", safeText(app.getJobTitle()),
+                "courseCode", safeText(app.getCourseCode()),
+                "moId", safeText(app.getMoId()),
+                "moName", safeText(app.getMoName()),
+                "status", app.getStatus() != null ? app.getStatus().name() : "PENDING",
+                "coverLetter", safeText(app.getCoverLetter()),
+                "appliedAt", app.getAppliedAt() != null ? app.getAppliedAt().toString() : ""
+        );
+    }
 
-        StringBuilder json = new StringBuilder();
-        json.append("{");
-        json.append("\"success\": ").append(success).append(", ");
-        json.append("\"message\": \"").append(escapeJson(message)).append("\"");
-
-        if (data != null) {
-            json.append(", ").append(data);
-        }
-
-        json.append("}");
-        out.write(json.toString());
+    private String safeText(String value) {
+        return value != null ? value : "";
     }
 
     /**

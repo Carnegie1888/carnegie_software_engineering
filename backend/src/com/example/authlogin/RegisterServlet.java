@@ -2,13 +2,13 @@ package com.example.authlogin;
 
 import com.example.authlogin.dao.UserDao;
 import com.example.authlogin.model.User;
+import com.example.authlogin.util.JsonResponseUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.regex.Pattern;
 
 /**
@@ -61,7 +61,7 @@ public class RegisterServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        writeJsonResponse(response, 200, true, "Use POST to register", null);
+        JsonResponseUtil.writeJsonResponse(response, 200, true, "Use POST to register", null);
     }
 
     @Override
@@ -80,7 +80,7 @@ public class RegisterServlet extends HttpServlet {
             String error = validateInput(username, password, confirmPassword, email, roleStr);
             if (error != null) {
                 logInfo("Validation failed: " + error);
-                writeJsonResponse(response, 400, false, error, null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, error, null);
                 return;
             }
 
@@ -96,7 +96,7 @@ public class RegisterServlet extends HttpServlet {
                 role = User.Role.valueOf(roleStr.toUpperCase());
             } catch (IllegalArgumentException e) {
                 logInfo("Invalid role: " + roleStr);
-                writeJsonResponse(response, 400, false, "Invalid role selected", null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, "Invalid role selected", null);
                 return;
             }
 
@@ -108,16 +108,24 @@ public class RegisterServlet extends HttpServlet {
             logInfo("User registered successfully: " + username + ", role: " + role);
 
             // 注册成功
-            writeJsonResponse(response, 201, true, "Registration successful!",
-                "{\"userId\": \"" + savedUser.getUserId() + "\", \"username\": \"" + savedUser.getUsername() + "\"}");
+            JsonResponseUtil.writeJsonResponse(
+                    response,
+                    201,
+                    true,
+                    "Registration successful!",
+                    JsonResponseUtil.objectMap(
+                            "userId", savedUser.getUserId(),
+                            "username", savedUser.getUsername()
+                    )
+            );
 
         } catch (IllegalArgumentException e) {
             // 用户名或邮箱已存在
             logInfo("Registration failed: " + e.getMessage());
-            writeJsonResponse(response, 409, false, e.getMessage(), null);
+            JsonResponseUtil.writeJsonResponse(response, 409, false, e.getMessage(), null);
         } catch (Exception e) {
             logError("Unexpected error during registration", e);
-            writeJsonResponse(response, 500, false, "An error occurred during registration. Please try again later.", null);
+            JsonResponseUtil.writeJsonResponse(response, 500, false, "An error occurred during registration. Please try again later.", null);
         }
     }
 
@@ -241,36 +249,4 @@ public class RegisterServlet extends HttpServlet {
         return "TA".equals(role) || "MO".equals(role) || "ADMIN".equals(role);
     }
 
-    /**
-     * 统一的JSON响应写入方法
-     */
-    private void writeJsonResponse(HttpServletResponse response, int status, boolean success, String message, String data)
-            throws IOException {
-        response.setStatus(status);
-        PrintWriter out = response.getWriter();
-
-        StringBuilder json = new StringBuilder();
-        json.append("{");
-        json.append("\"success\": ").append(success).append(", ");
-        json.append("\"message\": \"").append(escapeJson(message)).append("\"");
-
-        if (data != null) {
-            json.append(", ").append(data);
-        }
-
-        json.append("}");
-        out.write(json.toString());
-    }
-
-    /**
-     * JSON字符串转义
-     */
-    private String escapeJson(String str) {
-        if (str == null) return "";
-        return str.replace("\\", "\\\\")
-                  .replace("\"", "\\\"")
-                  .replace("\n", "\\n")
-                  .replace("\r", "\\r")
-                  .replace("\t", "\\t");
-    }
 }

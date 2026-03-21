@@ -55,6 +55,7 @@ cp_with_classes="${SERVLET_API_JAR}:${CLASSES_DIR}"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${SERVLET_API_JAR}" "${SRC_DIR}/com/example/authlogin/model/User.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${SERVLET_API_JAR}" "${SRC_DIR}/com/example/authlogin/model/Applicant.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${SERVLET_API_JAR}:${CLASSES_DIR}" "${SRC_DIR}/com/example/authlogin/util/StoragePaths.java"
+javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/util/JsonResponseUtil.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/dao/UserDao.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/dao/ApplicantDao.java"
 

@@ -3,6 +3,7 @@ package com.example.authlogin;
 import com.example.authlogin.dao.ApplicationDao;
 import com.example.authlogin.model.User;
 import com.example.authlogin.service.WorkloadStatsService;
+import com.example.authlogin.util.JsonResponseUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -11,7 +12,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -39,26 +39,26 @@ public class WorkloadStatsServlet extends HttpServlet {
 
         User currentUser = getCurrentUser(request);
         if (currentUser == null) {
-            writeJsonResponse(response, 401, false, "Please login first", null);
+            JsonResponseUtil.write(response, 401, false, "Please login first", null);
             return;
         }
         if (currentUser.getRole() != User.Role.ADMIN) {
-            writeJsonResponse(response, 403, false, "Only ADMIN can access workload stats", null);
+            JsonResponseUtil.write(response, 403, false, "Only ADMIN can access workload stats", null);
             return;
         }
 
         LocalDateTime start = parseDateTime(request.getParameter("start"), false);
         LocalDateTime end = parseDateTime(request.getParameter("end"), true);
         if (request.getParameter("start") != null && start == null) {
-            writeJsonResponse(response, 400, false, "Invalid start datetime format", null);
+            JsonResponseUtil.write(response, 400, false, "Invalid start datetime format", null);
             return;
         }
         if (request.getParameter("end") != null && end == null) {
-            writeJsonResponse(response, 400, false, "Invalid end datetime format", null);
+            JsonResponseUtil.write(response, 400, false, "Invalid end datetime format", null);
             return;
         }
         if (start != null && end != null && start.isAfter(end)) {
-            writeJsonResponse(response, 400, false, "start cannot be after end", null);
+            JsonResponseUtil.write(response, 400, false, "start cannot be after end", null);
             return;
         }
 
@@ -73,20 +73,23 @@ public class WorkloadStatsServlet extends HttpServlet {
                 return;
             }
 
-            String data = "\"moWorkloads\": " + moWorkloadsToJson(
-                    workloadStatsService.calculateMoWorkloadStats(applicationDao.findAll(), start, end)
-            );
-            writeJsonResponse(response, 200, true, "MO workload stats generated", data);
+            JsonResponseUtil.write(response, 200, true, "MO workload stats generated",
+                    java.util.Map.of(
+                            "moWorkloads",
+                            workloadStatsService.calculateMoWorkloadStats(applicationDao.findAll(), start, end)
+                    ));
             return;
         }
 
         WorkloadStatsService.ApplicationCounts counts = workloadStatsService.calculateApplicationCounts(applicationDao.findAll(), start, end);
-        String data = "\"total\": " + counts.getTotal()
-                + ", \"pending\": " + counts.getPending()
-                + ", \"accepted\": " + counts.getAccepted()
-                + ", \"rejected\": " + counts.getRejected()
-                + ", \"withdrawn\": " + counts.getWithdrawn();
-        writeJsonResponse(response, 200, true, "Application count stats generated", data);
+        JsonResponseUtil.write(response, 200, true, "Application count stats generated",
+                java.util.Map.of(
+                        "total", counts.getTotal(),
+                        "pending", counts.getPending(),
+                        "accepted", counts.getAccepted(),
+                        "rejected", counts.getRejected(),
+                        "withdrawn", counts.getWithdrawn()
+                ));
     }
 
     private User getCurrentUser(HttpServletRequest request) {
@@ -95,21 +98,6 @@ public class WorkloadStatsServlet extends HttpServlet {
             return null;
         }
         return (User) session.getAttribute("user");
-    }
-
-    private void writeJsonResponse(HttpServletResponse response, int status, boolean success, String message, String data)
-            throws IOException {
-        response.setStatus(status);
-        PrintWriter out = response.getWriter();
-        StringBuilder json = new StringBuilder();
-        json.append("{");
-        json.append("\"success\": ").append(success).append(", ");
-        json.append("\"message\": \"").append(escapeJson(message)).append("\"");
-        if (data != null) {
-            json.append(", ").append(data);
-        }
-        json.append("}");
-        out.write(json.toString());
     }
 
     private String escapeJson(String str) {

@@ -3,6 +3,7 @@ package com.example.authlogin;
 import com.example.authlogin.dao.ApplicantDao;
 import com.example.authlogin.model.Applicant;
 import com.example.authlogin.model.User;
+import com.example.authlogin.util.JsonResponseUtil;
 import com.example.authlogin.util.StoragePaths;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -15,7 +16,6 @@ import jakarta.servlet.http.Part;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -103,7 +103,7 @@ public class ApplicantServlet extends HttpServlet {
             // 获取当前登录用户
             User currentUser = getCurrentUser(request);
             if (currentUser == null) {
-                writeJsonResponse(response, 401, false, "Please login first", null);
+                JsonResponseUtil.writeResponse(response, 401, false, "Please login first", null);
                 return;
             }
 
@@ -111,17 +111,17 @@ public class ApplicantServlet extends HttpServlet {
             Optional<Applicant> applicantOpt = applicantDao.findByUserId(currentUser.getUserId());
 
             if (applicantOpt.isEmpty()) {
-                writeJsonResponse(response, 404, false, "Applicant profile not found", null);
+                JsonResponseUtil.writeResponse(response, 404, false, "Applicant profile not found", null);
                 return;
             }
 
             Applicant applicant = applicantOpt.get();
-            String data = buildApplicantJson(applicant);
-            writeJsonResponse(response, 200, true, "Applicant profile retrieved successfully", data);
+            String data = "{" + buildApplicantJson(applicant) + "}";
+            JsonResponseUtil.writeResponse(response, 200, true, "Applicant profile retrieved successfully", data);
 
         } catch (Exception e) {
             logError("Error retrieving applicant profile", e);
-            writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
+            JsonResponseUtil.writeResponse(response, 500, false, "An error occurred. Please try again later.", null);
         }
     }
 
@@ -150,7 +150,7 @@ public class ApplicantServlet extends HttpServlet {
             // 获取当前登录用户
             User currentUser = getCurrentUser(request);
             if (currentUser == null) {
-                writeJsonResponse(response, 401, false, "Please login first", null);
+                JsonResponseUtil.writeResponse(response, 401, false, "Please login first", null);
                 return;
             }
 
@@ -159,13 +159,13 @@ public class ApplicantServlet extends HttpServlet {
             if (isUpdate) {
                 // 更新模式
                 if (existingApplicant.isEmpty()) {
-                    writeJsonResponse(response, 404, false, "Applicant profile not found. Please create one first.", null);
+                    JsonResponseUtil.writeResponse(response, 404, false, "Applicant profile not found. Please create one first.", null);
                     return;
                 }
             } else {
                 // 创建模式
                 if (existingApplicant.isPresent()) {
-                    writeJsonResponse(response, 409, false, "Applicant profile already exists. Use PUT to update.", null);
+                    JsonResponseUtil.writeResponse(response, 409, false, "Applicant profile already exists. Use PUT to update.", null);
                     return;
                 }
             }
@@ -190,7 +190,7 @@ public class ApplicantServlet extends HttpServlet {
             );
             if (error != null) {
                 logInfo("Validation failed: " + error);
-                writeJsonResponse(response, 400, false, error, null);
+                JsonResponseUtil.writeResponse(response, 400, false, error, null);
                 return;
             }
 
@@ -198,7 +198,7 @@ public class ApplicantServlet extends HttpServlet {
             if (existingWithStudentId.isPresent()) {
                 if (!isUpdate || existingApplicant.isEmpty()
                         || !existingWithStudentId.get().getApplicantId().equals(existingApplicant.get().getApplicantId())) {
-                    writeJsonResponse(response, 400, false, "Student ID already exists", null);
+                    JsonResponseUtil.writeResponse(response, 400, false, "Student ID already exists", null);
                     return;
                 }
             }
@@ -233,17 +233,17 @@ public class ApplicantServlet extends HttpServlet {
                 logInfo("Applicant profile created successfully for user: " + currentUser.getUsername());
             }
 
-            String data = "{\"applicantId\": \"" + savedApplicant.getApplicantId() + "\"}";
+            String data = "{\"applicantId\": \"" + escapeJson(savedApplicant.getApplicantId()) + "\"}";
             int status = isUpdate ? 200 : 201;
             String message = isUpdate ? "Applicant profile updated successfully!" : "Applicant profile created successfully!";
-            writeJsonResponse(response, status, true, message, data);
+            JsonResponseUtil.writeResponse(response, status, true, message, data);
 
         } catch (IllegalArgumentException e) {
             logInfo("Profile operation failed: " + e.getMessage());
-            writeJsonResponse(response, 400, false, e.getMessage(), null);
+            JsonResponseUtil.writeResponse(response, 400, false, e.getMessage(), null);
         } catch (Exception e) {
             logError("Unexpected error during profile operation", e);
-            writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
+            JsonResponseUtil.writeResponse(response, 500, false, "An error occurred. Please try again later.", null);
         }
     }
 
@@ -256,14 +256,14 @@ public class ApplicantServlet extends HttpServlet {
             // 获取当前登录用户
             User currentUser = getCurrentUser(request);
             if (currentUser == null) {
-                writeJsonResponse(response, 401, false, "Please login first", null);
+                JsonResponseUtil.writeResponse(response, 401, false, "Please login first", null);
                 return;
             }
 
             // 查询现有档案
             Optional<Applicant> applicantOpt = applicantDao.findByUserId(currentUser.getUserId());
             if (applicantOpt.isEmpty()) {
-                writeJsonResponse(response, 404, false, "Applicant profile not found. Please create one first.", null);
+                JsonResponseUtil.writeResponse(response, 404, false, "Applicant profile not found. Please create one first.", null);
                 return;
             }
 
@@ -287,7 +287,7 @@ public class ApplicantServlet extends HttpServlet {
             );
             if (updateValidationError != null) {
                 logInfo("Partial update validation failed: " + updateValidationError);
-                writeJsonResponse(response, 400, false, updateValidationError, null);
+                JsonResponseUtil.writeResponse(response, 400, false, updateValidationError, null);
                 return;
             }
 
@@ -299,7 +299,7 @@ public class ApplicantServlet extends HttpServlet {
                 // 验证文件
                 String fileError = validateFile(filePart);
                 if (fileError != null) {
-                    writeJsonResponse(response, 400, false, fileError, null);
+                    JsonResponseUtil.writeResponse(response, 400, false, fileError, null);
                     return;
                 }
 
@@ -317,7 +317,7 @@ public class ApplicantServlet extends HttpServlet {
                 String normalizedStudentId = normalizeInput(studentId);
                 Optional<Applicant> existingWithStudentId = applicantDao.findByStudentId(normalizedStudentId);
                 if (existingWithStudentId.isPresent() && !existingWithStudentId.get().getApplicantId().equals(applicant.getApplicantId())) {
-                    writeJsonResponse(response, 400, false, "Student ID already exists", null);
+                    JsonResponseUtil.writeResponse(response, 400, false, "Student ID already exists", null);
                     return;
                 }
                 applicant.setStudentId(normalizedStudentId);
@@ -361,24 +361,24 @@ public class ApplicantServlet extends HttpServlet {
             }
             data += "}";
 
-            writeJsonResponse(response, 200, true, "Profile updated with resume!", data);
+            JsonResponseUtil.writeResponse(response, 200, true, "Profile updated with resume!", data);
 
         } catch (IllegalArgumentException e) {
             logInfo("Resume upload failed: " + e.getMessage());
-            writeJsonResponse(response, 400, false, e.getMessage(), null);
+            JsonResponseUtil.writeResponse(response, 400, false, e.getMessage(), null);
         } catch (ServletException e) {
             // 处理文件大小超限异常
             String message = e.getMessage();
             if (message != null && message.toLowerCase().contains("size")) {
                 logInfo("File size exceeded: " + message);
-                writeJsonResponse(response, 413, false, "File size exceeds the maximum limit of 10MB. Please upload a smaller file.", null);
+                JsonResponseUtil.writeResponse(response, 413, false, "File size exceeds the maximum limit of 10MB. Please upload a smaller file.", null);
             } else {
                 logError("Servlet error during resume upload", e);
-                writeJsonResponse(response, 400, false, "File upload failed. " + e.getMessage(), null);
+                JsonResponseUtil.writeResponse(response, 400, false, "File upload failed. " + e.getMessage(), null);
             }
         } catch (Exception e) {
             logError("Unexpected error during resume upload", e);
-            writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
+            JsonResponseUtil.writeResponse(response, 500, false, "An error occurred. Please try again later.", null);
         }
     }
 
@@ -1077,27 +1077,6 @@ public class ApplicantServlet extends HttpServlet {
         }
         json.append("]");
         return json.toString();
-    }
-
-    /**
-     * 统一的JSON响应写入方法
-     */
-    private void writeJsonResponse(HttpServletResponse response, int status, boolean success, String message, String data)
-            throws IOException {
-        response.setStatus(status);
-        PrintWriter out = response.getWriter();
-
-        StringBuilder json = new StringBuilder();
-        json.append("{");
-        json.append("\"success\": ").append(success).append(", ");
-        json.append("\"message\": \"").append(escapeJson(message)).append("\"");
-
-        if (data != null) {
-            json.append(", ").append(data);
-        }
-
-        json.append("}");
-        out.write(json.toString());
     }
 
     /**

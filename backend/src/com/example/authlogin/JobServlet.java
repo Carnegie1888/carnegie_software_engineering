@@ -3,6 +3,7 @@ package com.example.authlogin;
 import com.example.authlogin.dao.JobDao;
 import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
+import com.example.authlogin.util.JsonResponseUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -110,16 +111,27 @@ public class JobServlet extends HttpServlet {
             }
 
             if (keyword != null && !keyword.trim().isEmpty()) {
-                jobs = jobDao.search(keyword.trim());
+                String normalizedKeyword = keyword.trim().toLowerCase();
+                jobs = jobs.stream()
+                        .filter(j -> j.getTitle().toLowerCase().contains(normalizedKeyword) ||
+                                j.getCourseCode().toLowerCase().contains(normalizedKeyword) ||
+                                (j.getCourseName() != null && j.getCourseName().toLowerCase().contains(normalizedKeyword)) ||
+                                (j.getDescription() != null && j.getDescription().toLowerCase().contains(normalizedKeyword)))
+                        .collect(Collectors.toList());
             }
 
             // 构建JSON响应
-            String data = buildJobListJson(jobs);
-            writeJsonResponse(response, 200, true, "Jobs retrieved successfully", data);
+            JsonResponseUtil.writeJsonResponse(
+                    response,
+                    200,
+                    true,
+                    "Jobs retrieved successfully",
+                    JsonResponseUtil.rawObject(buildJobListJson(jobs))
+            );
 
         } catch (Exception e) {
             logError("Error retrieving jobs", e);
-            writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
+            JsonResponseUtil.writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
         }
     }
 
@@ -131,13 +143,18 @@ public class JobServlet extends HttpServlet {
         Optional<Job> jobOpt = jobDao.findById(jobId);
 
         if (jobOpt.isEmpty()) {
-            writeJsonResponse(response, 404, false, "Job not found", null);
+            JsonResponseUtil.writeJsonResponse(response, 404, false, "Job not found", null);
             return;
         }
 
         Job job = jobOpt.get();
-        String data = buildJobJson(job);
-        writeJsonResponse(response, 200, true, "Job retrieved successfully", data);
+        JsonResponseUtil.writeJsonResponse(
+                response,
+                200,
+                true,
+                "Job retrieved successfully",
+                JsonResponseUtil.rawObject(buildJobJson(job))
+        );
     }
 
     @Override
@@ -149,13 +166,13 @@ public class JobServlet extends HttpServlet {
             // 获取当前登录用户
             User currentUser = getCurrentUser(request);
             if (currentUser == null) {
-                writeJsonResponse(response, 401, false, "Please login first", null);
+                JsonResponseUtil.writeJsonResponse(response, 401, false, "Please login first", null);
                 return;
             }
 
             // 检查用户角色（只有MO可以发布职位）
             if (currentUser.getRole() != User.Role.MO) {
-                writeJsonResponse(response, 403, false, "Only MO can post jobs", null);
+                JsonResponseUtil.writeJsonResponse(response, 403, false, "Only MO can post jobs", null);
                 return;
             }
 
@@ -184,7 +201,7 @@ public class JobServlet extends HttpServlet {
             );
             if (error != null) {
                 logInfo("Validation failed: " + error);
-                writeJsonResponse(response, 400, false, error, null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, error, null);
                 return;
             }
 
@@ -226,15 +243,15 @@ public class JobServlet extends HttpServlet {
             Job savedJob = jobDao.create(job);
             logInfo("Job created successfully: " + savedJob.getJobId() + " by MO: " + currentUser.getUsername());
 
-            String data = "{\"jobId\": \"" + savedJob.getJobId() + "\"}";
-            writeJsonResponse(response, 201, true, "Job created successfully!", data);
+            JsonResponseUtil.writeJsonResponse(response, 201, true, "Job created successfully!",
+                    JsonResponseUtil.rawObject("\"jobId\": \"" + escapeJson(savedJob.getJobId()) + "\""));
 
         } catch (IllegalArgumentException e) {
             logInfo("Job creation failed: " + e.getMessage());
-            writeJsonResponse(response, 400, false, e.getMessage(), null);
+            JsonResponseUtil.writeJsonResponse(response, 400, false, e.getMessage(), null);
         } catch (Exception e) {
             logError("Unexpected error during job creation", e);
-            writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
+            JsonResponseUtil.writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
         }
     }
 
@@ -247,21 +264,21 @@ public class JobServlet extends HttpServlet {
             // 获取当前登录用户
             User currentUser = getCurrentUser(request);
             if (currentUser == null) {
-                writeJsonResponse(response, 401, false, "Please login first", null);
+                JsonResponseUtil.writeJsonResponse(response, 401, false, "Please login first", null);
                 return;
             }
 
             // 获取要更新的职位ID
             String jobId = request.getParameter("id");
             if (jobId == null || jobId.trim().isEmpty()) {
-                writeJsonResponse(response, 400, false, "Job ID is required", null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, "Job ID is required", null);
                 return;
             }
 
             // 查找职位
             Optional<Job> jobOpt = jobDao.findById(jobId.trim());
             if (jobOpt.isEmpty()) {
-                writeJsonResponse(response, 404, false, "Job not found", null);
+                JsonResponseUtil.writeJsonResponse(response, 404, false, "Job not found", null);
                 return;
             }
 
@@ -269,7 +286,7 @@ public class JobServlet extends HttpServlet {
 
             // 检查权限（只有职位所属MO可以更新）
             if (!job.getMoId().equals(currentUser.getUserId())) {
-                writeJsonResponse(response, 403, false, "You can only update your own jobs", null);
+                JsonResponseUtil.writeJsonResponse(response, 403, false, "You can only update your own jobs", null);
                 return;
             }
 
@@ -357,15 +374,15 @@ public class JobServlet extends HttpServlet {
             Job updatedJob = jobDao.update(job);
             logInfo("Job updated successfully: " + updatedJob.getJobId());
 
-            String data = "{\"jobId\": \"" + updatedJob.getJobId() + "\"}";
-            writeJsonResponse(response, 200, true, "Job updated successfully!", data);
+            JsonResponseUtil.writeJsonResponse(response, 200, true, "Job updated successfully!",
+                    JsonResponseUtil.rawObject("\"jobId\": \"" + escapeJson(updatedJob.getJobId()) + "\""));
 
         } catch (IllegalArgumentException e) {
             logInfo("Job update failed: " + e.getMessage());
-            writeJsonResponse(response, 400, false, e.getMessage(), null);
+            JsonResponseUtil.writeJsonResponse(response, 400, false, e.getMessage(), null);
         } catch (Exception e) {
             logError("Unexpected error during job update", e);
-            writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
+            JsonResponseUtil.writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
         }
     }
 
@@ -378,21 +395,21 @@ public class JobServlet extends HttpServlet {
             // 获取当前登录用户
             User currentUser = getCurrentUser(request);
             if (currentUser == null) {
-                writeJsonResponse(response, 401, false, "Please login first", null);
+                JsonResponseUtil.writeJsonResponse(response, 401, false, "Please login first", null);
                 return;
             }
 
             // 获取要删除的职位ID
             String jobId = request.getParameter("id");
             if (jobId == null || jobId.trim().isEmpty()) {
-                writeJsonResponse(response, 400, false, "Job ID is required", null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, "Job ID is required", null);
                 return;
             }
 
             // 查找职位
             Optional<Job> jobOpt = jobDao.findById(jobId.trim());
             if (jobOpt.isEmpty()) {
-                writeJsonResponse(response, 404, false, "Job not found", null);
+                JsonResponseUtil.writeJsonResponse(response, 404, false, "Job not found", null);
                 return;
             }
 
@@ -400,7 +417,7 @@ public class JobServlet extends HttpServlet {
 
             // 检查权限（只有职位所属MO可以删除）
             if (!job.getMoId().equals(currentUser.getUserId())) {
-                writeJsonResponse(response, 403, false, "You can only delete your own jobs", null);
+                JsonResponseUtil.writeJsonResponse(response, 403, false, "You can only delete your own jobs", null);
                 return;
             }
 
@@ -408,14 +425,14 @@ public class JobServlet extends HttpServlet {
             boolean deleted = jobDao.delete(jobId.trim());
             if (deleted) {
                 logInfo("Job deleted successfully: " + jobId);
-                writeJsonResponse(response, 200, true, "Job deleted successfully!", null);
+                JsonResponseUtil.writeJsonResponse(response, 200, true, "Job deleted successfully!", null);
             } else {
-                writeJsonResponse(response, 500, false, "Failed to delete job", null);
+                JsonResponseUtil.writeJsonResponse(response, 500, false, "Failed to delete job", null);
             }
 
         } catch (Exception e) {
             logError("Unexpected error during job deletion", e);
-            writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
+            JsonResponseUtil.writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
         }
     }
 
@@ -625,27 +642,6 @@ public class JobServlet extends HttpServlet {
         json.append("], ");
         json.append("\"total\": ").append(jobs.size());
         return json.toString();
-    }
-
-    /**
-     * 统一的JSON响应写入方法
-     */
-    private void writeJsonResponse(HttpServletResponse response, int status, boolean success, String message, String data)
-            throws IOException {
-        response.setStatus(status);
-        PrintWriter out = response.getWriter();
-
-        StringBuilder json = new StringBuilder();
-        json.append("{");
-        json.append("\"success\": ").append(success).append(", ");
-        json.append("\"message\": \"").append(escapeJson(message)).append("\"");
-
-        if (data != null) {
-            json.append(", ").append(data);
-        }
-
-        json.append("}");
-        out.write(json.toString());
     }
 
     /**
