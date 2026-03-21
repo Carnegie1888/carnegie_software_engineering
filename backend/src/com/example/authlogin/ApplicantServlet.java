@@ -116,8 +116,13 @@ public class ApplicantServlet extends HttpServlet {
             }
 
             Applicant applicant = applicantOpt.get();
-            String data = "{" + buildApplicantJson(applicant) + "}";
-            JsonResponseUtil.writeResponse(response, 200, true, "Applicant profile retrieved successfully", data);
+            JsonResponseUtil.writeJsonResponse(
+                    response,
+                    200,
+                    true,
+                    "Applicant profile retrieved successfully",
+                    buildApplicantPayload(applicant)
+            );
 
         } catch (Exception e) {
             logError("Error retrieving applicant profile", e);
@@ -233,10 +238,11 @@ public class ApplicantServlet extends HttpServlet {
                 logInfo("Applicant profile created successfully for user: " + currentUser.getUsername());
             }
 
-            String data = "{\"applicantId\": \"" + escapeJson(savedApplicant.getApplicantId()) + "\"}";
+            java.util.Map<String, Object> data = new java.util.LinkedHashMap<>();
+            data.put("applicantId", savedApplicant.getApplicantId());
             int status = isUpdate ? 200 : 201;
             String message = isUpdate ? "Applicant profile updated successfully!" : "Applicant profile created successfully!";
-            JsonResponseUtil.writeResponse(response, status, true, message, data);
+            JsonResponseUtil.writeJsonResponse(response, status, true, message, data);
 
         } catch (IllegalArgumentException e) {
             logInfo("Profile operation failed: " + e.getMessage());
@@ -355,13 +361,13 @@ public class ApplicantServlet extends HttpServlet {
 
             logInfo("Applicant profile updated with resume for user: " + currentUser.getUsername());
 
-            String data = "{\"applicantId\": \"" + updatedApplicant.getApplicantId() + "\"";
+            java.util.Map<String, Object> data = new java.util.LinkedHashMap<>();
+            data.put("applicantId", updatedApplicant.getApplicantId());
             if (resumePath != null) {
-                data += ", \"resumePath\": \"" + escapeJson(resumePath) + "\"";
+                data.put("resumePath", resumePath);
             }
-            data += "}";
 
-            JsonResponseUtil.writeResponse(response, 200, true, "Profile updated with resume!", data);
+            JsonResponseUtil.writeJsonResponse(response, 200, true, "Profile updated with resume!", data);
 
         } catch (IllegalArgumentException e) {
             logInfo("Resume upload failed: " + e.getMessage());
@@ -1077,6 +1083,27 @@ public class ApplicantServlet extends HttpServlet {
         }
         json.append("]");
         return json.toString();
+    }
+
+    private java.util.Map<String, Object> buildApplicantPayload(Applicant applicant) {
+        CompletenessResult completeness = calculateCompleteness(applicant);
+        java.util.LinkedHashMap<String, Object> data = new java.util.LinkedHashMap<>();
+        data.put("applicantId", applicant.getApplicantId());
+        data.put("userId", applicant.getUserId());
+        data.put("fullName", applicant.getFullName());
+        data.put("studentId", applicant.getStudentId());
+        data.put("department", applicant.getDepartment() != null ? applicant.getDepartment() : "");
+        data.put("program", applicant.getProgram() != null ? applicant.getProgram() : "");
+        data.put("gpa", applicant.getGpa() != null ? applicant.getGpa() : "");
+        data.put("skills", applicant.getSkillsAsString());
+        data.put("resumePath", applicant.getResumePath() != null ? applicant.getResumePath() : "");
+        data.put("phone", applicant.getPhone() != null ? applicant.getPhone() : "");
+        data.put("address", applicant.getAddress() != null ? applicant.getAddress() : "");
+        data.put("experience", applicant.getExperience() != null ? applicant.getExperience() : "");
+        data.put("motivation", applicant.getMotivation() != null ? applicant.getMotivation() : "");
+        data.put("completeness", completeness.completeness);
+        data.put("missingFields", completeness.missingFields);
+        return data;
     }
 
     /**
