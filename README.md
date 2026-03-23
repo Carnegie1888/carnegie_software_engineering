@@ -91,7 +91,7 @@ chmod +x *.sh
 
 ## Standard Demo Accounts
 
-以下为固定测试账号；开发阶段会自动存入本地csv文件里。
+以下为固定测试账号；应用启动时若本地 `csv` 中缺失这些账号，后端会自动补齐。
 
 | Role  | Username     | Password   |
 | ----- | ------------ | ---------- |

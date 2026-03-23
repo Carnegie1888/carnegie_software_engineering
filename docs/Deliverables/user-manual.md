@@ -1,163 +1,175 @@
-# Carnegie Software Engineering 系统用户手册
+# Carnegie Software Engineering System User Manual
 
-## 1. 文档说明
+## 1. Document Overview
 
-本手册用于指导 TA、MO、Admin 三类用户在系统中完成常见业务操作，覆盖：
+This manual is intended to help TA, MO, and Admin users complete common business operations in the system, including:
 
-- 账号注册与登录
-- 档案管理与简历上传
-- 职位发布与申请审核
-- AI 能力结果查看（技能匹配/缺失技能）
-- 管理员统计与导出
-
----
-
-## 2. 系统访问
-
-- 默认入口：`http://localhost:8080/groupproject/`
-- 登录页：`/login.jsp`
-- 注册页：`/register.jsp`
-
-如端口变更，请使用你本地 Tomcat 配置端口。
+- Account registration and login
+- Profile management and resume upload
+- Job posting and application review
+- Viewing AI capability results (skill matching / missing skills)
+- Administrative statistics and export
 
 ---
 
-## 3. 角色与权限
+## 2. System Access
 
-### 3.1 TA（申请人）
+- Default entry point: `http://localhost:8080/groupproject/`
+- Login page: `/login.jsp`
+- Registration page: `/register.jsp`
 
-- 创建/更新个人档案
-- 上传简历
-- 浏览职位并提交申请
-- 查看申请状态
+If the port has been changed, please use the port configured in your local Tomcat environment.
 
-### 3.2 MO（课程负责人）
+### 2.1 Development Demo Accounts
 
-- 发布和维护职位
-- 查看申请人列表
-- 接受或拒绝申请
-- 查看缺失技能可视化结果
+For development and demonstration, the system provides the following fixed accounts:
 
-### 3.3 Admin（管理员）
+| Role  | Username     | Password   |
+| ----- | ------------ | ---------- |
+| TA    | `ta_demo`    | `Pass1234` |
+| MO    | `mo_demo`    | `Pass1234` |
+| Admin | `admin_demo` | `Pass1234` |
 
-- 查看全局工作量统计
-- 按 MO 维度查看处理负载
-- 时间段筛选与 CSV 导出
+If any of these accounts are missing from the local user CSV files, the backend will recreate them automatically during application startup.
 
 ---
 
-## 4. 首次使用流程
+## 3. Roles and Permissions
 
-1. 打开注册页，选择对应角色并创建账号。
-2. 登录后根据角色进入对应仪表盘。
-3. TA 用户先完成档案信息和技能填写，再申请职位。
-4. MO 用户先发布职位，再在申请管理页审核候选人。
-5. Admin 用户可进入统计接口查看系统负载。
+### 3.1 TA (Applicant)
 
----
+- Create or update a personal profile
+- Upload a resume
+- Browse jobs and submit applications
+- View application status
 
-## 5. TA 用户操作指南
+### 3.2 MO (Module Organizer)
 
-### 5.1 创建档案
+- Publish and maintain job postings
+- View the applicant list
+- Accept or reject applications
+- View missing-skill visualization results
 
-在 TA 页面填写：
+### 3.3 Admin (Administrator)
 
-- 姓名、学号、院系、项目（本科/硕士/博士）
-- 技能列表（建议使用逗号分隔）
-- GPA、联系电话、地址、经验、动机
-
-### 5.2 上传简历
-
-- 支持格式：PDF、DOC、DOCX
-- 文件大小上限：10MB
-- 上传后系统保存相对路径供后续审核使用
-
-### 5.3 申请职位
-
-在职位列表页选择职位，填写求职信后提交。  
-提交后可在申请状态页查看：
-
-- `PENDING` 待审核
-- `ACCEPTED` 已录用
-- `REJECTED` 已拒绝
-- `WITHDRAWN` 已撤回
+- View global workload statistics
+- View processing load by MO
+- Filter by time range and export CSV data
 
 ---
 
-## 6. MO 用户操作指南
+## 4. First-Time Usage Flow
 
-### 6.1 发布职位
-
-需填写职位基础信息：
-
-- 职位标题、课程代码、课程名称
-- 描述、必备技能、人数、工作量、薪资、截止时间
-
-### 6.2 审核申请
-
-在申请审核页：
-
-- 查看申请人信息与求职信
-- 对 `PENDING` 状态执行接收/拒绝
-
-### 6.3 缺失技能分析
-
-可通过缺失技能接口查看：
-
-- 单个申请人的匹配与缺失项
-- 聚合后的缺失技能频次
-- 推荐补强建议
+1. Open the registration page, choose the appropriate role, and create an account.
+2. After logging in, enter the corresponding dashboard based on your role.
+3. TA users should complete their profile and skills before applying for jobs.
+4. MO users should publish jobs first, then review candidates on the application management page.
+5. Admin users can access the statistics interface to view system workload data.
 
 ---
 
-## 7. Admin 用户操作指南
+## 5. TA User Guide
 
-### 7.1 申请总量统计
+### 5.1 Create a Profile
 
-统计接口可返回全局申请状态分布：
+On the TA page, fill in:
 
-- 总申请数
-- 待处理数量
-- 已通过数量
-- 已拒绝数量
-- 已撤回数量
+- Name, student ID, department, and program (Bachelor's / Master's / PhD)
+- Skill list (comma-separated format is recommended)
+- GPA, phone number, address, experience, and motivation
 
-### 7.2 MO 工作量统计
+### 5.2 Upload a Resume
 
-可按 MO 维度查看：
+- Supported formats: PDF, DOC, DOCX
+- Maximum file size: 10MB
+- After upload, the system saves a relative file path for later review
 
-- 总处理量
-- 待处理数
-- 已处理数
-- 接受/拒绝/撤回分布
+### 5.3 Apply for a Job
 
-### 7.3 时间段筛选与导出
+On the job list page, select a job, fill in the cover letter, and submit it.  
+After submission, you can view the following statuses on the application status page:
 
-支持传入 `start/end` 参数进行时间过滤。  
-设置 `export=csv` 可下载统计结果，用于外部报表分析。
-
----
-
-## 8. 常见问题
-
-### 8.1 登录失败
-
-- 检查用户名/邮箱与密码是否正确
-- 检查所选登录角色是否与账号角色一致
-
-### 8.2 无法上传简历
-
-- 检查格式是否为 PDF/DOC/DOCX
-- 检查文件是否超过 10MB
-
-### 8.3 看不到统计数据
-
-- 确认当前账号角色是否具备权限（Admin 或 MO）
-- 确认会话未过期，必要时重新登录
+- `PENDING` Waiting for review
+- `ACCEPTED` Accepted
+- `REJECTED` Rejected
+- `WITHDRAWN` Withdrawn
 
 ---
 
-## 9. 版本维护建议
+## 6. MO User Guide
 
-- 每次迭代后同步更新本手册中的页面路径与接口说明
-- 新增权限控制或字段校验时，更新“角色与权限”和“常见问题”章节
+### 6.1 Publish a Job
+
+The following basic job information must be provided:
+
+- Job title, course code, and course name
+- Description, required skills, number of openings, workload, salary, and deadline
+
+### 6.2 Review Applications
+
+On the application review page, you can:
+
+- View applicant information and cover letters
+- Accept or reject applications in `PENDING` status
+
+### 6.3 Missing Skills Analysis
+
+Through the missing skills interface, you can view:
+
+- Matching results and missing items for an individual applicant
+- Aggregated frequency of missing skills
+- Recommended improvement suggestions
+
+---
+
+## 7. Admin User Guide
+
+### 7.1 Total Application Statistics
+
+The statistics interface can return the global distribution of application statuses:
+
+- Total number of applications
+- Number pending
+- Number accepted
+- Number rejected
+- Number withdrawn
+
+### 7.2 MO Workload Statistics
+
+You can view the following by MO:
+
+- Total processing volume
+- Number pending
+- Number processed
+- Distribution of accepted / rejected / withdrawn applications
+
+### 7.3 Time Range Filtering and Export
+
+The interface supports `start/end` parameters for time-based filtering.  
+Set `export=csv` to download the statistics for external reporting and analysis.
+
+---
+
+## 8. Frequently Asked Questions
+
+### 8.1 Login Failed
+
+- Check whether the username/email and password are correct
+- Check whether the selected login role matches the role of the account
+
+### 8.2 Unable to Upload Resume
+
+- Check whether the file format is PDF/DOC/DOCX
+- Check whether the file size exceeds 10MB
+
+### 8.3 Statistics Data Is Not Visible
+
+- Confirm that the current account has the required permissions (Admin or MO)
+- Confirm that the session has not expired; log in again if necessary
+
+---
+
+## 9. Maintenance Recommendations
+
+- After each iteration, update the page paths and interface descriptions in this manual
+- When new permission controls or field validation are added, update the "Roles and Permissions" and "Frequently Asked Questions" sections

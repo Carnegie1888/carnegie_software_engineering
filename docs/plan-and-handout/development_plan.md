@@ -241,6 +241,7 @@
 |Commit|Message|状态|Git Command|
 |---|---|---|---|
 |#1|`refactor: 统一系统默认入口为登录页`|✅|`git commit -m "refactor: 统一系统默认入口为登录页" --author="member6 <member6@edu.com>"`|
+|#2|`docs: 更新默认演示账号与本地运行说明`|✅|`git commit -m "docs: 更新默认演示账号与本地运行说明" --author="member6 <member6@edu.com>"`|
 
 ---
 
