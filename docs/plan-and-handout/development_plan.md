@@ -230,6 +230,7 @@
 |Commit|Message|状态|Git Command|
 |---|---|---|---|
 |#1|`refactor: 按业务模块拆分本地数据文件路径`|✅|`git commit -m "refactor: 按业务模块拆分本地数据文件路径" --author="member2 <member2@edu.com>"`|
+|#2|`feat: 补齐默认演示账号并支持启动时自动初始化`|✅|`git commit -m "feat: 补齐默认演示账号并支持启动时自动初始化" --author="member2 <member2@edu.com>"`|
 
 ---
 

@@ -24,11 +24,16 @@ public class UserDao {
     private static final String USER_FILE_MO = USER_DIR + File.separator + "users_mo.csv";
     private static final String USER_FILE_ADMIN = USER_DIR + File.separator + "users_admin.csv";
     private static final String CSV_HEADER = "userId,username,password,email,role,createdAt,lastLoginAt";
+    private static final String DEFAULT_DEMO_PASSWORD = "Pass1234";
+    private static final String DEFAULT_TA_DEMO_EMAIL = "ta_demo@local.test";
+    private static final String DEFAULT_MO_DEMO_EMAIL = "mo_demo@local.test";
+    private static final String DEFAULT_ADMIN_DEMO_EMAIL = "admin_demo@local.test";
 
     private static UserDao instance;
 
     private UserDao() {
         initDataDirectory();
+        ensureDefaultDemoAccounts();
     }
 
     public static synchronized UserDao getInstance() {
@@ -71,6 +76,39 @@ public class UserDao {
         initUserFile(USER_FILE_TA);
         initUserFile(USER_FILE_MO);
         initUserFile(USER_FILE_ADMIN);
+    }
+
+    /**
+     * 启动时补齐固定测试账号，但不覆盖已有本地数据。
+     */
+    private void ensureDefaultDemoAccounts() {
+        ensureDefaultDemoAccount("ta_demo", DEFAULT_TA_DEMO_EMAIL, User.Role.TA);
+        ensureDefaultDemoAccount("mo_demo", DEFAULT_MO_DEMO_EMAIL, User.Role.MO);
+        ensureDefaultDemoAccount("admin_demo", DEFAULT_ADMIN_DEMO_EMAIL, User.Role.ADMIN);
+    }
+
+    private void ensureDefaultDemoAccount(String username, String preferredEmail, User.Role role) {
+        if (findByUsername(username).isPresent()) {
+            return;
+        }
+
+        String email = resolveAvailableDemoEmail(username, preferredEmail);
+        create(new User(username, DEFAULT_DEMO_PASSWORD, email, role));
+    }
+
+    private String resolveAvailableDemoEmail(String username, String preferredEmail) {
+        if (!existsByEmail(preferredEmail)) {
+            return preferredEmail;
+        }
+
+        int suffix = 1;
+        while (true) {
+            String candidateEmail = username + "+" + suffix + "@local.test";
+            if (!existsByEmail(candidateEmail)) {
+                return candidateEmail;
+            }
+            suffix++;
+        }
     }
 
     /**
