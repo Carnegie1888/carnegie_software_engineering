@@ -112,7 +112,7 @@
         </p>
         <p class="register-hint">
             Need admin access?
-            <a href="<%= contextPath %>/admin-register.jsp">Create admin account</a>
+            Contact your system administrator for an invitation email.
         </p>
 
         <p class="login-footer">University Hiring System © 2026</p>

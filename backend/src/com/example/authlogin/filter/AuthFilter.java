@@ -41,7 +41,9 @@ public class AuthFilter implements Filter {
         "/logout",
         "/login.jsp",
         "/register.jsp",
-        "/admin-register.jsp",
+        "/admin-invite.jsp",
+        "/api/admin/invite/validate",
+        "/api/admin/invite/accept",
         "/test_applicant.jsp",
         "/jobs"
     ));

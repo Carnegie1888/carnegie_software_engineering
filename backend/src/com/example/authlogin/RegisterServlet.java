@@ -90,13 +90,13 @@ public class RegisterServlet extends HttpServlet {
             email = email.trim();
             roleStr = roleStr.trim();
 
-            // 解析角色
+            // 解析角色（公开注册仅允许 TA / MO）
             User.Role role;
             try {
-                role = User.Role.valueOf(roleStr.toUpperCase());
+                role = parsePublicRole(roleStr);
             } catch (IllegalArgumentException e) {
                 logInfo("Invalid role: " + roleStr);
-                JsonResponseUtil.writeJsonResponse(response, 400, false, "Invalid role selected", null);
+                JsonResponseUtil.writeJsonResponse(response, 400, false, e.getMessage(), null);
                 return;
             }
 
@@ -195,7 +195,10 @@ public class RegisterServlet extends HttpServlet {
         if (roleText.isEmpty()) {
             return "Please select a role";
         }
-        if (!isSupportedRole(roleText)) {
+        if ("ADMIN".equals(roleText)) {
+            return "Admin registration is invitation-only";
+        }
+        if (!isSupportedPublicRole(roleText)) {
             return "Invalid role selected";
         }
 
@@ -245,8 +248,22 @@ public class RegisterServlet extends HttpServlet {
             || text.matches(".*on\\w+\\s*=.*");
     }
 
-    private boolean isSupportedRole(String role) {
-        return "TA".equals(role) || "MO".equals(role) || "ADMIN".equals(role);
+    private boolean isSupportedPublicRole(String role) {
+        return "TA".equals(role) || "MO".equals(role);
+    }
+
+    private User.Role parsePublicRole(String roleText) {
+        if (roleText == null) {
+            throw new IllegalArgumentException("Invalid role selected");
+        }
+        String normalized = roleText.trim().toUpperCase();
+        if ("ADMIN".equals(normalized)) {
+            throw new IllegalArgumentException("Admin registration is invitation-only");
+        }
+        if (!isSupportedPublicRole(normalized)) {
+            throw new IllegalArgumentException("Invalid role selected");
+        }
+        return User.Role.valueOf(normalized);
     }
 
 }

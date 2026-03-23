@@ -53,10 +53,13 @@ cp_with_classes="${SERVLET_API_JAR}:${CLASSES_DIR}"
 
 # First pass: model and dao
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${SERVLET_API_JAR}" "${SRC_DIR}/com/example/authlogin/model/User.java"
+javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/model/AdminInvite.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${SERVLET_API_JAR}" "${SRC_DIR}/com/example/authlogin/model/Applicant.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${SERVLET_API_JAR}:${CLASSES_DIR}" "${SRC_DIR}/com/example/authlogin/util/StoragePaths.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/util/JsonResponseUtil.java"
+javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/util/SecurityTokenUtil.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/dao/UserDao.java"
+javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/dao/AdminInviteDao.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/dao/ApplicantDao.java"
 
 # util, model/dao
@@ -70,6 +73,7 @@ javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/c
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/service/SkillMatchService.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/service/MissingSkillsService.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/service/WorkloadStatsService.java"
+javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/service/AdminInviteEmailService.java"
 
 # filter
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/filter/AuthFilter.java"
@@ -77,8 +81,8 @@ javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/c
 # servlets
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/LoginServlet.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/RegisterServlet.java"
- javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/LogoutServlet.java"
- javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/ApplicantServlet.java"
+javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/LogoutServlet.java"
+javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/ApplicantServlet.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/ApplicantAccessServlet.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/JobServlet.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/ApplyServlet.java"
@@ -86,6 +90,8 @@ javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/c
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/ApplicantAccessServlet.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/MissingSkillsServlet.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/WorkloadStatsServlet.java"
+javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/AdminInviteServlet.java"
+javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/AdminInviteAcceptServlet.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/util/PermissionUtil.java"
 
 echo "[3/3] Copying resource files..."

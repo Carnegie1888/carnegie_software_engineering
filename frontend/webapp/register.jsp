@@ -127,8 +127,7 @@
             <a href="<%= contextPath %>/login.jsp">Back to login</a>
         </p>
         <p class="page-switch-hint">
-            Registering as admin?
-            <a href="<%= contextPath %>/admin-register.jsp">Use admin registration</a>
+            Need an Admin account? Ask your system administrator for an invitation link.
         </p>
 
         <p class="login-footer">University Hiring System © 2026</p>

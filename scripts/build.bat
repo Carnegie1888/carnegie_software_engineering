@@ -41,12 +41,13 @@ REM Compile all .java files in subdirectories
 REM First pass: compile model and dao classes
 echo First pass: compiling model and dao classes...
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar" "%SRC_DIR%\com\example\authlogin\model\User.java"
+javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\model\AdminInvite.java"
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar" "%SRC_DIR%\com\example\authlogin\model\Applicant.java"
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\util\StoragePaths.java"
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\util\JsonResponseUtil.java"
-javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\util\StoragePaths.java"
-javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\util\JsonResponseUtil.java"
+javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\util\SecurityTokenUtil.java"
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\dao\UserDao.java"
+javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\dao\AdminInviteDao.java"
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\dao\ApplicantDao.java"
 
 REM Second pass: compile util and filter classes
@@ -70,6 +71,7 @@ javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\se
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\service\SkillMatchService.java"
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\service\MissingSkillsService.java"
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\service\WorkloadStatsService.java"
+javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\service\AdminInviteEmailService.java"
 
 echo Third pass: compiling filter classes...
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\filter\AuthFilter.java"
@@ -77,8 +79,8 @@ javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\se
 echo Fourth pass: compiling servlet classes...
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\LoginServlet.java"
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\RegisterServlet.java"
- javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\LogoutServlet.java"
- javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\ApplicantServlet.java"
+javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\LogoutServlet.java"
+javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\ApplicantServlet.java"
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\JobServlet.java"
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\SkillMatchServlet.java"
 
@@ -94,6 +96,8 @@ javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\se
 REM Compile WorkloadStatsServlet (Member 3 - Admin Workload Statistics)
 echo Compiling WorkloadStatsServlet...
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\WorkloadStatsServlet.java"
+javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\AdminInviteServlet.java"
+javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\AdminInviteAcceptServlet.java"
 
 REM Compile ApplicantAccessServlet (batch B1/B2)
 echo Compiling ApplicantAccessServlet...

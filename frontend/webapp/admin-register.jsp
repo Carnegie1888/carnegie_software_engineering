@@ -18,83 +18,16 @@
                     <path d="M12 4.5L20 8.5L12 12.5L4 8.5L12 4.5ZM7.2 10.1V14.2C7.2 16.6 9.5 18.4 12 18.4C14.5 18.4 16.8 16.6 16.8 14.2V10.1L12 12.5L7.2 10.1Z" />
                 </svg>
             </div>
-            <h1 id="register-title">Create admin account</h1>
-            <p class="subtitle">This page is only for system administrator registration</p>
+            <h1 id="register-title">Admin registration is invitation-only</h1>
+            <p class="subtitle">Ask an existing admin to send you an invitation link by email.</p>
         </section>
 
         <section class="register-card" aria-label="管理员注册表单">
-            <div id="form-message" class="form-message hidden" role="alert" aria-live="polite"></div>
-
-            <form id="register-form" class="register-form" method="post" action="<%= contextPath %>/register" novalidate>
-                <div class="field">
-                    <div class="field-label-row">
-                        <label for="username">Username</label>
-                    </div>
-                    <input
-                        id="username"
-                        name="username"
-                        type="text"
-                        placeholder="admin_username"
-                        autocomplete="username"
-                        maxlength="20"
-                        required
-                    >
-                    <p class="field-hint">3-20 characters, start with a letter, and use only letters, numbers, or underscores.</p>
-                </div>
-
-                <div class="field">
-                    <div class="field-label-row">
-                        <label for="email">Email address</label>
-                    </div>
-                    <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="admin@university.edu"
-                        autocomplete="email"
-                        maxlength="100"
-                        inputmode="email"
-                        required
-                    >
-                </div>
-
-                <div class="field">
-                    <div class="field-label-row">
-                        <label for="password">Password</label>
-                    </div>
-                    <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        placeholder="Create a password"
-                        autocomplete="new-password"
-                        maxlength="100"
-                        required
-                    >
-                    <p class="field-hint">Use at least 6 characters.</p>
-                </div>
-
-                <div class="field">
-                    <div class="field-label-row">
-                        <label for="confirm-password">Confirm password</label>
-                    </div>
-                    <input
-                        id="confirm-password"
-                        name="confirmPassword"
-                        type="password"
-                        placeholder="Re-enter your password"
-                        autocomplete="new-password"
-                        maxlength="100"
-                        required
-                    >
-                </div>
-
-                <input id="register-role" type="hidden" name="role" value="ADMIN">
-
-                <button id="register-submit" class="register-submit-btn" type="submit">
-                    Create admin account
-                </button>
-            </form>
+            <p class="field-hint">
+                Direct admin self-registration has been disabled for security reasons.
+                If you already received an invitation email, open the invitation link or visit
+                <code><%= contextPath %>/admin-invite.jsp</code> with your invite code.
+            </p>
         </section>
 
         <p class="page-switch-hint">
@@ -109,9 +42,5 @@
         <p class="login-footer">University Hiring System © 2026</p>
     </main>
 
-    <script>
-        window.APP_CONTEXT_PATH = "<%= contextPath %>";
-    </script>
-    <script src="<%= contextPath %>/js/register.js" defer></script>
 </body>
 </html>
