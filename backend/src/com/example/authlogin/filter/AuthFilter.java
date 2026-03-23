@@ -36,6 +36,7 @@ public class AuthFilter implements Filter {
     // 公开路径，不需要登录验证
     private static final Set<String> PUBLIC_PATHS = new HashSet<>(Arrays.asList(
         "/",
+        "/index.jsp",
         "/login",
         "/register",
         "/logout",

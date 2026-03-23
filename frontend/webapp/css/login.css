@@ -35,6 +35,66 @@ body {
     background: var(--ui-bg);
 }
 
+.page-utility {
+    width: min(384px, 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.utility-link {
+    color: var(--ui-text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.utility-link:hover {
+    color: var(--ui-brand);
+}
+
+.locale-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px;
+    border-radius: 999px;
+    border: 1px solid var(--ui-border);
+    background: var(--ui-surface);
+}
+
+.locale-divider {
+    color: var(--ui-text-tertiary);
+    font-size: 12px;
+    line-height: 1;
+}
+
+.locale-btn {
+    border: none;
+    background: transparent;
+    color: var(--ui-text-secondary);
+    min-height: 26px;
+    padding: 0 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.locale-btn:hover {
+    color: var(--ui-text-primary);
+}
+
+.locale-btn.is-active {
+    background: rgba(0, 113, 227, 0.14);
+    color: var(--ui-brand);
+}
+
 .login-page {
     min-height: 100vh;
     display: flex;
@@ -299,6 +359,10 @@ body {
     .login-page {
         justify-content: flex-start;
         padding-top: 40px;
+    }
+
+    .page-utility {
+        margin-bottom: 12px;
     }
 
     .login-hero h1 {
