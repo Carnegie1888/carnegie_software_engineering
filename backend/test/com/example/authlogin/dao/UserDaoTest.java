@@ -17,9 +17,18 @@ public class UserDaoTest {
         System.out.println("========================================\n");
 
         UserDao userDao = UserDao.getInstance();
-        userDao.deleteAll(); // Clean up before tests
 
         try {
+            // Test 0: Default Demo Accounts
+            test("Default Demo Accounts", () -> {
+                assert userDao.findByUsername("ta_demo").isPresent() : "TA demo account should exist";
+                assert userDao.findByUsername("mo_demo").isPresent() : "MO demo account should exist";
+                assert userDao.findByUsername("admin_demo").isPresent() : "Admin demo account should exist";
+                assert userDao.verifyLogin("ta_demo", "Pass1234").isPresent() : "TA demo login should succeed";
+            });
+
+            userDao.deleteAll(); // Clean up before remaining tests
+
             // Test 1: Create User
             test("Create User", () -> {
                 User user = new User("testuser", "password123", "test@example.com", User.Role.TA);

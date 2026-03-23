@@ -241,3 +241,13 @@
 |Commit|Message|状态|Git Command|
 |---|---|---|---|
 |#1|`refactor: 统一系统默认入口为登录页`|✅|`git commit -m "refactor: 统一系统默认入口为登录页" --author="member6 <member6@edu.com>"`|
+
+---
+
+#### 成员4 (后端) - 登录模块回归测试补齐
+
+负责：补充默认演示账号测试 + 校验登录回归行为
+
+|Commit|Message|状态|Git Command|
+|---|---|---|---|
+|#1|`test: 为 UserDao 补充默认演示账号回归测试`|✅|`git commit -m "test: 为 UserDao 补充默认演示账号回归测试" --author="member4 <member4@edu.com>"`|
