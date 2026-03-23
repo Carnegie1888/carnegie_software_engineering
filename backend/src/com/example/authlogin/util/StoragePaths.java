@@ -49,6 +49,10 @@ public final class StoragePaths {
         return Paths.get(getDataDir(), "applications").toString();
     }
 
+    public static String getInvitesDir() {
+        return Paths.get(getDataDir(), "invites").toString();
+    }
+
     public static String getResumeDir() {
         return Paths.get(getDataDir(), "resumes").toString();
     }

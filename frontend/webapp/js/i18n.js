@@ -140,7 +140,7 @@
                     noAccount: "Don't have an account?",
                     createAccount: "Create one now",
                     needAdmin: "Need admin access?",
-                    createAdmin: "Create admin account"
+                    createAdmin: "Use admin invitation"
                 },
                 msg: {
                     failed: "Login failed. Please check your username and password.",
@@ -188,8 +188,8 @@
                 links: {
                     haveAccount: "Already have an account?",
                     backLogin: "Back to login",
-                    adminQuestion: "Registering as admin?",
-                    adminLink: "Use admin registration"
+                    adminQuestion: "Need an Admin account?",
+                    adminLink: "Use admin invitation"
                 },
                 msg: {
                     enterUsername: "Please enter a username.",
@@ -207,7 +207,7 @@
                     enterConfirmPassword: "Please confirm your password.",
                     passwordMismatch: "Passwords do not match.",
                     selectRole: "Please select a role.",
-                    adminUsePage: "Please use admin registration page for Admin account.",
+                    adminUsePage: "Admin accounts are created from invitation links.",
                     failed: "Registration failed. Please check your information and try again.",
                     successRedirect: "Registration successful! Redirecting to login...",
                     networkError: "Network error. Please try again."
@@ -218,14 +218,17 @@
                     title: "Admin Register - TA Hiring System"
                 },
                 hero: {
-                    title: "Create admin account",
-                    subtitle: "This page is only for system administrator registration"
+                    title: "Admin registration is invitation-only",
+                    subtitle: "Ask an existing admin to send you an invitation link by email."
                 },
                 form: {
-                    aria: "Admin registration form",
-                    usernamePlaceholder: "admin_username",
-                    emailPlaceholder: "admin@university.edu",
-                    submit: "Create admin account"
+                    aria: "Admin invitation notice"
+                },
+                notice: {
+                    primary: "Direct admin self-registration has been disabled for security reasons.",
+                    lead: "If you already received an invitation email, open",
+                    link: "Admin invitation page",
+                    tail: "and complete account activation with your invite code."
                 },
                 links: {
                     needStandard: "Need TA or MO account?",
@@ -765,7 +768,7 @@
                     noAccount: "还没有账号？",
                     createAccount: "立即注册",
                     needAdmin: "需要管理员权限？",
-                    createAdmin: "创建管理员账号"
+                    createAdmin: "使用管理员邀请"
                 },
                 msg: {
                     failed: "登录失败，请检查用户名和密码。",
@@ -813,8 +816,8 @@
                 links: {
                     haveAccount: "已有账号？",
                     backLogin: "返回登录",
-                    adminQuestion: "要注册管理员？",
-                    adminLink: "使用管理员注册"
+                    adminQuestion: "需要管理员账号？",
+                    adminLink: "使用管理员邀请"
                 },
                 msg: {
                     enterUsername: "请输入用户名。",
@@ -832,7 +835,7 @@
                     enterConfirmPassword: "请确认密码。",
                     passwordMismatch: "两次输入的密码不一致。",
                     selectRole: "请选择角色。",
-                    adminUsePage: "管理员账号请使用管理员注册页面。",
+                    adminUsePage: "管理员账号需通过邀请链接开通。",
                     failed: "注册失败，请检查信息后重试。",
                     successRedirect: "注册成功，正在跳转登录页...",
                     networkError: "网络异常，请稍后重试。"
@@ -843,14 +846,17 @@
                     title: "管理员注册 - TA 招聘系统"
                 },
                 hero: {
-                    title: "创建管理员账号",
-                    subtitle: "本页面仅用于系统管理员注册"
+                    title: "管理员账号采用邀请制开通",
+                    subtitle: "请联系现有管理员发送邀请邮件"
                 },
                 form: {
-                    aria: "管理员注册表单",
-                    usernamePlaceholder: "admin_username",
-                    emailPlaceholder: "admin@university.edu",
-                    submit: "创建管理员账号"
+                    aria: "管理员邀请说明"
+                },
+                notice: {
+                    primary: "出于安全原因，系统已关闭管理员公开自助注册。",
+                    lead: "如果你已经收到邀请邮件，请打开",
+                    link: "管理员邀请页面",
+                    tail: "并使用邀请码完成账号开通。"
                 },
                 links: {
                     needStandard: "需要 TA 或 MO 账号？",

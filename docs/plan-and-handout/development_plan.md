@@ -236,3 +236,4 @@
 |`member3`|#19|`docs: 更新 IDEA 本地 Tomcat 自动部署说明`|✅|`git commit -m "docs: 更新 IDEA 本地 Tomcat 自动部署说明" --author="member3 <member3@edu.com>"`|
 |`member5`|#20|`fix: 优化登录页角色按钮视觉反馈`|✅|`git commit -m "fix: 优化登录页角色按钮视觉反馈" --author="member5 <member5@edu.com>"`|
 |`member5`|#21|`feat: 重构门户首页并扩展全站双语切换`|✅|`git commit -m "feat: 重构门户首页并扩展全站双语切换" --author="member5 <member5@edu.com>"`|
+|`member1`|#22|`feat: 新增管理员邀请制账号开通流程`|✅|`git commit -m "feat: 新增管理员邀请制账号开通流程" --author="member1 <member1@edu.com>"`|

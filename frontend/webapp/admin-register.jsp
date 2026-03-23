@@ -28,84 +28,18 @@
                 </svg>
             </div>
             <h1 id="register-title" data-i18n="adminRegister.hero.title">Create admin account</h1>
-            <p class="subtitle" data-i18n="adminRegister.hero.subtitle">This page is only for system administrator registration</p>
+            <p class="subtitle" data-i18n="adminRegister.hero.subtitle">Admin account creation now requires an invitation</p>
         </section>
 
         <section class="register-card" data-i18n-aria-label="adminRegister.form.aria">
-            <div id="form-message" class="form-message hidden" role="alert" aria-live="polite"></div>
-
-            <form id="register-form" class="register-form" method="post" action="<%= contextPath %>/register" novalidate>
-                <div class="field">
-                    <div class="field-label-row">
-                        <label for="username" data-i18n="register.form.usernameLabel">Username</label>
-                    </div>
-                    <input
-                        id="username"
-                        name="username"
-                        type="text"
-                        placeholder="admin_username"
-                        data-i18n-placeholder="adminRegister.form.usernamePlaceholder"
-                        autocomplete="username"
-                        maxlength="20"
-                        required
-                    >
-                    <p class="field-hint" data-i18n="register.form.usernameHint">3-20 characters, start with a letter, and use only letters, numbers, or underscores.</p>
-                </div>
-
-                <div class="field">
-                    <div class="field-label-row">
-                        <label for="email" data-i18n="register.form.emailLabel">Email address</label>
-                    </div>
-                    <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="admin@university.edu"
-                        data-i18n-placeholder="adminRegister.form.emailPlaceholder"
-                        autocomplete="email"
-                        maxlength="100"
-                        inputmode="email"
-                        required
-                    >
-                </div>
-
-                <div class="field">
-                    <div class="field-label-row">
-                        <label for="password" data-i18n="register.form.passwordLabel">Password</label>
-                    </div>
-                    <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        placeholder="Create a password"
-                        data-i18n-placeholder="register.form.passwordPlaceholder"
-                        autocomplete="new-password"
-                        maxlength="100"
-                        required
-                    >
-                    <p class="field-hint" data-i18n="register.form.passwordHint">Use at least 6 characters.</p>
-                </div>
-
-                <div class="field">
-                    <div class="field-label-row">
-                        <label for="confirm-password" data-i18n="register.form.confirmLabel">Confirm password</label>
-                    </div>
-                    <input
-                        id="confirm-password"
-                        name="confirmPassword"
-                        type="password"
-                        placeholder="Re-enter your password"
-                        data-i18n-placeholder="register.form.confirmPlaceholder"
-                        autocomplete="new-password"
-                        maxlength="100"
-                        required
-                    >
-                </div>
-
-                <input id="register-role" type="hidden" name="role" value="ADMIN">
-
-                <button id="register-submit" class="register-submit-btn" type="submit" data-i18n="adminRegister.form.submit">Create admin account</button>
-            </form>
+            <p class="field-hint">
+                <span data-i18n="adminRegister.notice.primary">Direct admin self-registration has been disabled for security reasons.</span>
+            </p>
+            <p class="field-hint">
+                <span data-i18n="adminRegister.notice.lead">If you already received an invitation email, open</span>
+                <a href="<%= contextPath %>/admin-invite.jsp" data-i18n="adminRegister.notice.link">Admin invitation page</a>
+                <span data-i18n="adminRegister.notice.tail">and complete account activation with your invite code.</span>
+            </p>
         </section>
 
         <p class="page-switch-hint">
@@ -124,6 +58,5 @@
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
     <script src="<%= contextPath %>/js/i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/register.js" defer></script>
 </body>
 </html>

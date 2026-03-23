@@ -138,8 +138,8 @@
             <a href="<%= contextPath %>/login.jsp" data-i18n="register.links.backLogin">Back to login</a>
         </p>
         <p class="page-switch-hint">
-            <span data-i18n="register.links.adminQuestion">Registering as admin?</span>
-            <a href="<%= contextPath %>/admin-register.jsp" data-i18n="register.links.adminLink">Use admin registration</a>
+            <span data-i18n="register.links.adminQuestion">Need an Admin account?</span>
+            <a href="<%= contextPath %>/admin-invite.jsp" data-i18n="register.links.adminLink">Use admin invitation</a>
         </p>
 
         <p class="login-footer" data-i18n="common.footer.copyright">University Hiring System © 2026</p>

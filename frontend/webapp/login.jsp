@@ -123,7 +123,7 @@
         </p>
         <p class="register-hint">
             <span data-i18n="login.links.needAdmin">Need admin access?</span>
-            <a href="<%= contextPath %>/admin-register.jsp" data-i18n="login.links.createAdmin">Create admin account</a>
+            <a href="<%= contextPath %>/admin-invite.jsp" data-i18n="login.links.createAdmin">Use admin invitation</a>
         </p>
 
         <p class="login-footer" data-i18n="common.footer.copyright">University Hiring System © 2026</p>

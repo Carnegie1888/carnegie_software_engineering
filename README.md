@@ -100,6 +100,26 @@ chmod +x *.sh
 | MO    | `mo_demo`    | `Pass1234` |
 | Admin | `admin_demo` | `Pass1234` |
 
+## Admin Invitation-Only Registration
+
+管理员账号不再通过公开 `/register` 创建，改为邀请制：
+
+1. 已登录管理员在 Admin Dashboard 中填写受邀邮箱并发送邀请。
+2. 系统生成一次性邀请链接与邀请码，并通过邮件发送（未配置 SMTP 时会回退为日志预览）。
+3. 被邀请人打开 `admin-invite.jsp`，通过邀请链接或邮箱+邀请码完成管理员账号创建。
+4. 邀请一旦使用或过期即失效。
+
+### 邮件发送配置（可选）
+
+后端默认尝试调用系统 `sendmail` 发信。若你所在环境支持 sendmail，请配置以下参数（JVM 参数优先于环境变量）：
+
+| Key | 说明 | 示例 |
+| --- | --- | --- |
+| `TA_HIRING_MAIL_FROM` / `-Dta.hiring.mail.from` | 发件地址 | `noreply@example.com` |
+| `TA_HIRING_SENDMAIL_PATH` / `-Dta.hiring.sendmail.path` | sendmail 可执行文件路径 | `/usr/sbin/sendmail` |
+
+若未配置或系统没有 sendmail，接口会自动回退：仍生成邀请链接和邀请码，并在接口响应与日志中提供邮件正文预览，便于管理员手工转发。
+
 
 ## 日常开发工作流一：脚本运行
 
@@ -217,6 +237,24 @@ javac -encoding UTF-8 -d /tmp/build-test-login \
   backend/src/com/example/authlogin/dao/UserDao.java \
   backend/test/com/example/authlogin/integration/LoginRegisterIntegrationTest.java
 java -ea -cp /tmp/build-test-login com.example.authlogin.integration.LoginRegisterIntegrationTest
+```
+
+示例：运行管理员邀请流程回归测试
+
+```bash
+cd /path/to/carnegie_software_engineering
+rm -rf /tmp/build-test-admin-invite && mkdir /tmp/build-test-admin-invite
+javac -encoding UTF-8 -d /tmp/build-test-admin-invite \
+  backend/src/com/example/authlogin/util/StoragePaths.java \
+  backend/src/com/example/authlogin/util/SecurityTokenUtil.java \
+  backend/src/com/example/authlogin/model/User.java \
+  backend/src/com/example/authlogin/model/AdminInvite.java \
+  backend/src/com/example/authlogin/dao/UserDao.java \
+  backend/src/com/example/authlogin/dao/AdminInviteDao.java \
+  backend/test/com/example/authlogin/dao/AdminInviteDaoTest.java \
+  backend/test/com/example/authlogin/integration/AdminInviteFlowIntegrationTest.java
+java -ea -cp /tmp/build-test-admin-invite com.example.authlogin.dao.AdminInviteDaoTest
+java -ea -cp /tmp/build-test-admin-invite com.example.authlogin.integration.AdminInviteFlowIntegrationTest
 ```
 
 ## 项目架构与目录说明

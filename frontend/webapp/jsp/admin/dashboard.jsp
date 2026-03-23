@@ -114,6 +114,28 @@
                             </div>
                         </form>
 
+                        <section class="invite-panel" aria-label="管理员邀请创建">
+                            <header class="invite-panel-header">
+                                <h2>Invite new admin</h2>
+                                <p>Create one-time invitation link/code and send via email.</p>
+                            </header>
+                            <form id="admin-invite-form" class="invite-form" novalidate>
+                                <div class="field-group">
+                                    <label for="invite-email">Invitee email</label>
+                                    <input id="invite-email" name="email" type="email" maxlength="100" placeholder="new_admin@university.edu" required>
+                                </div>
+                                <div class="field-group">
+                                    <label for="invite-expire-hours">Expires in (hours)</label>
+                                    <input id="invite-expire-hours" name="expireHours" type="number" min="1" max="168" value="48">
+                                </div>
+                                <div class="invite-actions">
+                                    <button id="send-invite-btn" class="primary-btn" type="submit">Send invitation</button>
+                                </div>
+                            </form>
+                            <div id="invite-message" class="form-message hidden" role="status" aria-live="polite"></div>
+                            <div id="invite-result" class="invite-result hidden" aria-live="polite"></div>
+                        </section>
+
                         <div id="dashboard-message" class="form-message hidden" role="status" aria-live="polite"></div>
 
                         <section class="summary-grid" aria-label="申请状态统计">

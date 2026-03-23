@@ -11,6 +11,12 @@
     var messageNode = document.getElementById("dashboard-message");
     var moSummaryNode = document.getElementById("mo-summary");
     var moListNode = document.getElementById("mo-list");
+    var inviteForm = document.getElementById("admin-invite-form");
+    var inviteEmailInput = document.getElementById("invite-email");
+    var inviteExpireHoursInput = document.getElementById("invite-expire-hours");
+    var inviteSubmitButton = document.getElementById("send-invite-btn");
+    var inviteMessageNode = document.getElementById("invite-message");
+    var inviteResultNode = document.getElementById("invite-result");
 
     var summaryNodes = {
         total: document.getElementById("summary-total"),
@@ -43,7 +49,8 @@
 
     var state = {
         loading: false,
-        exporting: false
+        exporting: false,
+        inviteSubmitting: false
     };
 
     filterForm.addEventListener("submit", function (event) {
@@ -68,6 +75,13 @@
     if (exportButton) {
         exportButton.addEventListener("click", function () {
             exportCsv();
+        });
+    }
+
+    if (inviteForm) {
+        inviteForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            createAdminInvite();
         });
     }
 
@@ -193,6 +207,81 @@
                 exportButton.disabled = false;
                 exportButton.textContent = "Export CSV";
             }
+        });
+    }
+
+    function createAdminInvite() {
+        if (!inviteForm || state.inviteSubmitting) {
+            return;
+        }
+        hideInviteMessage();
+        clearInviteResult();
+
+        var email = trimText(inviteEmailInput ? inviteEmailInput.value : "").toLowerCase();
+        var expireHoursText = trimText(inviteExpireHoursInput ? inviteExpireHoursInput.value : "");
+        var expireHours = Number(expireHoursText || "48");
+
+        if (!email || !isValidEmail(email)) {
+            showInviteMessage("Please enter a valid invitee email address.", "error");
+            if (inviteEmailInput) {
+                inviteEmailInput.focus();
+            }
+            return;
+        }
+        if (!isFinite(expireHours) || expireHours < 1 || expireHours > 168) {
+            showInviteMessage("Expiry hours must be between 1 and 168.", "error");
+            if (inviteExpireHoursInput) {
+                inviteExpireHoursInput.focus();
+            }
+            return;
+        }
+
+        state.inviteSubmitting = true;
+        setInviteSubmitting(true);
+
+        var formData = new URLSearchParams();
+        formData.set("email", email);
+        formData.set("expireHours", String(Math.round(expireHours)));
+
+        fetch(contextPath + "/api/admin/invite", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: formData.toString()
+        }).then(function (response) {
+            return response.text().then(function (text) {
+                return {
+                    response: response,
+                    payload: parseJson(text)
+                };
+            });
+        }).then(function (result) {
+            var response = result.response;
+            var payload = result.payload;
+            if (response.status === 401) {
+                handleUnauthorized();
+                return;
+            }
+            if (!response.ok || !payload || payload.success !== true) {
+                showInviteMessage(payload && payload.message ? payload.message : "Failed to create invitation.", "error");
+                return;
+            }
+
+            showInviteMessage("Invitation created successfully.", "success");
+            renderInviteResult(payload.data || {});
+            if (inviteForm) {
+                inviteForm.reset();
+                if (inviteExpireHoursInput) {
+                    inviteExpireHoursInput.value = "48";
+                }
+            }
+        }).catch(function () {
+            showInviteMessage("Network error while creating invitation.", "error");
+        }).finally(function () {
+            state.inviteSubmitting = false;
+            setInviteSubmitting(false);
         });
     }
 
@@ -360,6 +449,71 @@
         }
     }
 
+    function setInviteSubmitting(submitting) {
+        if (inviteSubmitButton) {
+            inviteSubmitButton.disabled = submitting;
+            inviteSubmitButton.textContent = submitting ? "Sending..." : "Send invitation";
+        }
+        if (inviteEmailInput) {
+            inviteEmailInput.disabled = submitting;
+        }
+        if (inviteExpireHoursInput) {
+            inviteExpireHoursInput.disabled = submitting;
+        }
+    }
+
+    function showInviteMessage(message, type) {
+        if (!inviteMessageNode) {
+            return;
+        }
+        inviteMessageNode.textContent = message;
+        inviteMessageNode.classList.remove("hidden", "error", "success");
+        inviteMessageNode.classList.add(type === "success" ? "success" : "error");
+    }
+
+    function hideInviteMessage() {
+        if (!inviteMessageNode) {
+            return;
+        }
+        inviteMessageNode.textContent = "";
+        inviteMessageNode.classList.remove("error", "success");
+        inviteMessageNode.classList.add("hidden");
+    }
+
+    function renderInviteResult(data) {
+        if (!inviteResultNode) {
+            return;
+        }
+        var inviteUrl = safeText(data.inviteUrl, "");
+        var inviteCode = safeText(data.inviteCode, "");
+        var expiresAt = safeText(data.expiresAt, "");
+        var emailDelivery = safeText(data.emailDelivery, "fallback");
+        var deliveryDetail = safeText(data.deliveryDetail, "");
+        var previewBody = safeText(data.previewBody, "");
+
+        var html = "";
+        html += "<p><strong>Invite link:</strong> <a href=\"" + escapeHtml(inviteUrl) + "\" target=\"_blank\" rel=\"noopener\">" + escapeHtml(inviteUrl) + "</a></p>";
+        html += "<p><strong>Invite code:</strong> " + escapeHtml(inviteCode) + "</p>";
+        html += "<p><strong>Expires at:</strong> " + escapeHtml(expiresAt) + "</p>";
+        html += "<p><strong>Email delivery:</strong> " + escapeHtml(emailDelivery) + "</p>";
+        if (deliveryDetail) {
+            html += "<p><strong>Delivery detail:</strong> " + escapeHtml(deliveryDetail) + "</p>";
+        }
+        if (previewBody && emailDelivery !== "sent") {
+            html += "<details><summary>Email preview</summary><pre>" + escapeHtml(previewBody) + "</pre></details>";
+        }
+        inviteResultNode.innerHTML = html;
+        inviteResultNode.classList.remove("hidden");
+    }
+
+    function clearInviteResult() {
+        if (!inviteResultNode) {
+            return;
+        }
+        inviteResultNode.innerHTML = "";
+        inviteResultNode.classList.add("hidden");
+    }
+
     function buildQueryString(staticParams) {
         var params = new URLSearchParams();
         if (staticParams && typeof staticParams === "object") {
@@ -487,6 +641,14 @@
     function toNumber(value) {
         var number = Number(value);
         return isFinite(number) ? number : 0;
+    }
+
+    function trimText(value) {
+        return typeof value === "string" ? value.trim() : "";
+    }
+
+    function isValidEmail(value) {
+        return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimText(value));
     }
 
     function safeText(value, fallback) {
