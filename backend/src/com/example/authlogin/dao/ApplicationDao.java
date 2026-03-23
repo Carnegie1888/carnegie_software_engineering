@@ -19,9 +19,8 @@ import java.util.stream.Collectors;
  */
 public class ApplicationDao {
 
-    // 项目数据目录 - 使用可移植路径，避免依赖本机绝对路径
-    private static final String DATA_DIR = StoragePaths.getDataDir();
-    private static final String APPLICATION_FILE = DATA_DIR + File.separator + "applications.csv";
+    private static final String APPLICATION_DIR = StoragePaths.getApplicationsDir();
+    private static final String APPLICATION_FILE = APPLICATION_DIR + File.separator + "applications.csv";
     private static final String CSV_HEADER = "applicationId,jobId,applicantId,applicantName,applicantEmail,jobTitle,courseCode,moId,moName,status,coverLetter,appliedAt,updatedAt,reviewedAt";
 
     private static ApplicationDao instance;
@@ -38,9 +37,9 @@ public class ApplicationDao {
     }
 
     private void initDataDirectory() {
-        File dataDir = new File(DATA_DIR);
-        if (!dataDir.exists()) {
-            dataDir.mkdirs();
+        File applicationDir = new File(APPLICATION_DIR);
+        if (!applicationDir.exists()) {
+            applicationDir.mkdirs();
         }
     }
 
@@ -51,6 +50,10 @@ public class ApplicationDao {
         File appFile = new File(APPLICATION_FILE);
         if (!appFile.exists()) {
             try {
+                File parentDir = appFile.getParentFile();
+                if (parentDir != null && !parentDir.exists()) {
+                    parentDir.mkdirs();
+                }
                 appFile.createNewFile();
                 try (FileWriter writer = new FileWriter(APPLICATION_FILE)) {
                     writer.write(CSV_HEADER + "\n");
@@ -66,9 +69,17 @@ public class ApplicationDao {
      */
     private List<Application> readAllApplications() {
         initApplicationFile();
-        List<Application> applications = new ArrayList<>();
+        return readApplicationsFromFile(APPLICATION_FILE);
+    }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(APPLICATION_FILE))) {
+    private List<Application> readApplicationsFromFile(String filePath) {
+        List<Application> applications = new ArrayList<>();
+        File appFile = new File(filePath);
+        if (!appFile.exists()) {
+            return applications;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             boolean isFirstLine = true;
             while ((line = reader.readLine()) != null) {

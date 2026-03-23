@@ -220,3 +220,23 @@
 |Commit|Message|状态|Git Command|
 |---|---|---|---|
 |#1|`chore: 清理冗余文档文件并重组项目资料目录`|✅|`git commit -m "chore: 清理冗余文档文件并重组项目资料目录" --author="member6 <member6@edu.com>"`|
+
+---
+
+#### 成员2 (后端) - 数据存储目录整理
+
+负责：按业务模块拆分本地数据文件路径 + 补齐目录初始化逻辑
+
+|Commit|Message|状态|Git Command|
+|---|---|---|---|
+|#1|`refactor: 按业务模块拆分本地数据文件路径`|✅|`git commit -m "refactor: 按业务模块拆分本地数据文件路径" --author="member2 <member2@edu.com>"`|
+
+---
+
+#### 成员6 (前端) - 默认入口与启动说明整理
+
+负责：统一系统默认入口到登录页 + 清理示例入口与启动说明
+
+|Commit|Message|状态|Git Command|
+|---|---|---|---|
+|#1|`refactor: 统一系统默认入口为登录页`|✅|`git commit -m "refactor: 统一系统默认入口为登录页" --author="member6 <member6@edu.com>"`|

@@ -19,9 +19,8 @@ import java.util.stream.Collectors;
  */
 public class JobDao {
 
-    // 项目数据目录 - 使用可移植路径，避免依赖本机绝对路径
-    private static final String DATA_DIR = StoragePaths.getDataDir();
-    private static final String JOB_FILE = DATA_DIR + File.separator + "jobs.csv";
+    private static final String JOB_DIR = StoragePaths.getJobsDir();
+    private static final String JOB_FILE = JOB_DIR + File.separator + "jobs.csv";
     private static final String CSV_HEADER = "jobId,moId,moName,title,courseCode,courseName,description,requiredSkills,positions,workload,salary,deadline,status,createdAt,updatedAt";
 
     private static JobDao instance;
@@ -38,9 +37,9 @@ public class JobDao {
     }
 
     private void initDataDirectory() {
-        File dataDir = new File(DATA_DIR);
-        if (!dataDir.exists()) {
-            dataDir.mkdirs();
+        File jobDir = new File(JOB_DIR);
+        if (!jobDir.exists()) {
+            jobDir.mkdirs();
         }
     }
 
@@ -51,6 +50,10 @@ public class JobDao {
         File jobFile = new File(JOB_FILE);
         if (!jobFile.exists()) {
             try {
+                File parentDir = jobFile.getParentFile();
+                if (parentDir != null && !parentDir.exists()) {
+                    parentDir.mkdirs();
+                }
                 jobFile.createNewFile();
                 try (FileWriter writer = new FileWriter(JOB_FILE)) {
                     writer.write(CSV_HEADER + "\n");
@@ -66,9 +69,17 @@ public class JobDao {
      */
     private List<Job> readAllJobs() {
         initJobFile();
-        List<Job> jobs = new ArrayList<>();
+        return readJobsFromFile(JOB_FILE);
+    }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(JOB_FILE))) {
+    private List<Job> readJobsFromFile(String filePath) {
+        List<Job> jobs = new ArrayList<>();
+        File jobFile = new File(filePath);
+        if (!jobFile.exists()) {
+            return jobs;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             boolean isFirstLine = true;
             while ((line = reader.readLine()) != null) {

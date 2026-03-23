@@ -18,9 +18,8 @@ import java.util.stream.Collectors;
  */
 public class ApplicantDao {
 
-    // 项目数据目录 - 使用可移植路径，避免依赖本机绝对路径
-    private static final String DATA_DIR = StoragePaths.getDataDir();
-    private static final String APPLICANT_FILE = DATA_DIR + File.separator + "applicants.csv";
+    private static final String APPLICANT_DIR = StoragePaths.getApplicantsDir();
+    private static final String APPLICANT_FILE = APPLICANT_DIR + File.separator + "applicants.csv";
     private static final String CSV_HEADER = "applicantId,userId,fullName,studentId,department,program,gpa,skills,resumePath,phone,address,experience,motivation,createdAt,updatedAt";
 
     private static ApplicantDao instance;
@@ -37,9 +36,9 @@ public class ApplicantDao {
     }
 
     private void initDataDirectory() {
-        File dataDir = new File(DATA_DIR);
-        if (!dataDir.exists()) {
-            dataDir.mkdirs();
+        File applicantDir = new File(APPLICANT_DIR);
+        if (!applicantDir.exists()) {
+            applicantDir.mkdirs();
         }
     }
 
@@ -50,6 +49,10 @@ public class ApplicantDao {
         File applicantFile = new File(APPLICANT_FILE);
         if (!applicantFile.exists()) {
             try {
+                File parentDir = applicantFile.getParentFile();
+                if (parentDir != null && !parentDir.exists()) {
+                    parentDir.mkdirs();
+                }
                 applicantFile.createNewFile();
                 try (FileWriter writer = new FileWriter(APPLICANT_FILE)) {
                     writer.write(CSV_HEADER + "\n");
@@ -65,9 +68,17 @@ public class ApplicantDao {
      */
     private List<Applicant> readAllApplicants() {
         initApplicantFile();
-        List<Applicant> applicants = new ArrayList<>();
+        return readApplicantsFromFile(APPLICANT_FILE);
+    }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(APPLICANT_FILE))) {
+    private List<Applicant> readApplicantsFromFile(String filePath) {
+        List<Applicant> applicants = new ArrayList<>();
+        File applicantFile = new File(filePath);
+        if (!applicantFile.exists()) {
+            return applicants;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             boolean isFirstLine = true;
             while ((line = reader.readLine()) != null) {

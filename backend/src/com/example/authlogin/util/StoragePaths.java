@@ -33,6 +33,22 @@ public final class StoragePaths {
         return Paths.get(System.getProperty("user.dir"), "data").toString();
     }
 
+    public static String getUsersDir() {
+        return Paths.get(getDataDir(), "users").toString();
+    }
+
+    public static String getApplicantsDir() {
+        return Paths.get(getDataDir(), "applicants").toString();
+    }
+
+    public static String getJobsDir() {
+        return Paths.get(getDataDir(), "jobs").toString();
+    }
+
+    public static String getApplicationsDir() {
+        return Paths.get(getDataDir(), "applications").toString();
+    }
+
     public static String getResumeDir() {
         return Paths.get(getDataDir(), "resumes").toString();
     }

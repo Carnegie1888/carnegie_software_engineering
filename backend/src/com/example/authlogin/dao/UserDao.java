@@ -12,7 +12,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * UserDao - 用户数据访问对象
@@ -20,12 +19,10 @@ import java.util.stream.Collectors;
  */
 public class UserDao {
 
-    // 项目数据目录 - 使用可移植路径，避免依赖本机绝对路径
-    private static final String DATA_DIR = StoragePaths.getDataDir();
-    private static final String USER_FILE_TA = DATA_DIR + File.separator + "users_ta.csv";
-    private static final String USER_FILE_MO = DATA_DIR + File.separator + "users_mo.csv";
-    private static final String USER_FILE_ADMIN = DATA_DIR + File.separator + "users_admin.csv";
-    private static final String LEGACY_USER_FILE = DATA_DIR + File.separator + "users.csv";
+    private static final String USER_DIR = StoragePaths.getUsersDir();
+    private static final String USER_FILE_TA = USER_DIR + File.separator + "users_ta.csv";
+    private static final String USER_FILE_MO = USER_DIR + File.separator + "users_mo.csv";
+    private static final String USER_FILE_ADMIN = USER_DIR + File.separator + "users_admin.csv";
     private static final String CSV_HEADER = "userId,username,password,email,role,createdAt,lastLoginAt";
 
     private static UserDao instance;
@@ -42,9 +39,9 @@ public class UserDao {
     }
 
     private void initDataDirectory() {
-        File dataDir = new File(DATA_DIR);
-        if (!dataDir.exists()) {
-            dataDir.mkdirs();
+        File userDir = new File(USER_DIR);
+        if (!userDir.exists()) {
+            userDir.mkdirs();
         }
         initUserFiles();
     }
@@ -56,6 +53,10 @@ public class UserDao {
         File userFile = new File(filePath);
         if (!userFile.exists()) {
             try {
+                File parentDir = userFile.getParentFile();
+                if (parentDir != null && !parentDir.exists()) {
+                    parentDir.mkdirs();
+                }
                 userFile.createNewFile();
                 try (FileWriter writer = new FileWriter(filePath)) {
                     writer.write(CSV_HEADER + "\n");
@@ -79,14 +80,9 @@ public class UserDao {
         initUserFiles();
         List<User> users = new ArrayList<>();
 
-        users.addAll(readUsersFromFile(USER_FILE_TA));
-        users.addAll(readUsersFromFile(USER_FILE_MO));
-        users.addAll(readUsersFromFile(USER_FILE_ADMIN));
-
-        // 兼容历史 users.csv。只有在新拆分文件都为空时回退读取旧文件。
-        if (users.isEmpty()) {
-            users.addAll(readUsersFromFile(LEGACY_USER_FILE));
-        }
+        users.addAll(readUsersForRole(User.Role.TA));
+        users.addAll(readUsersForRole(User.Role.MO));
+        users.addAll(readUsersForRole(User.Role.ADMIN));
 
         return users;
     }
@@ -119,6 +115,10 @@ public class UserDao {
         }
 
         return users;
+    }
+
+    private List<User> readUsersForRole(User.Role role) {
+        return readUsersFromFile(getUserFileByRole(role));
     }
 
     /**
@@ -208,10 +208,10 @@ public class UserDao {
         initUserFiles();
 
         String targetFile = getUserFileByRole(user.getRole());
-        List<User> targetUsers = readUsersFromFile(targetFile);
-        List<User> taUsers = readUsersFromFile(USER_FILE_TA);
-        List<User> moUsers = readUsersFromFile(USER_FILE_MO);
-        List<User> adminUsers = readUsersFromFile(USER_FILE_ADMIN);
+        List<User> targetUsers = readUsersForRole(user.getRole());
+        List<User> taUsers = readUsersForRole(User.Role.TA);
+        List<User> moUsers = readUsersForRole(User.Role.MO);
+        List<User> adminUsers = readUsersForRole(User.Role.ADMIN);
 
         taUsers.removeIf(u -> u.getUserId().equals(user.getUserId()));
         moUsers.removeIf(u -> u.getUserId().equals(user.getUserId()));
@@ -271,9 +271,9 @@ public class UserDao {
      * 删除用户
      */
     public boolean delete(String userId) {
-        List<User> taUsers = readUsersFromFile(USER_FILE_TA);
-        List<User> moUsers = readUsersFromFile(USER_FILE_MO);
-        List<User> adminUsers = readUsersFromFile(USER_FILE_ADMIN);
+        List<User> taUsers = readUsersForRole(User.Role.TA);
+        List<User> moUsers = readUsersForRole(User.Role.MO);
+        List<User> adminUsers = readUsersForRole(User.Role.ADMIN);
 
         boolean removed = taUsers.removeIf(u -> u.getUserId().equals(userId));
         removed = moUsers.removeIf(u -> u.getUserId().equals(userId)) || removed;
@@ -298,13 +298,7 @@ public class UserDao {
      * 根据角色查找用户
      */
     public List<User> findByRole(User.Role role) {
-        List<User> usersByRole = readUsersFromFile(getUserFileByRole(role));
-        if (!usersByRole.isEmpty()) {
-            return usersByRole.stream().collect(Collectors.toList());
-        }
-        return readUsersFromFile(LEGACY_USER_FILE).stream()
-                .filter(u -> u.getRole() == role)
-                .collect(Collectors.toList());
+        return new ArrayList<>(readUsersForRole(role));
     }
 
     /**
@@ -373,9 +367,9 @@ public class UserDao {
      * 批量创建用户（仅用于测试初始化）
      */
     public void batchCreate(List<User> users) {
-        List<User> taUsers = readUsersFromFile(USER_FILE_TA);
-        List<User> moUsers = readUsersFromFile(USER_FILE_MO);
-        List<User> adminUsers = readUsersFromFile(USER_FILE_ADMIN);
+        List<User> taUsers = readUsersForRole(User.Role.TA);
+        List<User> moUsers = readUsersForRole(User.Role.MO);
+        List<User> adminUsers = readUsersForRole(User.Role.ADMIN);
 
         for (User user : users) {
             if (user.getRole() == User.Role.TA) {
