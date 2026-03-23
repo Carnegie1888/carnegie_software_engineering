@@ -248,7 +248,7 @@ public class LoginServlet extends HttpServlet {
             case ADMIN:
                 return "/groupproject/jsp/admin/dashboard.jsp";
             default:
-                return "/groupproject/index.jsp";
+                return "/groupproject/login.jsp";
         }
     }
 }

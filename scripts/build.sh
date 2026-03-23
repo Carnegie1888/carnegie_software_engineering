@@ -77,9 +77,8 @@ javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/c
 # servlets
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/LoginServlet.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/RegisterServlet.java"
-javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/LogoutServlet.java"
-javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/HelloServlet.java"
-javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/ApplicantServlet.java"
+ javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/LogoutServlet.java"
+ javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/ApplicantServlet.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/ApplicantAccessServlet.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/JobServlet.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/ApplyServlet.java"

@@ -40,6 +40,5 @@ echo "========================================"
 echo
 echo "Access URLs:"
 echo "  - Home: http://localhost:8080/${APP_NAME}/"
-echo "  - JSP: http://localhost:8080/${APP_NAME}/jsp/welcome.jsp"
-echo "  - Servlet: http://localhost:8080/${APP_NAME}/hello"
+echo "  - Login: http://localhost:8080/${APP_NAME}/login.jsp"
 echo

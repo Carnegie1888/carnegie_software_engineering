@@ -82,7 +82,7 @@
                     redirect = payload.redirect.trim();
                 }
                 if (!redirect) {
-                    redirect = contextPath + "/index.jsp";
+                    redirect = contextPath + "/login.jsp";
                 }
 
                 window.location.href = redirect;

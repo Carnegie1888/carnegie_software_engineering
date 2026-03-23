@@ -28,7 +28,6 @@ import java.util.Set;
  * - /login - 登录页
  * - /register - 注册页
  * - /logout - 登出
- * - /HelloServlet - 测试用
  * - /static/* - 静态资源
  */
 @WebFilter("/*")
@@ -40,8 +39,6 @@ public class AuthFilter implements Filter {
         "/login",
         "/register",
         "/logout",
-        "/hello",
-        "/index.jsp",
         "/login.jsp",
         "/register.jsp",
         "/admin-register.jsp",
