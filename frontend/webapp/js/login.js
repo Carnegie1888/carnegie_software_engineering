@@ -17,11 +17,11 @@
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
     var selectedRole = getNormalizedRole(roleInput ? roleInput.value : "") || "MO";
 
-    setSelectedRole(selectedRole);
+    setSelectedRole(selectedRole, false);
 
     Array.prototype.forEach.call(loginButtons, function (button) {
         button.addEventListener("click", function () {
-            setSelectedRole(button.getAttribute("data-role"));
+            setSelectedRole(button.getAttribute("data-role"), true);
             hideMessage();
         });
     });
@@ -32,7 +32,7 @@
         var submitter = event.submitter || document.activeElement;
         var submitterRole = getNormalizedRole(submitter && submitter.getAttribute ? submitter.getAttribute("data-role") : "");
         if (submitterRole) {
-            setSelectedRole(submitterRole);
+            setSelectedRole(submitterRole, true);
         }
 
         handleLogin(selectedRole);
@@ -165,7 +165,7 @@
             });
     }
 
-    function setSelectedRole(role) {
+    function setSelectedRole(role, shouldHighlight) {
         var normalizedRole = getNormalizedRole(role);
         if (!normalizedRole) {
             return;
@@ -178,11 +178,8 @@
 
         Array.prototype.forEach.call(loginButtons, function (button) {
             var buttonRole = getNormalizedRole(button.getAttribute("data-role"));
-            if (buttonRole === normalizedRole) {
-                button.classList.add("is-selected");
-            } else {
-                button.classList.remove("is-selected");
-            }
+            var isSelected = Boolean(shouldHighlight) && buttonRole === normalizedRole;
+            button.classList.toggle("is-selected", isSelected);
         });
     }
 
