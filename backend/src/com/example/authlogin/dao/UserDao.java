@@ -28,6 +28,8 @@ public class UserDao {
     private static final String DEFAULT_TA_DEMO_EMAIL = "ta_demo@local.test";
     private static final String DEFAULT_MO_DEMO_EMAIL = "mo_demo@local.test";
     private static final String DEFAULT_ADMIN_DEMO_EMAIL = "admin_demo@local.test";
+    private static final int FILE_WRITE_RETRY_COUNT = 5;
+    private static final long FILE_WRITE_RETRY_DELAY_MS = 100L;
 
     private static UserDao instance;
 
@@ -165,15 +167,86 @@ public class UserDao {
     private void writeUsersToFile(String filePath, List<User> users) {
         Path targetPath = Path.of(filePath);
         Path tempPath = targetPath.resolveSibling(targetPath.getFileName() + ".tmp");
-        try (PrintWriter writer = new PrintWriter(new FileWriter(tempPath.toFile()))) {
+        try {
+            writeUserFile(tempPath.toFile(), users);
+            IOException moveFailure = moveTempFileWithRetry(tempPath, targetPath);
+            if (moveFailure != null) {
+                IOException overwriteFailure = overwriteTargetFileWithRetry(targetPath, tempPath, users);
+                if (overwriteFailure != null) {
+                    overwriteFailure.addSuppressed(moveFailure);
+                    throw overwriteFailure;
+                }
+            }
+        } catch (IOException e) {
+            deleteTempFileQuietly(tempPath);
+            throw new RuntimeException("Failed to write users file", e);
+        }
+    }
+
+    private void writeUserFile(File file, List<User> users) throws IOException {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
             writer.println(CSV_HEADER);
             for (User user : users) {
                 writer.println(user.toCsv());
             }
             writer.flush();
-            Files.move(tempPath, targetPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to write users file", e);
+        }
+    }
+
+    private IOException moveTempFileWithRetry(Path tempPath, Path targetPath) throws IOException {
+        IOException lastException = null;
+        for (int attempt = 0; attempt < FILE_WRITE_RETRY_COUNT; attempt++) {
+            try {
+                Files.move(tempPath, targetPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+                return null;
+            } catch (IOException atomicMoveException) {
+                lastException = atomicMoveException;
+                try {
+                    Files.move(tempPath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                    return null;
+                } catch (IOException replaceMoveException) {
+                    lastException = replaceMoveException;
+                }
+            }
+
+            waitBeforeRetry(attempt);
+        }
+        return lastException;
+    }
+
+    private IOException overwriteTargetFileWithRetry(Path targetPath, Path tempPath, List<User> users) throws IOException {
+        IOException lastException = null;
+        for (int attempt = 0; attempt < FILE_WRITE_RETRY_COUNT; attempt++) {
+            try {
+                writeUserFile(targetPath.toFile(), users);
+                deleteTempFileQuietly(tempPath);
+                return null;
+            } catch (IOException overwriteException) {
+                lastException = overwriteException;
+            }
+
+            waitBeforeRetry(attempt);
+        }
+        return lastException;
+    }
+
+    private void waitBeforeRetry(int attempt) throws IOException {
+        if (attempt >= FILE_WRITE_RETRY_COUNT - 1) {
+            return;
+        }
+
+        try {
+            Thread.sleep(FILE_WRITE_RETRY_DELAY_MS * (attempt + 1));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupted while retrying users file write", e);
+        }
+    }
+
+    private void deleteTempFileQuietly(Path tempPath) {
+        try {
+            Files.deleteIfExists(tempPath);
+        } catch (IOException ignored) {
         }
     }
 

@@ -213,42 +213,21 @@
 
 - 随机应变，主要解决使用与测试中各种遗留小问题
 
-#### 成员6 (前端) - 文档整理与资料归档
-
-负责：清理冗余文档文件 + 重组项目资料目录
-
-|Commit|Message|状态|Git Command|
-|---|---|---|---|
-|#1|`chore: 清理冗余文档文件并重组项目资料目录`|✅|`git commit -m "chore: 清理冗余文档文件并重组项目资料目录" --author="member6 <member6@edu.com>"`|
-
----
-
-#### 成员2 (后端) - 数据存储目录整理
-
-负责：按业务模块拆分本地数据文件路径 + 补齐目录初始化逻辑
-
-|Commit|Message|状态|Git Command|
-|---|---|---|---|
-|#1|`refactor: 按业务模块拆分本地数据文件路径`|✅|`git commit -m "refactor: 按业务模块拆分本地数据文件路径" --author="member2 <member2@edu.com>"`|
-|#2|`feat: 补齐默认演示账号并支持启动时自动初始化`|✅|`git commit -m "feat: 补齐默认演示账号并支持启动时自动初始化" --author="member2 <member2@edu.com>"`|
-
----
-
-#### 成员6 (前端) - 默认入口与启动说明整理
-
-负责：统一系统默认入口到登录页 + 清理示例入口与启动说明
-
-|Commit|Message|状态|Git Command|
-|---|---|---|---|
-|#1|`refactor: 统一系统默认入口为登录页`|✅|`git commit -m "refactor: 统一系统默认入口为登录页" --author="member6 <member6@edu.com>"`|
-|#2|`docs: 更新默认演示账号与本地运行说明`|✅|`git commit -m "docs: 更新默认演示账号与本地运行说明" --author="member6 <member6@edu.com>"`|
-
----
-
-#### 成员4 (后端) - 登录模块回归测试补齐
-
-负责：补充默认演示账号测试 + 校验登录回归行为
-
-|Commit|Message|状态|Git Command|
-|---|---|---|---|
-|#1|`test: 为 UserDao 补充默认演示账号回归测试`|✅|`git commit -m "test: 为 UserDao 补充默认演示账号回归测试" --author="member4 <member4@edu.com>"`|
+|成员(member)|Commit|Message|状态|Git Command|
+|---|---|---|---|---|
+|`member6`|#1|`docs: 修改开发计划，新增第四阶段`|✅|`git commit -m "docs: 修改开发计划，新增第四阶段" --author="member6 <member6@edu.com>"`|
+|`member2`|#2|`fix: 修复缺失技能按岗位申请人统计`|✅|`git commit -m "fix: 修复缺失技能按岗位申请人统计" --author="member2 <member2@edu.com>"`|
+|`member4`|#3|`fix: 完善职位申请与录用业务约束`|✅|`git commit -m "fix: 完善职位申请与录用业务约束" --author="member4 <member4@edu.com>"`|
+|`member1`|#4|`refactor: 统一接口响应并修复职位筛选逻辑`|✅|`git commit -m "refactor: 统一接口响应并修复职位筛选逻辑" --author="member1 <member1@edu.com>"`|
+|`member3`|#5|`feat: 新增技能匹配与申请人访问接口`|✅|`git commit -m "feat: 新增技能匹配与申请人访问接口" --author="member3 <member3@edu.com>"`|
+|`member6`|#6|`feat: 完善候选人审核与AI页面交互`|✅|`git commit -m "feat: 完善候选人审核与AI页面交互" --author="member6 <member6@edu.com>"`|
+|`member2`|#7|`refactor: 优化文件写入与权限路径配置`|✅|`git commit -m "refactor: 优化文件写入与权限路径配置" --author="member2 <member2@edu.com>"`|
+|`member5`|#8|`fix: 修复前端对标准响应结构的兼容`|✅|`git commit -m "fix: 修复前端对标准响应结构的兼容" --author="member5 <member5@edu.com>"`|
+|`member5`|#9|`fix: 修复前端流程与申请档案响应兼容问题`|✅|`git commit -m "fix: 修复前端流程与申请档案响应兼容问题" --author="member5 <member5@edu.com>"`|
+|`member6`|#10|`chore: 清理冗余文档文件并重组项目资料目录`|✅|`git commit -m "chore: 清理冗余文档文件并重组项目资料目录" --author="member6 <member6@edu.com>"`|
+|`member2`|#11|`refactor: 按业务模块拆分本地数据文件路径`|✅|`git commit -m "refactor: 按业务模块拆分本地数据文件路径" --author="member2 <member2@edu.com>"`|
+|`member6`|#12|`refactor: 统一系统默认入口为登录页`|✅|`git commit -m "refactor: 统一系统默认入口为登录页" --author="member6 <member6@edu.com>"`|
+|`member2`|#13|`feat: 补齐默认演示账号并支持启动时自动初始化`|✅|`git commit -m "feat: 补齐默认演示账号并支持启动时自动初始化" --author="member2 <member2@edu.com>"`|
+|`member4`|#14|`test: 为 UserDao 补充默认演示账号回归测试`|✅|`git commit -m "test: 为 UserDao 补充默认演示账号回归测试" --author="member4 <member4@edu.com>"`|
+|`member6`|#15|`docs: 更新默认演示账号与本地运行说明`|✅|`git commit -m "docs: 更新默认演示账号与本地运行说明" --author="member6 <member6@edu.com>"`|
+|`member2`|#16|`fix: 增强用户数据初始化与写入稳定性`|✅|`git commit -m "fix: 增强用户数据初始化与写入稳定性" --author="member2 <member2@edu.com>"`|
