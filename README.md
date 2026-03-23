@@ -93,11 +93,13 @@ chmod +x *.sh
 
 以下为固定测试账号；应用启动时若本地 `csv` 中缺失这些账号，后端会自动补齐。
 
+
 | Role  | Username     | Password   |
 | ----- | ------------ | ---------- |
 | TA    | `ta_demo`    | `Pass1234` |
 | MO    | `mo_demo`    | `Pass1234` |
 | Admin | `admin_demo` | `Pass1234` |
+
 
 ## 日常开发工作流一：脚本运行
 
@@ -131,8 +133,7 @@ cd scripts
 
 - `Deployment` 中添加 `groupproject:war exploded`
 - `Application context` 设置为 `/groupproject`
-- `On 'Update' action` 设置为 `Update classes and resources`
-- `On frame deactivation` 设置为 `Update classes and resources`
+- `On 'Update' action` 设置为 `Redeploy`
 
 ### 2. 开启自动编译
 
@@ -143,9 +144,7 @@ cd scripts
 
 ### 3. 使用效果
 
-- 修改 `JSP / CSS / JS / HTML` 后，通常只需保存并刷新浏览器即可看到效果
-- 修改 `.java` 文件后，IDEA 会尽量自动编译并更新到 Tomcat
-- 如果某次 Java 改动没有立即生效，可先尝试 `Build Project`，仍不生效再重启 Tomcat
+- 修改 `JSP / CSS / JS / HTML` /`.java` 文件后，按住Ctrl + F10，IDEA 会自动编译并更新部署到 Tomcat
 
 ### 4. 不要混用两套启动方式
 
@@ -257,3 +256,4 @@ taskkill /PID <PID> /F
 - 如果 `taskkill` 提示拒绝访问，通常说明该进程是管理员权限或 Windows 服务方式启动的；此时可打开 `services.msc`，找到 Tomcat 服务后手动停止
 - 如果你暂时不想处理旧进程，也可以把 IDEA 中的 Tomcat HTTP 端口改成 `8081`
 - **命令行乱码**: 请确保您的终端代码页格式正确，或在执行构建脚本时确保所有的本地 `.java` 文件是以 `UTF-8` 无 BOM 形式保存的。
+
