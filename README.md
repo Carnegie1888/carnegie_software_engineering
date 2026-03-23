@@ -132,6 +132,7 @@ cd scripts
 - `Deployment` 中添加 `groupproject:war exploded`
 - `Application context` 设置为 `/groupproject`
 - `On 'Update' action` 设置为 `Update classes and resources`
+- `On frame deactivation` 设置为 `Update classes and resources`
 
 ### 2. 开启自动编译
 

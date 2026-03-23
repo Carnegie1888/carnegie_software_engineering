@@ -232,3 +232,4 @@
 |`member6`|#15|`docs: 更新默认演示账号与本地运行说明`|✅|`git commit -m "docs: 更新默认演示账号与本地运行说明" --author="member6 <member6@edu.com>"`|
 |`member2`|#16|`fix: 增强用户数据初始化与写入稳定性`|✅|`git commit -m "fix: 增强用户数据初始化与写入稳定性" --author="member2 <member2@edu.com>"`|
 |`member5`|#17|`fix: 优化登录页角色按钮交互反馈`|✅|`git commit -m "fix: 优化登录页角色按钮交互反馈" --author="member5 <member5@edu.com>"`|
+|`member6`|#18|`docs: 更新第四阶段计划与 IDEA 自动更新说明`|✅|`git commit -m "docs: 更新第四阶段计划与 IDEA 自动更新说明" --author="member6 <member6@edu.com>"`|
