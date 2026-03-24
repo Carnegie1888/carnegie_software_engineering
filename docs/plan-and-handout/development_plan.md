@@ -239,3 +239,4 @@
 |`member1`|#22|`feat: 新增管理员邀请制账号开通流程`|✅|`git commit -m "feat: 新增管理员邀请制账号开通流程" --author="member1 <member1@edu.com>"`|
 |`member5`|#23|`feat: 完成管理员邀请流程双语化`|✅|`git commit -m "feat: 完成管理员邀请流程双语化" --author="member5 <member5@edu.com>"`|
 |`member6`|#24|`style: 统一门户固定布局与顶部菜单栏结构`|✅|`git commit -m "style: 统一门户固定布局与顶部菜单栏结构" --author="member6 <member6@edu.com>"`|
+|`member5`|#25|`refactor: 合并TA档案与简历上传为单卡片极简布局`|✅|`git commit -m "refactor: 合并TA档案与简历上传为单卡片极简布局" --author="member5 <member5@edu.com>"`|
