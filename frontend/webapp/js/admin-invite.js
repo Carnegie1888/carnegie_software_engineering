@@ -10,6 +10,7 @@
     }
 
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
+    var i18n = window.AppI18n && typeof window.AppI18n.t === "function" ? window.AppI18n : null;
     var messageBox = document.getElementById("form-message");
     var inviteStatus = document.getElementById("invite-status");
     var tokenInput = document.getElementById("invite-token");
@@ -28,7 +29,7 @@
     if (inviteToken) {
         validateInvitationByToken(inviteToken);
     } else if (inviteStatus) {
-        inviteStatus.textContent = "No invitation token detected. Enter your email and invite code.";
+        inviteStatus.textContent = t("adminInvite.status.noToken", "No invitation token detected. Enter your email and invite code.");
     }
 
     form.addEventListener("submit", function (event) {
@@ -47,32 +48,32 @@
         var token = tokenInput ? trim(tokenInput.value) : "";
 
         if (!email || !EMAIL_PATTERN.test(email)) {
-            showMessage("Please enter a valid email address.", "error");
+            showMessage(t("adminInvite.msg.invalidEmail", "Please enter a valid email address."), "error");
             emailInput.focus();
             return;
         }
         if (!token && !inviteCode) {
-            showMessage("Please provide invitation token or invite code.", "error");
+            showMessage(t("adminInvite.msg.needTokenOrCode", "Please provide invitation token or invite code."), "error");
             inviteCodeInput.focus();
             return;
         }
         if (!USERNAME_PATTERN.test(username)) {
-            showMessage("Username must start with a letter and contain 3-20 letters, numbers, or underscores.", "error");
+            showMessage(t("adminInvite.msg.invalidUsername", "Username must start with a letter and contain 3-20 letters, numbers, or underscores."), "error");
             usernameInput.focus();
             return;
         }
         if (!password || password.length < PASSWORD_MIN_LENGTH) {
-            showMessage("Password must be at least 6 characters.", "error");
+            showMessage(t("adminInvite.msg.passwordTooShort", "Password must be at least 6 characters."), "error");
             passwordInput.focus();
             return;
         }
         if (password.length > PASSWORD_MAX_LENGTH) {
-            showMessage("Password is too long.", "error");
+            showMessage(t("adminInvite.msg.passwordTooLong", "Password is too long."), "error");
             passwordInput.focus();
             return;
         }
         if (password !== confirmPassword) {
-            showMessage("Passwords do not match.", "error");
+            showMessage(t("adminInvite.msg.passwordMismatch", "Passwords do not match."), "error");
             confirmPasswordInput.focus();
             return;
         }
@@ -104,19 +105,19 @@
         }).then(function (result) {
             var payload = result.payload;
             if (!result.response.ok || !payload || payload.success !== true) {
-                showMessage(payload && payload.message ? payload.message : "Failed to create admin account.", "error");
+                showMessage(payload && payload.message ? payload.message : t("adminInvite.msg.createFailed", "Failed to create admin account."), "error");
                 return;
             }
 
-            showMessage("Admin account created. Redirecting to login...", "success");
+            showMessage(t("adminInvite.msg.createSuccessRedirect", "Admin account created. Redirecting to login..."), "success");
             if (inviteStatus) {
-                inviteStatus.textContent = "Invitation completed successfully.";
+                inviteStatus.textContent = t("adminInvite.status.completed", "Invitation completed successfully.");
             }
             window.setTimeout(function () {
                 window.location.href = contextPath + "/login.jsp";
             }, 1200);
         }).catch(function () {
-            showMessage("Network error. Please try again.", "error");
+            showMessage(t("adminInvite.msg.networkError", "Network error. Please try again."), "error");
         }).finally(function () {
             setSubmitting(false);
         });
@@ -138,7 +139,7 @@
             if (!result.response.ok || !result.payload || result.payload.success !== true) {
                 tokenInput.value = "";
                 if (inviteStatus) {
-                    inviteStatus.textContent = "Invitation link is invalid or expired. You can still use email + invite code.";
+                    inviteStatus.textContent = t("adminInvite.status.invalidOrExpired", "Invitation link is invalid or expired. You can still use email + invite code.");
                 }
                 return;
             }
@@ -149,12 +150,12 @@
                 emailInput.readOnly = true;
             }
             if (inviteStatus) {
-                var suffix = data.expiresAt ? " Expires at: " + data.expiresAt : "";
-                inviteStatus.textContent = "Invitation validated." + suffix;
+                var suffix = data.expiresAt ? t("adminInvite.status.expiresAtPrefix", " Expires at: ") + data.expiresAt : "";
+                inviteStatus.textContent = t("adminInvite.status.validated", "Invitation validated.") + suffix;
             }
         }).catch(function () {
             if (inviteStatus) {
-                inviteStatus.textContent = "Could not validate invitation link. You can use email + invite code.";
+                inviteStatus.textContent = t("adminInvite.status.validateFailed", "Could not validate invitation link. You can use email + invite code.");
             }
         });
     }
@@ -162,7 +163,9 @@
     function setSubmitting(submitting) {
         if (submitButton) {
             submitButton.disabled = submitting;
-            submitButton.textContent = submitting ? "Creating..." : "Create admin account";
+            submitButton.textContent = submitting
+                ? t("adminInvite.msg.creating", "Creating...")
+                : t("adminInvite.form.submit", "Create admin account");
         }
     }
 
@@ -195,5 +198,12 @@
 
     function parseJson(text) {
         return JSON.parse(text);
+    }
+
+    function t(key, fallback) {
+        if (i18n) {
+            return i18n.t(key, fallback);
+        }
+        return fallback || key;
     }
 })();

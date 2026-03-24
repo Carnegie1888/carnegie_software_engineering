@@ -237,6 +237,54 @@
                     backLogin: "Back to login"
                 }
             },
+            adminInvite: {
+                page: {
+                    title: "Admin Invitation - TA Hiring System"
+                },
+                hero: {
+                    title: "Complete admin invitation",
+                    subtitle: "Use your invitation link or invite code to create an Admin account"
+                },
+                form: {
+                    aria: "Admin invitation form",
+                    emailLabel: "Email address",
+                    emailPlaceholder: "admin@university.edu",
+                    inviteCodeLabel: "Invite code (optional if opened from email link)",
+                    inviteCodePlaceholder: "ABCDEFGH",
+                    usernameLabel: "Username",
+                    usernamePlaceholder: "admin_username",
+                    passwordLabel: "Password",
+                    passwordPlaceholder: "Create a password",
+                    confirmLabel: "Confirm password",
+                    confirmPlaceholder: "Re-enter your password",
+                    submit: "Create admin account"
+                },
+                status: {
+                    checkingToken: "Checking invitation token...",
+                    noToken: "No invitation token detected. Enter your email and invite code.",
+                    invalidOrExpired: "Invitation link is invalid or expired. You can still use email + invite code.",
+                    validated: "Invitation validated.",
+                    expiresAtPrefix: " Expires at: ",
+                    validateFailed: "Could not validate invitation link. You can use email + invite code.",
+                    completed: "Invitation completed successfully."
+                },
+                links: {
+                    haveAccount: "Already have an account?",
+                    backLogin: "Back to login"
+                },
+                msg: {
+                    invalidEmail: "Please enter a valid email address.",
+                    needTokenOrCode: "Please provide invitation token or invite code.",
+                    invalidUsername: "Username must start with a letter and contain 3-20 letters, numbers, or underscores.",
+                    passwordTooShort: "Password must be at least 6 characters.",
+                    passwordTooLong: "Password is too long.",
+                    passwordMismatch: "Passwords do not match.",
+                    createFailed: "Failed to create admin account.",
+                    createSuccessRedirect: "Admin account created. Redirecting to login...",
+                    networkError: "Network error. Please try again.",
+                    creating: "Creating..."
+                }
+            },
             portal: {
                 action: {
                     signOut: "Sign Out",
@@ -465,6 +513,13 @@
                     end: "End",
                     applyRange: "Apply range",
                     exportCsv: "Export CSV",
+                    invitePanelAria: "Admin invitation creation",
+                    inviteTitle: "Invite new admin",
+                    inviteLead: "Create one-time invitation link/code and send via email.",
+                    inviteeEmail: "Invitee email",
+                    inviteeEmailPlaceholder: "new_admin@university.edu",
+                    expiresInHours: "Expires in (hours)",
+                    sendInvitation: "Send invitation",
                     applicationStatusDistribution: "Application Status Distribution",
                     applicationStatusLead: "Breakdown by review status in current range.",
                     moWorkloadOverview: "MO Workload Overview",
@@ -520,6 +575,18 @@
                     applyNow: "Apply now",
                     moShort: "MO",
                     submitting: "Submitting...",
+                    sendingInvitation: "Sending...",
+                    inviteInvalidEmail: "Please enter a valid invitee email address.",
+                    inviteHoursRange: "Expiry hours must be between 1 and 168.",
+                    inviteCreateFailed: "Failed to create invitation.",
+                    inviteCreatedSuccess: "Invitation created successfully.",
+                    inviteCreateNetworkError: "Network error while creating invitation.",
+                    inviteResultLink: "Invite link:",
+                    inviteResultCode: "Invite code:",
+                    inviteResultExpiresAt: "Expires at:",
+                    inviteResultEmailDelivery: "Email delivery:",
+                    inviteResultDeliveryDetail: "Delivery detail:",
+                    inviteResultEmailPreview: "Email preview",
                     applicationSubmitted: "Application has been submitted.",
                     applicationSubmittedRedirect: "Application submitted successfully. Redirecting to application status...",
                     failedSubmitApplication: "Failed to submit application. Please try again.",
@@ -865,6 +932,54 @@
                     backLogin: "返回登录"
                 }
             },
+            adminInvite: {
+                page: {
+                    title: "管理员邀请注册 - TA 招聘系统"
+                },
+                hero: {
+                    title: "完成管理员邀请注册",
+                    subtitle: "使用邀请链接或邀请码创建管理员账号"
+                },
+                form: {
+                    aria: "管理员邀请注册表单",
+                    emailLabel: "邮箱地址",
+                    emailPlaceholder: "admin@university.edu",
+                    inviteCodeLabel: "邀请码（如果通过邮件链接打开可选填）",
+                    inviteCodePlaceholder: "ABCDEFGH",
+                    usernameLabel: "用户名",
+                    usernamePlaceholder: "admin_username",
+                    passwordLabel: "密码",
+                    passwordPlaceholder: "创建密码",
+                    confirmLabel: "确认密码",
+                    confirmPlaceholder: "再次输入密码",
+                    submit: "创建管理员账号"
+                },
+                status: {
+                    checkingToken: "正在校验邀请令牌...",
+                    noToken: "未检测到邀请令牌，请输入邮箱和邀请码。",
+                    invalidOrExpired: "邀请链接无效或已过期，你仍可使用邮箱 + 邀请码。",
+                    validated: "邀请校验通过。",
+                    expiresAtPrefix: " 过期时间：",
+                    validateFailed: "无法校验邀请链接，你可以使用邮箱 + 邀请码。",
+                    completed: "邀请注册已完成。"
+                },
+                links: {
+                    haveAccount: "已有账号？",
+                    backLogin: "返回登录"
+                },
+                msg: {
+                    invalidEmail: "请输入有效的邮箱地址。",
+                    needTokenOrCode: "请提供邀请令牌或邀请码。",
+                    invalidUsername: "用户名需以字母开头，长度 3-20，仅允许字母、数字和下划线。",
+                    passwordTooShort: "密码长度至少为 6 位。",
+                    passwordTooLong: "密码过长。",
+                    passwordMismatch: "两次输入的密码不一致。",
+                    createFailed: "创建管理员账号失败。",
+                    createSuccessRedirect: "管理员账号创建成功，正在跳转登录页...",
+                    networkError: "网络异常，请稍后重试。",
+                    creating: "创建中..."
+                }
+            },
             portal: {
                 action: {
                     signOut: "退出登录",
@@ -1093,6 +1208,13 @@
                     end: "结束时间",
                     applyRange: "应用区间",
                     exportCsv: "导出 CSV",
+                    invitePanelAria: "管理员邀请创建",
+                    inviteTitle: "邀请新管理员",
+                    inviteLead: "创建一次性邀请链接/邀请码并通过邮件发送。",
+                    inviteeEmail: "被邀请人邮箱",
+                    inviteeEmailPlaceholder: "new_admin@university.edu",
+                    expiresInHours: "有效期（小时）",
+                    sendInvitation: "发送邀请",
                     applicationStatusDistribution: "申请状态分布",
                     applicationStatusLead: "当前时间范围内按审核状态统计。",
                     moWorkloadOverview: "MO 工作量概览",
@@ -1148,6 +1270,18 @@
                     applyNow: "立即申请",
                     moShort: "MO",
                     submitting: "提交中...",
+                    sendingInvitation: "发送中...",
+                    inviteInvalidEmail: "请输入有效的被邀请人邮箱地址。",
+                    inviteHoursRange: "有效期小时数必须在 1 到 168 之间。",
+                    inviteCreateFailed: "创建邀请失败。",
+                    inviteCreatedSuccess: "邀请创建成功。",
+                    inviteCreateNetworkError: "创建邀请时网络异常。",
+                    inviteResultLink: "邀请链接：",
+                    inviteResultCode: "邀请码：",
+                    inviteResultExpiresAt: "过期时间：",
+                    inviteResultEmailDelivery: "邮件投递：",
+                    inviteResultDeliveryDetail: "投递详情：",
+                    inviteResultEmailPreview: "邮件预览",
                     applicationSubmitted: "申请已提交。",
                     applicationSubmittedRedirect: "申请提交成功，正在跳转到申请状态页...",
                     failedSubmitApplication: "提交申请失败，请稍后重试。",

@@ -114,22 +114,22 @@
                             </div>
                         </form>
 
-                        <section class="invite-panel" aria-label="管理员邀请创建">
+                        <section class="invite-panel" aria-label="管理员邀请创建" data-i18n-aria-label="portal.adminDashboard.invitePanelAria">
                             <header class="invite-panel-header">
-                                <h2>Invite new admin</h2>
-                                <p>Create one-time invitation link/code and send via email.</p>
+                                <h2 data-i18n="portal.adminDashboard.inviteTitle">Invite new admin</h2>
+                                <p data-i18n="portal.adminDashboard.inviteLead">Create one-time invitation link/code and send via email.</p>
                             </header>
                             <form id="admin-invite-form" class="invite-form" novalidate>
                                 <div class="field-group">
-                                    <label for="invite-email">Invitee email</label>
-                                    <input id="invite-email" name="email" type="email" maxlength="100" placeholder="new_admin@university.edu" required>
+                                    <label for="invite-email" data-i18n="portal.adminDashboard.inviteeEmail">Invitee email</label>
+                                    <input id="invite-email" name="email" type="email" maxlength="100" placeholder="new_admin@university.edu" data-i18n-placeholder="portal.adminDashboard.inviteeEmailPlaceholder" required>
                                 </div>
                                 <div class="field-group">
-                                    <label for="invite-expire-hours">Expires in (hours)</label>
+                                    <label for="invite-expire-hours" data-i18n="portal.adminDashboard.expiresInHours">Expires in (hours)</label>
                                     <input id="invite-expire-hours" name="expireHours" type="number" min="1" max="168" value="48">
                                 </div>
                                 <div class="invite-actions">
-                                    <button id="send-invite-btn" class="primary-btn" type="submit">Send invitation</button>
+                                    <button id="send-invite-btn" class="primary-btn" type="submit" data-i18n="portal.adminDashboard.sendInvitation">Send invitation</button>
                                 </div>
                             </form>
                             <div id="invite-message" class="form-message hidden" role="status" aria-live="polite"></div>
