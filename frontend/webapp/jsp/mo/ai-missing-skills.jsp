@@ -92,24 +92,31 @@
 
         <section class="portal-main">
             <header class="portal-topbar">
-                <div class="portal-user">
-                    <span class="portal-user-avatar"><%= username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "M" %></span>
-                    <span class="portal-user-name"><%= username == null || username.isEmpty() ? "MO User" : username %></span>
+                <div class="portal-topbar-menu">
+                    <span class="portal-topbar-role" data-i18n="portal.brand.mo">MO Portal</span>
+                    <span class="portal-topbar-divider" aria-hidden="true"></span>
+                    <span class="portal-topbar-page" data-i18n="portal.moAiMissingSkills.title">AI Missing Skills</span>
                 </div>
-                <div class="portal-topbar-actions">
-                    <div class="locale-switch" role="group" data-i18n-aria-label="common.locale.switchAria">
-                        <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">中文</button>
-                        <span class="locale-divider">/</span>
-                        <button class="locale-btn" type="button" data-locale-switch data-locale="en" data-i18n="common.locale.en">English</button>
+                <div class="portal-topbar-right">
+                    <div class="portal-user">
+                        <span class="portal-user-avatar"><%= username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "M" %></span>
+                        <span class="portal-user-name"><%= username == null || username.isEmpty() ? "MO User" : username %></span>
                     </div>
-                    <a class="portal-topbar-link" href="<%= contextPath %>/logout" data-i18n="portal.action.signOut">Sign Out</a>
+                    <div class="portal-topbar-actions">
+                        <div class="locale-switch" role="group" data-i18n-aria-label="common.locale.switchAria">
+                            <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">中文</button>
+                            <span class="locale-divider">/</span>
+                            <button class="locale-btn" type="button" data-locale-switch data-locale="en" data-i18n="common.locale.en">English</button>
+                        </div>
+                        <a class="portal-topbar-link" href="<%= contextPath %>/logout" data-i18n="portal.action.signOut">Sign Out</a>
+                    </div>
                 </div>
             </header>
 
             <div class="portal-content">
                 <main class="ai-gap-page ai-module-page">
                     <section class="gap-hero ai-module-hero" aria-labelledby="gap-title">
-                        <h1 id="gap-title">AI Missing Skills</h1>
+                        <h1 id="gap-title" class="portal-page-title" data-i18n="portal.moAiMissingSkills.title">AI Missing Skills</h1>
                         <p class="subtitle">Identify the most common capability gaps and plan targeted upskilling actions.</p>
                     </section>
 
