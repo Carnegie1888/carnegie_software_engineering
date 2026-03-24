@@ -238,3 +238,4 @@
 |`member5`|#21|`feat: 重构门户首页并扩展全站双语切换`|✅|`git commit -m "feat: 重构门户首页并扩展全站双语切换" --author="member5 <member5@edu.com>"`|
 |`member1`|#22|`feat: 新增管理员邀请制账号开通流程`|✅|`git commit -m "feat: 新增管理员邀请制账号开通流程" --author="member1 <member1@edu.com>"`|
 |`member5`|#23|`feat: 完成管理员邀请流程双语化`|✅|`git commit -m "feat: 完成管理员邀请流程双语化" --author="member5 <member5@edu.com>"`|
+|`member6`|#24|`fix: 修正门户首页管理员入口并统一首页背景样式`|✅|`git commit -m "fix: 修正门户首页管理员入口并统一首页背景样式" --author="member6 <member6@edu.com>"`|

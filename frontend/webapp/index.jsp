@@ -53,7 +53,7 @@
             </div>
             <p class="hero-admin">
                 <span data-i18n="index.hero.adminHint">Need admin access?</span>
-                <a href="<%= contextPath %>/admin-register.jsp" data-i18n="index.hero.adminLink">Create admin account</a>
+                <a href="<%= contextPath %>/admin-invite.jsp" data-i18n="index.hero.adminLink">Create admin account</a>
             </p>
         </section>
 
