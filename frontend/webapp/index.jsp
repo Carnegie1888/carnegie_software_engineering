@@ -11,8 +11,8 @@
     <link rel="stylesheet" href="<%= contextPath %>/css/portal-home.css">
 </head>
 <body>
-    <main class="portal-home">
-        <header class="home-header">
+    <header class="home-header">
+        <div class="home-header-inner">
             <a class="home-brand" href="<%= contextPath %>/">
                 <span class="home-brand-mark" aria-hidden="true">TA</span>
                 <span data-i18n="common.portalBrand">TA Hiring Portal</span>
@@ -36,7 +36,10 @@
                 <a class="home-link-btn secondary" href="<%= contextPath %>/login.jsp" data-i18n="common.action.signIn">Sign in</a>
                 <a class="home-link-btn primary" href="<%= contextPath %>/register.jsp" data-i18n="common.action.createAccount">Create account</a>
             </div>
-        </header>
+        </div>
+    </header>
+
+    <main class="portal-home">
 
         <section id="overview" class="home-hero">
             <p class="hero-badge" data-i18n="index.hero.badge">University TA Hiring Platform</p>
@@ -159,15 +162,6 @@
                 <h3 data-i18n="index.faq.q3">Can I switch language later?</h3>
                 <p data-i18n="index.faq.a3">Yes. Use the top-right language switch at any time. Your choice is remembered.</p>
             </article>
-        </section>
-
-        <section class="home-cta">
-            <h2 data-i18n="index.cta.title">Ready to start your TA hiring workflow?</h2>
-            <p data-i18n="index.cta.subtitle">Use this portal for context, then jump to the sign-in flow you need.</p>
-            <div class="hero-actions">
-                <a class="home-link-btn primary" href="<%= contextPath %>/login.jsp" data-i18n="index.cta.primary">Sign in now</a>
-                <a class="home-link-btn secondary" href="<%= contextPath %>/register.jsp" data-i18n="index.cta.secondary">Create account</a>
-            </div>
         </section>
 
         <footer class="home-footer">

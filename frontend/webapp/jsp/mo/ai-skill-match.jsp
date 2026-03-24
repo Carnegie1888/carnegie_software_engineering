@@ -17,13 +17,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Skill Match - TA Hiring System</title>
+    <title data-i18n="portal.page.moAiSkillMatch.title">AI Skill Match - TA Hiring System</title>
     <link rel="stylesheet" href="<%= contextPath %>/css/mo-ai-skill-match.css">
 </head>
 <body>
     <div class="portal-shell portal-shell-mo">
-        <aside class="portal-sidebar" aria-label="MO portal navigation">
-            <p class="portal-brand">MO Portal</p>
+        <aside class="portal-sidebar" data-i18n-aria-label="portal.nav.mo.aria">
+            <p class="portal-brand" data-i18n="portal.brand.mo">MO Portal</p>
             <nav class="portal-nav">
                 <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/overview.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -32,7 +32,7 @@
                         <path d="M13 11h7V4h-7z"></path>
                         <path d="M4 20h7v-6H4z"></path>
                     </svg>
-                    <span>Overview</span>
+                    <span data-i18n="portal.nav.mo.overview">Overview</span>
                 </a>
                 <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/applicant-selection.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -41,14 +41,14 @@
                         <path d="M3.5 18c.1-1.6 1.3-2.8 2.9-3.1"></path>
                         <path d="M20.5 18c-.1-1.6-1.3-2.8-2.9-3.1"></path>
                     </svg>
-                    <span>Applicants</span>
+                    <span data-i18n="portal.nav.mo.applicants">Applicants</span>
                 </a>
                 <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/dashboard.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path d="M12 5v14"></path>
                         <path d="M5 12h14"></path>
                     </svg>
-                    <span>Post Job</span>
+                    <span data-i18n="portal.nav.mo.postJob">Post Job</span>
                 </a>
                 <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/mo/ai-skill-match.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -57,7 +57,7 @@
                         <path d="M12 16V5"></path>
                         <path d="M17 16v-6"></path>
                     </svg>
-                    <span>AI Match</span>
+                    <span data-i18n="portal.nav.mo.aiMatch">AI Match</span>
                 </a>
                 <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/ai-missing-skills.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -66,7 +66,7 @@
                         <path d="M6 10h8"></path>
                         <path d="M6 6h12"></path>
                     </svg>
-                    <span>Skill Gaps</span>
+                    <span data-i18n="portal.nav.mo.skillGaps">Skill Gaps</span>
                 </a>
                 <span class="portal-nav-link is-disabled" aria-disabled="true">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -74,7 +74,7 @@
                         <path d="M8 12h8"></path>
                         <circle cx="12" cy="12" r="8"></circle>
                     </svg>
-                    <span>Settings</span>
+                    <span data-i18n="portal.nav.mo.settings">Settings</span>
                 </span>
             </nav>
             <div class="portal-sidebar-bottom">
@@ -85,7 +85,7 @@
                         <path d="M20 17H8"></path>
                         <path d="m12 20-4-3 4-3"></path>
                     </svg>
-                    <span>Switch Roles</span>
+                    <span data-i18n="portal.action.switchRoles">Switch Roles</span>
                 </a>
             </div>
         </aside>
@@ -96,7 +96,14 @@
                     <span class="portal-user-avatar"><%= username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "M" %></span>
                     <span class="portal-user-name"><%= username == null || username.isEmpty() ? "MO User" : username %></span>
                 </div>
-                <a class="portal-topbar-link" href="<%= contextPath %>/logout">Sign Out</a>
+                <div class="portal-topbar-actions">
+                    <div class="locale-switch" role="group" data-i18n-aria-label="common.locale.switchAria">
+                        <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">中文</button>
+                        <span class="locale-divider">/</span>
+                        <button class="locale-btn" type="button" data-locale-switch data-locale="en" data-i18n="common.locale.en">English</button>
+                    </div>
+                    <a class="portal-topbar-link" href="<%= contextPath %>/logout" data-i18n="portal.action.signOut">Sign Out</a>
+                </div>
             </header>
 
             <div class="portal-content">
@@ -183,6 +190,8 @@
         window.APP_CURRENT_USER_ID = "<%= userId %>";
         window.APP_CURRENT_USERNAME = "<%= username %>";
     </script>
+    <script src="<%= contextPath %>/js/i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/portal-i18n.js" defer></script>
     <script src="<%= contextPath %>/js/mo-ai-skill-match.js" defer></script>
 </body>
 </html>

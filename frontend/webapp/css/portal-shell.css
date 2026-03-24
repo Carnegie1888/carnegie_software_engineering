@@ -105,6 +105,13 @@
     background: rgba(255, 255, 255, 0.82);
 }
 
+.portal-topbar-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+}
+
 .portal-user {
     display: inline-flex;
     align-items: center;
@@ -141,6 +148,15 @@
 
 .portal-topbar-link:hover {
     color: var(--ui-text-primary);
+}
+
+.portal-topbar .locale-switch {
+    background: #fff;
+    border-color: rgba(229, 229, 234, 0.95);
+}
+
+.portal-topbar .locale-btn {
+    font-size: 12px;
 }
 
 .portal-content {
