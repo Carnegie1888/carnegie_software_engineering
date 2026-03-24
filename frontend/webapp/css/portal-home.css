@@ -3,19 +3,16 @@
 body {
     margin: 0;
     color: var(--ui-text-primary);
-    background:
-        radial-gradient(circle at 12% -4%, rgba(0, 113, 227, 0.12), transparent 40%),
-        radial-gradient(circle at 88% 0%, rgba(0, 113, 227, 0.08), transparent 34%),
-        var(--ui-bg);
+    background: var(--ui-bg);
 }
 
 .portal-home {
     width: min(1100px, 100%);
     margin: 0 auto;
-    padding: 18px 20px 44px;
+    padding: 100px 20px 18px;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 28px;
 }
 
 .portal-home section {
@@ -23,9 +20,12 @@ body {
 }
 
 .home-header {
-    position: sticky;
-    top: 12px;
-    z-index: 20;
+    position: fixed;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(1060px, calc(100% - 36px));
+    z-index: 80;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -137,18 +137,15 @@ body {
 .role-section,
 .process-section,
 .ai-section,
-.faq-section,
-.home-cta,
-.home-footer {
-    border: 1px solid var(--ui-border);
-    border-radius: 24px;
-    background: var(--ui-surface);
-    box-shadow: var(--ui-shadow-card);
+.faq-section {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
 }
 
-.home-hero,
-.home-cta {
-    padding: 40px;
+.home-hero {
+    padding: 24px 0 4px;
     text-align: center;
 }
 
@@ -209,7 +206,7 @@ body {
 .process-section,
 .ai-section,
 .faq-section {
-    padding: 34px;
+    padding: 8px 0;
 }
 
 .section-head h2 {
@@ -254,7 +251,7 @@ body {
 }
 
 .role-section {
-    padding: 30px;
+    padding: 8px 0;
 }
 
 .role-section h2 {
@@ -345,7 +342,7 @@ body {
 .faq-item {
     margin-top: 18px;
     padding-top: 18px;
-    border-top: 1px solid var(--ui-border);
+    border-top: 1px solid rgba(210, 210, 215, 0.46);
 }
 
 .faq-item:first-of-type {
@@ -365,28 +362,9 @@ body {
     line-height: 1.58;
 }
 
-.home-cta h2 {
-    margin: 0;
-    font-size: clamp(26px, 3.8vw, 42px);
-    line-height: 1.2;
-    letter-spacing: -0.8px;
-}
-
-.home-cta p {
-    margin: 12px auto 0;
-    max-width: 720px;
-    color: var(--ui-text-secondary);
-    font-size: 16px;
-    line-height: 1.56;
-}
-
-.home-footer {
-    padding: 20px 24px;
+.page-copyright {
+    margin: 10px 0 20px;
     text-align: center;
-}
-
-.home-footer p {
-    margin: 0;
     color: var(--ui-text-tertiary);
     font-size: 13px;
     line-height: 1.5;
@@ -396,6 +374,7 @@ body {
     .home-header {
         flex-wrap: wrap;
         justify-content: center;
+        width: calc(100% - 24px);
     }
 
     .home-nav {
@@ -408,13 +387,12 @@ body {
 
 @media (max-width: 840px) {
     .portal-home {
-        padding: 14px 14px 30px;
+        padding: 96px 14px 18px;
         gap: 12px;
     }
 
-    .home-hero,
-    .home-cta {
-        padding: 28px 20px;
+    .home-hero {
+        padding: 8px 0 4px;
     }
 
     .home-preview,
@@ -422,7 +400,7 @@ body {
     .process-section,
     .ai-section,
     .faq-section {
-        padding: 22px 18px;
+        padding: 4px 0;
     }
 
     .preview-grid,
@@ -434,6 +412,7 @@ body {
 @media (max-width: 560px) {
     .home-header {
         top: 8px;
+        width: calc(100% - 16px);
         padding: 10px;
         border-radius: 12px;
     }

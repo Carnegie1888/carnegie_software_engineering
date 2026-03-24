@@ -160,20 +160,8 @@
                 <p data-i18n="index.faq.a3">Yes. Use the top-right language switch at any time. Your choice is remembered.</p>
             </article>
         </section>
-
-        <section class="home-cta">
-            <h2 data-i18n="index.cta.title">Ready to start your TA hiring workflow?</h2>
-            <p data-i18n="index.cta.subtitle">Use this portal for context, then jump to the sign-in flow you need.</p>
-            <div class="hero-actions">
-                <a class="home-link-btn primary" href="<%= contextPath %>/login.jsp" data-i18n="index.cta.primary">Sign in now</a>
-                <a class="home-link-btn secondary" href="<%= contextPath %>/register.jsp" data-i18n="index.cta.secondary">Create account</a>
-            </div>
-        </section>
-
-        <footer class="home-footer">
-            <p data-i18n="common.footer.copyright">University Hiring System © 2026</p>
-        </footer>
     </main>
+    <p class="page-copyright" data-i18n="common.footer.copyright">University Hiring System © 2026</p>
 
     <script src="<%= contextPath %>/js/i18n.js" defer></script>
 </body>

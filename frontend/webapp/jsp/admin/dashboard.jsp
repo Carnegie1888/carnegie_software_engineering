@@ -17,13 +17,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Workload Dashboard - TA Hiring System</title>
+    <title data-i18n="admin.workload.title">Admin Workload Dashboard - TA Hiring System</title>
     <link rel="stylesheet" href="<%= contextPath %>/css/admin-dashboard.css">
 </head>
 <body>
     <div class="portal-shell portal-shell-admin">
-        <aside class="portal-sidebar" aria-label="Admin portal navigation">
-            <p class="portal-brand">Admin Portal</p>
+        <aside class="portal-sidebar" data-i18n-aria-label="admin.nav.aria">
+            <p class="portal-brand" data-i18n="admin.nav.brand">Admin Portal</p>
             <nav class="portal-nav">
                 <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/admin/dashboard.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -32,14 +32,14 @@
                         <path d="M13 11h7V4h-7z"></path>
                         <path d="M4 20h7v-6H4z"></path>
                     </svg>
-                    <span>Dashboard</span>
+                    <span data-i18n="admin.nav.dashboard">Dashboard</span>
                 </a>
                 <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/overview.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path d="M12 5v14"></path>
                         <path d="M5 12h14"></path>
                     </svg>
-                    <span>MO View</span>
+                    <span data-i18n="admin.nav.moView">MO View</span>
                 </a>
                 <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/ai-skill-match.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -48,7 +48,7 @@
                         <path d="M12 16V5"></path>
                         <path d="M17 16v-6"></path>
                     </svg>
-                    <span>AI Match</span>
+                    <span data-i18n="admin.nav.aiMatch">AI Match</span>
                 </a>
                 <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/ai-missing-skills.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -57,7 +57,7 @@
                         <path d="M6 10h8"></path>
                         <path d="M6 6h12"></path>
                     </svg>
-                    <span>Skill Gaps</span>
+                    <span data-i18n="admin.nav.skillGaps">Skill Gaps</span>
                 </a>
             </nav>
             <div class="portal-sidebar-bottom">
@@ -68,7 +68,7 @@
                         <path d="M20 17H8"></path>
                         <path d="m12 20-4-3 4-3"></path>
                     </svg>
-                    <span>Switch Roles</span>
+                    <span data-i18n="common.nav.switchRoles">Switch Roles</span>
                 </a>
             </div>
         </aside>
@@ -77,15 +77,22 @@
             <header class="portal-topbar">
                 <div class="portal-user">
                     <span class="portal-user-avatar"><%= username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "A" %></span>
-                    <span class="portal-user-name"><%= username == null || username.isEmpty() ? "Admin User" : username %></span>
+                    <span class="portal-user-name" data-i18n-default="<%= username == null || username.isEmpty() ? "Admin User" : username %>"><%= username == null || username.isEmpty() ? "Admin User" : username %></span>
                 </div>
-                <a class="portal-topbar-link" href="<%= contextPath %>/logout">Sign Out</a>
+                <div class="portal-topbar-actions">
+                    <div class="locale-switch" role="group" data-i18n-aria-label="common.locale.switchAria">
+                        <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">中文</button>
+                        <span class="locale-divider">/</span>
+                        <button class="locale-btn" type="button" data-locale-switch data-locale="en" data-i18n="common.locale.en">English</button>
+                    </div>
+                    <a class="portal-topbar-link" href="<%= contextPath %>/logout" data-i18n="common.nav.signOut">Sign Out</a>
+                </div>
             </header>
 
             <div class="portal-content">
                 <main class="admin-dashboard-page">
                     <section class="admin-hero" aria-labelledby="admin-title">
-                        <h1 id="admin-title">Admin Workload Dashboard</h1>
+                        <h1 id="admin-title" data-i18n="admin.workload.pageTitle">Admin Workload Dashboard</h1>
                         <p class="subtitle">Track application volume and module owner review workload in one place.</p>
                     </section>
 
@@ -167,6 +174,7 @@
         window.APP_CURRENT_USER_ID = "<%= userId %>";
         window.APP_CURRENT_USERNAME = "<%= username %>";
     </script>
+    <script src="<%= contextPath %>/js/i18n.js" defer></script>
     <script src="<%= contextPath %>/js/admin-dashboard.js" defer></script>
 </body>
 </html>

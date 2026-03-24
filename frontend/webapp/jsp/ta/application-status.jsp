@@ -13,13 +13,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application status - TA Hiring System</title>
+    <title data-i18n="app.page.taApplicationStatus">Application status - TA Hiring System</title>
     <link rel="stylesheet" href="<%= contextPath %>/css/ta-application-status.css">
 </head>
 <body>
     <div class="portal-shell portal-shell-ta">
         <aside class="portal-sidebar" aria-label="TA portal navigation">
-            <p class="portal-brand">TA Portal</p>
+            <p class="portal-brand" data-i18n="app.nav.taPortal">TA Portal</p>
             <nav class="portal-nav">
                 <a class="portal-nav-link" href="<%= contextPath %>/jsp/ta/job-list.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -27,14 +27,14 @@
                         <path d="M9 7.5V6A1.5 1.5 0 0 1 10.5 4.5h3A1.5 1.5 0 0 1 15 6v1.5" />
                         <path d="M3 12h18" />
                     </svg>
-                    <span>Jobs</span>
+                    <span data-i18n="app.nav.jobs">Jobs</span>
                 </a>
                 <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/ta/application-status.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <circle cx="12" cy="12" r="8"></circle>
                         <path d="m8.5 12.5 2.2 2.2L15.5 10"></path>
                     </svg>
-                    <span>Status</span>
+                    <span data-i18n="app.nav.status">Status</span>
                 </a>
                 <span class="portal-nav-link is-disabled" aria-disabled="true">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -47,14 +47,14 @@
                         <path d="m6 18 2-2"></path>
                         <path d="m16 8 2-2"></path>
                     </svg>
-                    <span>AI Match</span>
+                    <span data-i18n="app.nav.aiMatch">AI Match</span>
                 </span>
                 <a class="portal-nav-link" href="<%= contextPath %>/jsp/ta/dashboard.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <circle cx="12" cy="8" r="3"></circle>
                         <path d="M6 18c1.2-2 3.2-3 6-3s4.8 1 6 3"></path>
                     </svg>
-                    <span>Profile</span>
+                    <span data-i18n="app.nav.profile">Profile</span>
                 </a>
             </nav>
             <div class="portal-sidebar-bottom">
@@ -65,7 +65,7 @@
                         <path d="M20 17H8"></path>
                         <path d="m12 20-4-3 4-3"></path>
                     </svg>
-                    <span>Switch Roles</span>
+                    <span data-i18n="app.nav.switchRoles">Switch Roles</span>
                 </a>
             </div>
         </aside>
@@ -76,7 +76,14 @@
                     <span class="portal-user-avatar"><%= userInitial %></span>
                     <span class="portal-user-name"><%= username == null || username.isEmpty() ? "TA User" : username %></span>
                 </div>
-                <a class="portal-topbar-link" href="<%= contextPath %>/logout">Sign Out</a>
+                <div class="portal-topbar-actions">
+                    <div class="locale-switch" role="group" data-i18n-aria-label="common.locale.switchAria">
+                        <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">中文</button>
+                        <span class="locale-divider">/</span>
+                        <button class="locale-btn" type="button" data-locale-switch data-locale="en" data-i18n="common.locale.en">English</button>
+                    </div>
+                    <a class="portal-topbar-link" href="<%= contextPath %>/logout" data-i18n="app.nav.signOut">Sign Out</a>
+                </div>
             </header>
 
             <div class="portal-content">
@@ -151,6 +158,7 @@
     <script>
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
+    <script src="<%= contextPath %>/js/i18n.js" defer></script>
     <script src="<%= contextPath %>/js/ta-application-status.js" defer></script>
 </body>
 </html>

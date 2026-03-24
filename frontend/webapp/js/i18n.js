@@ -115,6 +115,100 @@
                     secondary: "Create account"
                 }
             },
+            portal: {
+                shared: {
+                    signOut: "Sign Out",
+                    switchRoles: "Switch Roles"
+                },
+                ta: {
+                    ariaNav: "TA portal navigation",
+                    brand: "TA Portal",
+                    nav: {
+                        jobs: "Jobs",
+                        status: "Status",
+                        aiMatch: "AI Match",
+                        profile: "Profile"
+                    },
+                    pages: {
+                        dashboard: {
+                            title: "TA Profile Setup - TA Hiring System",
+                            heroTitle: "Profile",
+                            heroSubtitle: "Manage your personal information and academic background."
+                        },
+                        jobList: {
+                            title: "Job list - TA Hiring System",
+                            heroTitle: "Jobs",
+                            heroSubtitle: "Browse and apply for open TA positions."
+                        },
+                        jobDetail: {
+                            title: "Job detail - TA Hiring System",
+                            heroTitle: "Job Detail",
+                            heroSubtitle: "Review role requirements and submit your application."
+                        },
+                        applicationStatus: {
+                            title: "Application status - TA Hiring System",
+                            heroTitle: "My Applications",
+                            heroSubtitle: "Track the status of your submitted applications."
+                        }
+                    }
+                },
+                mo: {
+                    ariaNav: "MO portal navigation",
+                    brand: "MO Portal",
+                    nav: {
+                        overview: "Overview",
+                        applicants: "Applicants",
+                        postJob: "Post Job",
+                        aiMatch: "AI Match",
+                        skillGaps: "Skill Gaps",
+                        settings: "Settings"
+                    },
+                    pages: {
+                        dashboard: {
+                            title: "MO Dashboard - Post TA Jobs",
+                            heroTitle: "Post New Job",
+                            heroSubtitle: "Create a new TA position listing for your course."
+                        },
+                        overview: {
+                            title: "MO Overview - TA Hiring System",
+                            heroTitle: "Overview",
+                            heroSubtitle: "Track hiring activity, then jump directly to posting and applicant review workflows."
+                        },
+                        applicantSelection: {
+                            title: "Applicant review - TA Hiring System",
+                            heroTitle: "Applicants",
+                            heroSubtitle: "Review and manage all candidate applications."
+                        },
+                        aiMatch: {
+                            title: "AI Skill Match - TA Hiring System",
+                            heroTitle: "AI Skill Match",
+                            heroSubtitle: "Review applicant matching scores aligned with your posted job requirements."
+                        },
+                        skillGaps: {
+                            title: "AI Missing Skills - TA Hiring System",
+                            heroTitle: "AI Missing Skills",
+                            heroSubtitle: "Identify the most common capability gaps and plan targeted upskilling actions."
+                        }
+                    }
+                },
+                admin: {
+                    ariaNav: "Admin portal navigation",
+                    brand: "Admin Portal",
+                    nav: {
+                        dashboard: "Dashboard",
+                        moView: "MO View",
+                        aiMatch: "AI Match",
+                        skillGaps: "Skill Gaps"
+                    },
+                    pages: {
+                        dashboard: {
+                            title: "Admin Workload Dashboard - TA Hiring System",
+                            heroTitle: "Admin Workload Dashboard",
+                            heroSubtitle: "Track application volume and module owner review workload in one place."
+                        }
+                    }
+                }
+            },
             login: {
                 page: {
                     title: "Login - TA Hiring System"
@@ -344,6 +438,100 @@
                     subtitle: "先通过门户了解全貌，再进入你需要的登录流程。",
                     primary: "立即登录",
                     secondary: "创建账号"
+                }
+            },
+            portal: {
+                shared: {
+                    signOut: "退出登录",
+                    switchRoles: "切换角色"
+                },
+                ta: {
+                    ariaNav: "TA 门户导航",
+                    brand: "TA 门户",
+                    nav: {
+                        jobs: "职位",
+                        status: "状态",
+                        aiMatch: "AI 匹配",
+                        profile: "档案"
+                    },
+                    pages: {
+                        dashboard: {
+                            title: "TA 档案设置 - TA 招聘系统",
+                            heroTitle: "档案",
+                            heroSubtitle: "管理你的个人信息和学术背景。"
+                        },
+                        jobList: {
+                            title: "职位列表 - TA 招聘系统",
+                            heroTitle: "职位",
+                            heroSubtitle: "浏览并申请开放的 TA 岗位。"
+                        },
+                        jobDetail: {
+                            title: "职位详情 - TA 招聘系统",
+                            heroTitle: "职位详情",
+                            heroSubtitle: "查看岗位要求并提交你的申请。"
+                        },
+                        applicationStatus: {
+                            title: "申请状态 - TA 招聘系统",
+                            heroTitle: "我的申请",
+                            heroSubtitle: "跟踪你已提交申请的状态变化。"
+                        }
+                    }
+                },
+                mo: {
+                    ariaNav: "MO 门户导航",
+                    brand: "MO 门户",
+                    nav: {
+                        overview: "概览",
+                        applicants: "申请人",
+                        postJob: "发布职位",
+                        aiMatch: "AI 匹配",
+                        skillGaps: "技能缺口",
+                        settings: "设置"
+                    },
+                    pages: {
+                        dashboard: {
+                            title: "MO 仪表盘 - 发布 TA 职位",
+                            heroTitle: "发布新职位",
+                            heroSubtitle: "为你的课程创建新的 TA 招聘岗位。"
+                        },
+                        overview: {
+                            title: "MO 概览 - TA 招聘系统",
+                            heroTitle: "概览",
+                            heroSubtitle: "跟踪招聘活动，并快速进入发布和审核流程。"
+                        },
+                        applicantSelection: {
+                            title: "申请人审核 - TA 招聘系统",
+                            heroTitle: "申请人",
+                            heroSubtitle: "查看并管理全部候选人的申请。"
+                        },
+                        aiMatch: {
+                            title: "AI 技能匹配 - TA 招聘系统",
+                            heroTitle: "AI 技能匹配",
+                            heroSubtitle: "查看申请人与岗位需求的匹配评分。"
+                        },
+                        skillGaps: {
+                            title: "AI 技能缺口 - TA 招聘系统",
+                            heroTitle: "AI 技能缺口",
+                            heroSubtitle: "识别常见能力缺口并规划提升方向。"
+                        }
+                    }
+                },
+                admin: {
+                    ariaNav: "管理员门户导航",
+                    brand: "管理员门户",
+                    nav: {
+                        dashboard: "仪表盘",
+                        moView: "MO 视图",
+                        aiMatch: "AI 匹配",
+                        skillGaps: "技能缺口"
+                    },
+                    pages: {
+                        dashboard: {
+                            title: "管理员工作量仪表盘 - TA 招聘系统",
+                            heroTitle: "管理员工作量仪表盘",
+                            heroSubtitle: "在一个页面中跟踪申请量和 MO 审核负载。"
+                        }
+                    }
                 }
             },
             login: {
