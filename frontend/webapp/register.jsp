@@ -7,50 +7,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - TA Hiring System</title>
+    <title data-i18n="register.page.title">Register - TA Hiring System</title>
     <link rel="stylesheet" href="<%= contextPath %>/css/register.css">
 </head>
 <body>
     <main class="register-page">
+        <div class="page-utility">
+            <a class="utility-link" href="<%= contextPath %>/" data-i18n="common.utility.backToPortal">Portal home</a>
+            <div class="locale-switch" role="group" data-i18n-aria-label="common.locale.switchAria">
+                <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">中文</button>
+                <span class="locale-divider">/</span>
+                <button class="locale-btn" type="button" data-locale-switch data-locale="en" data-i18n="common.locale.en">English</button>
+            </div>
+        </div>
+
         <section class="register-hero" aria-labelledby="register-title">
             <div class="hero-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false">
                     <path d="M12 4.5L20 8.5L12 12.5L4 8.5L12 4.5ZM7.2 10.1V14.2C7.2 16.6 9.5 18.4 12 18.4C14.5 18.4 16.8 16.6 16.8 14.2V10.1L12 12.5L7.2 10.1Z" />
                 </svg>
             </div>
-            <h1 id="register-title">Create your account</h1>
-            <p class="subtitle">Join the TA Hiring Portal in a few steps</p>
+            <h1 id="register-title" data-i18n="register.hero.title">Create your account</h1>
+            <p class="subtitle" data-i18n="register.hero.subtitle">Join the TA Hiring Portal in a few steps</p>
         </section>
 
-        <section class="register-card" aria-label="注册表单">
+        <section class="register-card" data-i18n-aria-label="register.form.aria">
             <div id="form-message" class="form-message hidden" role="alert" aria-live="polite"></div>
 
             <form id="register-form" class="register-form" method="post" action="<%= contextPath %>/register" novalidate>
                 <div class="field">
                     <div class="field-label-row">
-                        <label for="username">Username</label>
+                        <label for="username" data-i18n="register.form.usernameLabel">Username</label>
                     </div>
                     <input
                         id="username"
                         name="username"
                         type="text"
                         placeholder="john_smith"
+                        data-i18n-placeholder="register.form.usernamePlaceholder"
                         autocomplete="username"
                         maxlength="20"
                         required
                     >
-                    <p class="field-hint">3-20 characters, start with a letter, and use only letters, numbers, or underscores.</p>
+                    <p class="field-hint" data-i18n="register.form.usernameHint">3-20 characters, start with a letter, and use only letters, numbers, or underscores.</p>
                 </div>
 
                 <div class="field">
                     <div class="field-label-row">
-                        <label for="email">Email address</label>
+                        <label for="email" data-i18n="register.form.emailLabel">Email address</label>
                     </div>
                     <input
                         id="email"
                         name="email"
                         type="email"
                         placeholder="name@university.edu"
+                        data-i18n-placeholder="register.form.emailPlaceholder"
                         autocomplete="email"
                         maxlength="100"
                         inputmode="email"
@@ -60,29 +71,31 @@
 
                 <div class="field">
                     <div class="field-label-row">
-                        <label for="password">Password</label>
+                        <label for="password" data-i18n="register.form.passwordLabel">Password</label>
                     </div>
                     <input
                         id="password"
                         name="password"
                         type="password"
                         placeholder="Create a password"
+                        data-i18n-placeholder="register.form.passwordPlaceholder"
                         autocomplete="new-password"
                         maxlength="100"
                         required
                     >
-                    <p class="field-hint">Use at least 6 characters.</p>
+                    <p class="field-hint" data-i18n="register.form.passwordHint">Use at least 6 characters.</p>
                 </div>
 
                 <div class="field">
                     <div class="field-label-row">
-                        <label for="confirm-password">Confirm password</label>
+                        <label for="confirm-password" data-i18n="register.form.confirmLabel">Confirm password</label>
                     </div>
                     <input
                         id="confirm-password"
                         name="confirmPassword"
                         type="password"
                         placeholder="Re-enter your password"
+                        data-i18n-placeholder="register.form.confirmPlaceholder"
                         autocomplete="new-password"
                         maxlength="100"
                         required
@@ -91,18 +104,18 @@
 
                 <div class="field role-field">
                     <div class="field-label-row">
-                        <span class="field-label">Register as</span>
+                        <span class="field-label" data-i18n="register.form.roleLabel">Register as</span>
                     </div>
                     <input id="register-role" type="hidden" name="role" value="TA">
-                    <div class="role-selector" role="group" aria-label="角色选择按钮">
+                    <div class="role-selector" role="group" data-i18n-aria-label="register.form.roleAria">
                         <button
                             class="role-option is-selected"
                             type="button"
                             data-role="TA"
                             aria-pressed="true"
                         >
-                            <span class="role-option-title">TA</span>
-                            <span class="role-option-desc">Applicant</span>
+                            <span class="role-option-title" data-i18n="register.form.roleTaTitle">TA</span>
+                            <span class="role-option-desc" data-i18n="register.form.roleTaDesc">Applicant</span>
                         </button>
                         <button
                             class="role-option"
@@ -110,33 +123,32 @@
                             data-role="MO"
                             aria-pressed="false"
                         >
-                            <span class="role-option-title">MO</span>
-                            <span class="role-option-desc">Module Organizer</span>
+                            <span class="role-option-title" data-i18n="register.form.roleMoTitle">MO</span>
+                            <span class="role-option-desc" data-i18n="register.form.roleMoDesc">Module Organizer</span>
                         </button>
                     </div>
                 </div>
 
-                <button id="register-submit" class="register-submit-btn" type="submit">
-                    Create account
-                </button>
+                <button id="register-submit" class="register-submit-btn" type="submit" data-i18n="register.form.submit">Create account</button>
             </form>
         </section>
 
         <p class="page-switch-hint">
-            Already have an account?
-            <a href="<%= contextPath %>/login.jsp">Back to login</a>
+            <span data-i18n="register.links.haveAccount">Already have an account?</span>
+            <a href="<%= contextPath %>/login.jsp" data-i18n="register.links.backLogin">Back to login</a>
         </p>
         <p class="page-switch-hint">
-            Registering as admin?
-            <a href="<%= contextPath %>/admin-register.jsp">Use admin registration</a>
+            <span data-i18n="register.links.adminQuestion">Registering as admin?</span>
+            <a href="<%= contextPath %>/admin-register.jsp" data-i18n="register.links.adminLink">Use admin registration</a>
         </p>
 
-        <p class="login-footer">University Hiring System © 2026</p>
+        <p class="login-footer" data-i18n="common.footer.copyright">University Hiring System © 2026</p>
     </main>
 
     <script>
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
+    <script src="<%= contextPath %>/js/i18n.js" defer></script>
     <script src="<%= contextPath %>/js/register.js" defer></script>
 </body>
 </html>

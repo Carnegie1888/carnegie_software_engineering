@@ -19,6 +19,7 @@
     var submitButton = document.getElementById("register-submit");
     var messageBox = document.getElementById("form-message");
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
+    var i18n = window.AppI18n && typeof window.AppI18n.t === "function" ? window.AppI18n : null;
     var isAdminOnlyPage = roleButtons.length === 0;
     var selectedRole = getNormalizedRole(roleInput ? roleInput.value : "") || "TA";
 
@@ -49,102 +50,102 @@
         var role = selectedRole;
 
         if (!username) {
-            showMessage("Please enter a username.", "error");
+            showMessage(t("register.msg.enterUsername", "Please enter a username."), "error");
             usernameInput.focus();
             return;
         }
 
         if (username.length > USERNAME_MAX_LENGTH) {
-            showMessage("Username is too long.", "error");
+            showMessage(t("register.msg.usernameTooLong", "Username is too long."), "error");
             usernameInput.focus();
             return;
         }
 
         if (containsControlChars(username) || containsDangerousMarkup(username)) {
-            showMessage("Username contains unsupported characters.", "error");
+            showMessage(t("register.msg.usernameUnsupported", "Username contains unsupported characters."), "error");
             usernameInput.focus();
             return;
         }
 
         if (!USERNAME_PATTERN.test(username)) {
-            showMessage("Username must start with a letter and contain 3-20 letters, numbers, or underscores.", "error");
+            showMessage(t("register.msg.usernameInvalid", "Username must start with a letter and contain 3-20 letters, numbers, or underscores."), "error");
             usernameInput.focus();
             return;
         }
 
         if (!email) {
-            showMessage("Please enter your email address.", "error");
+            showMessage(t("register.msg.enterEmail", "Please enter your email address."), "error");
             emailInput.focus();
             return;
         }
 
         if (email.length > EMAIL_MAX_LENGTH) {
-            showMessage("Email is too long.", "error");
+            showMessage(t("register.msg.emailTooLong", "Email is too long."), "error");
             emailInput.focus();
             return;
         }
 
         if (containsControlChars(email) || containsDangerousMarkup(email)) {
-            showMessage("Email contains unsupported characters.", "error");
+            showMessage(t("register.msg.emailUnsupported", "Email contains unsupported characters."), "error");
             emailInput.focus();
             return;
         }
 
         if (!isValidEmailAddress(email)) {
-            showMessage("Please enter a valid email address.", "error");
+            showMessage(t("register.msg.emailInvalid", "Please enter a valid email address."), "error");
             emailInput.focus();
             return;
         }
 
         if (!password) {
-            showMessage("Please create a password.", "error");
+            showMessage(t("register.msg.enterPassword", "Please create a password."), "error");
             passwordInput.focus();
             return;
         }
 
         if (password.length < PASSWORD_MIN_LENGTH) {
-            showMessage("Password must be at least 6 characters.", "error");
+            showMessage(t("register.msg.passwordTooShort", "Password must be at least 6 characters."), "error");
             passwordInput.focus();
             return;
         }
 
         if (password.length > PASSWORD_MAX_LENGTH) {
-            showMessage("Password is too long.", "error");
+            showMessage(t("register.msg.passwordTooLong", "Password is too long."), "error");
             passwordInput.focus();
             return;
         }
 
         if (containsControlChars(password)) {
-            showMessage("Password contains unsupported characters.", "error");
+            showMessage(t("register.msg.passwordUnsupported", "Password contains unsupported characters."), "error");
             passwordInput.focus();
             return;
         }
 
         if (!confirmPassword) {
-            showMessage("Please confirm your password.", "error");
+            showMessage(t("register.msg.enterConfirmPassword", "Please confirm your password."), "error");
             confirmPasswordInput.focus();
             return;
         }
 
         if (password !== confirmPassword) {
-            showMessage("Passwords do not match.", "error");
+            showMessage(t("register.msg.passwordMismatch", "Passwords do not match."), "error");
             confirmPasswordInput.focus();
             return;
         }
 
         if (!role) {
-            showMessage("Please select a role.", "error");
+            showMessage(t("register.msg.selectRole", "Please select a role."), "error");
             return;
         }
         if (!isAdminOnlyPage && role === "ADMIN") {
-            showMessage("Please use admin registration page for Admin account.", "error");
+            showMessage(t("register.msg.adminUsePage", "Please use admin registration page for Admin account."), "error");
             return;
         }
 
         setSubmitting(true);
         submitRegister(username, email, password, confirmPassword, role)
             .catch(function () {
-                showMessage("Network error. Please try again.", "error");
+                showMessage(t("register.msg.networkError", "Network error. Please try again."), "error");
             })
             .finally(function () {
                 setSubmitting(false);
@@ -178,7 +179,7 @@
                 var payload = result.payload;
 
                 if (!payload || payload.success !== true || !response.ok) {
-                    var errorMessage = "Registration failed. Please check your information and try again.";
+                    var errorMessage = t("register.msg.failed", "Registration failed. Please check your information and try again.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
                         errorMessage = payload.message.trim();
                     }
@@ -186,7 +187,7 @@
                     return;
                 }
 
-                showMessage("Registration successful! Redirecting to login...", "success");
+                showMessage(t("register.msg.successRedirect", "Registration successful! Redirecting to login..."), "success");
                 window.setTimeout(function () {
                     window.location.href = contextPath + "/login.jsp";
                 }, 1200);
@@ -304,5 +305,12 @@
             .replace(/\\n/g, "\n")
             .replace(/\\r/g, "\r")
             .replace(/\\t/g, "\t");
+    }
+
+    function t(key, fallback) {
+        if (i18n) {
+            return i18n.t(key, fallback);
+        }
+        return fallback || key;
     }
 })();

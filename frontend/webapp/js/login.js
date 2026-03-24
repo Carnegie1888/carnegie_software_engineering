@@ -15,6 +15,7 @@
     var loginButtons = form.querySelectorAll(".login-action-btn");
     var messageBox = document.getElementById("form-message");
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
+    var i18n = window.AppI18n && typeof window.AppI18n.t === "function" ? window.AppI18n : null;
     var selectedRole = getNormalizedRole(roleInput ? roleInput.value : "") || "MO";
 
     setSelectedRole(selectedRole, false);
@@ -65,7 +66,7 @@
                 var payload = result.payload;
 
                 if (!payload || payload.success !== true || !response.ok) {
-                    var errorMessage = "Login failed. Please check your username and password.";
+                    var errorMessage = t("login.msg.failed", "Login failed. Please check your username and password.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
                         errorMessage = payload.message.trim();
                     }
@@ -73,7 +74,7 @@
                     return;
                 }
 
-                showMessage("Login successful! Redirecting...", "success");
+                showMessage(t("login.msg.successRedirect", "Login successful! Redirecting..."), "success");
 
                 var redirect = "";
                 if (payload && payload.data && typeof payload.data.redirect === "string") {
@@ -102,55 +103,55 @@
         var password = getTrimmedValue(passwordInput);
 
         if (!identifier) {
-            showMessage("Please enter your username or email.", "error");
+            showMessage(t("login.msg.enterIdentifier", "Please enter your username or email."), "error");
             usernameInput.focus();
             return;
         }
 
         if (identifier.length > LOGIN_IDENTIFIER_MAX_LENGTH) {
-            showMessage("Username or email is too long.", "error");
+            showMessage(t("login.msg.identifierTooLong", "Username or email is too long."), "error");
             usernameInput.focus();
             return;
         }
 
         if (containsControlChars(identifier) || containsDangerousMarkup(identifier)) {
-            showMessage("Username or email contains unsupported characters.", "error");
+            showMessage(t("login.msg.identifierUnsupported", "Username or email contains unsupported characters."), "error");
             usernameInput.focus();
             return;
         }
 
         if (identifier.indexOf("@") >= 0) {
             if (!isValidEmailAddress(identifier)) {
-                showMessage("Please enter a valid email address.", "error");
+                showMessage(t("login.msg.invalidEmail", "Please enter a valid email address."), "error");
                 usernameInput.focus();
                 return;
             }
         } else if (!USERNAME_PATTERN.test(identifier)) {
-            showMessage("Username must start with a letter and contain 3-20 letters, numbers, or underscores.", "error");
+            showMessage(t("login.msg.invalidUsername", "Username must start with a letter and contain 3-20 letters, numbers, or underscores."), "error");
             usernameInput.focus();
             return;
         }
 
         if (!password) {
-            showMessage("Please enter your password.", "error");
+            showMessage(t("login.msg.enterPassword", "Please enter your password."), "error");
             passwordInput.focus();
             return;
         }
 
         if (password.length < PASSWORD_MIN_LENGTH) {
-            showMessage("Password must be at least 6 characters.", "error");
+            showMessage(t("login.msg.passwordTooShort", "Password must be at least 6 characters."), "error");
             passwordInput.focus();
             return;
         }
 
         if (password.length > PASSWORD_MAX_LENGTH) {
-            showMessage("Password is too long.", "error");
+            showMessage(t("login.msg.passwordTooLong", "Password is too long."), "error");
             passwordInput.focus();
             return;
         }
 
         if (containsControlChars(password)) {
-            showMessage("Password contains unsupported characters.", "error");
+            showMessage(t("login.msg.passwordUnsupported", "Password contains unsupported characters."), "error");
             passwordInput.focus();
             return;
         }
@@ -158,7 +159,7 @@
         setSubmitting(true);
         submitLogin(identifier, password, role)
             .catch(function () {
-                showMessage("Network error. Please try again.", "error");
+                showMessage(t("login.msg.networkError", "Network error. Please try again."), "error");
             })
             .finally(function () {
                 setSubmitting(false);
@@ -255,5 +256,12 @@
 
     function parseLoginResponse(bodyText) {
         return JSON.parse(bodyText);
+    }
+
+    function t(key, fallback) {
+        if (i18n) {
+            return i18n.t(key, fallback);
+        }
+        return fallback || key;
     }
 })();
