@@ -241,3 +241,4 @@
 |`member6`|#24|`fix: 修正门户首页管理员入口并统一首页背景样式`|✅|`git commit -m "fix: 修正门户首页管理员入口并统一首页背景样式" --author="member6 <member6@edu.com>"`|
 |`member6`|#25|`style: 统一门户固定布局与顶部菜单栏结构`|✅|`git commit -m "style: 统一门户固定布局与顶部菜单栏结构" --author="member6 <member6@edu.com>"`|
 |`member5`|#26|`refactor: 合并TA档案与简历上传为单卡片极简布局`|✅|`git commit -m "refactor: 合并TA档案与简历上传为单卡片极简布局" --author="member5 <member5@edu.com>"`|
+|`member6`|#27|`style: 统一 TA 页面主内容宽度与居中布局`|✅|`git commit -m "style: 统一 TA 页面主内容宽度与居中布局" --author="member6 <member6@edu.com>"`|

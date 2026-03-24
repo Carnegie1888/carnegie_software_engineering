@@ -3,11 +3,15 @@
 .jobs-page {
     min-height: auto;
     padding: 28px 28px 36px;
+    max-width: 980px;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 .jobs-hero {
     width: 100%;
-    margin: 0 0 20px;
+    max-width: 860px;
+    margin: 0 auto 20px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -61,12 +65,30 @@
 
 .jobs-panel {
     width: 100%;
-    margin: 0;
+    max-width: 860px;
+    margin: 0 auto;
     background: var(--ui-surface);
     border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-card);
     box-shadow: var(--ui-shadow-card);
     padding: 28px;
+    box-sizing: border-box;
+}
+
+.portal-content > .jobs-page {
+    width: min(980px, 100%) !important;
+    max-width: 980px !important;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+.portal-content > .jobs-page > .jobs-hero,
+.portal-content > .jobs-page > .jobs-panel {
+    width: min(860px, 100%) !important;
+    max-width: 860px !important;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
 }
 
 .filter-form {
