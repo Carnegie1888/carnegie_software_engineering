@@ -24,6 +24,13 @@
     var ALLOWED_RESUME_EXTENSIONS = [".pdf", ".doc", ".docx"];
     var MAX_RESUME_SIZE = 10 * 1024 * 1024;
 
+    function localizeText(key, fallback) {
+        if (window.AppI18n && typeof window.AppI18n.t === "function") {
+            return window.AppI18n.t(key, fallback || key);
+        }
+        return fallback || key;
+    }
+
     var inputs = {
         fullName: document.getElementById("full-name"),
         studentId: document.getElementById("student-id"),
@@ -32,7 +39,6 @@
         gpa: document.getElementById("gpa"),
         skills: document.getElementById("skills"),
         phone: document.getElementById("phone"),
-        address: document.getElementById("address"),
         experience: document.getElementById("experience"),
         motivation: document.getElementById("motivation")
     };
@@ -60,7 +66,6 @@
         "gpa",
         "phone",
         "skills",
-        "address",
         "experience",
         "motivation"
     ];
@@ -117,12 +122,17 @@
     hideResumeProgress();
     loadExistingProfile({ silentWhenMissing: true });
 
+    document.addEventListener("app:locale-changed", function () {
+        refreshSubmitButton();
+        refreshResumeArea();
+    });
+
     function handleCreate() {
         hideMessage();
 
         var validationError = validateForm();
         if (validationError) {
-            showMessage("Please fix the highlighted fields and try again.", "error");
+            showMessage(localizeText("portal.dynamic.fixHighlightedFields", "Please fix the highlighted fields and try again."), "error");
             if (validationError.field && typeof validationError.field.focus === "function") {
                 validationError.field.focus();
             }
@@ -131,7 +141,7 @@
 
         setSubmitting(true);
 
-        submitProfile()
+        submitProfile(false)
             .then(function (result) {
                 var response = result.response;
                 var payload = result.payload;
@@ -142,12 +152,12 @@
                 }
 
                 if (response.status === 409) {
-                    showMessage("A profile already exists for this account. Loading your saved profile...", "error");
+                    showMessage(localizeText("portal.dynamic.profileAlreadyExists", "A profile already exists for this account. Loading your saved profile..."), "error");
                     return loadExistingProfile({ afterCreate: false, silentWhenMissing: false });
                 }
 
                 if (!response.ok || !payload || payload.success !== true) {
-                    var errorMessage = "Unable to create your profile. Please review the form and try again.";
+                    var errorMessage = localizeText("portal.dynamic.unableCreateProfile", "Unable to create your profile. Please review the form and try again.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
                         errorMessage = payload.message.trim();
                     }
@@ -159,7 +169,7 @@
                     return loadExistingProfile({ afterCreate: true, silentWhenMissing: false });
                 }
 
-                showMessage("Profile created. Uploading your selected resume...", "success");
+                showMessage(localizeText("portal.dynamic.profileCreatedUploadingResume", "Profile created. Uploading your selected resume..."), "success");
                 return uploadSelectedResume({ expectExistingProfile: true, fromCreateFlow: true })
                     .then(function () {
                         return { uploadSuccess: true };
@@ -180,7 +190,7 @@
                     });
             })
             .catch(function () {
-                showMessage("Network error. Please try again in a moment.", "error");
+                showMessage(localizeText("portal.dynamic.networkErrorMoment", "Network error. Please try again in a moment."), "error");
             })
             .finally(function () {
                 setSubmitting(false);
@@ -193,7 +203,7 @@
         state.isLoading = true;
         if (!state.isSubmitting) {
             submitButton.disabled = true;
-            submitButton.textContent = "Checking profile...";
+            submitButton.textContent = localizeText("portal.dynamic.checkingProfile", "Checking profile...");
         }
 
         return request(contextPath + "/applicant", {
@@ -209,7 +219,7 @@
                 if (response.status === 404) {
                     enableCreateMode();
                     if (!settings.silentWhenMissing) {
-                        showMessage("No profile found yet. Please complete the form below.", "success");
+                        showMessage(localizeText("portal.dynamic.noProfileFound", "No profile found yet. Please complete the form below."), "success");
                     }
                     return;
                 }
@@ -221,7 +231,7 @@
 
                 if (!response.ok || !payload || payload.success !== true) {
                     enableCreateMode();
-                    var errorMessage = "Unable to load your current profile. You can still create one below.";
+                    var errorMessage = localizeText("portal.dynamic.unableCheckProfile", "Unable to load your current profile. You can still create one below.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
                         errorMessage = payload.message.trim();
                     }
@@ -233,7 +243,7 @@
             })
             .catch(function () {
                 enableCreateMode();
-                showMessage("Unable to check your existing profile right now. You can still try creating one.", "error");
+                showMessage(localizeText("portal.dynamic.unableCheckProfile", "Unable to check your existing profile right now. You can still try creating one."), "error");
             })
             .finally(function () {
                 state.isLoading = false;
@@ -242,18 +252,92 @@
             });
     }
 
-    function submitProfile() {
-        var formData = new URLSearchParams();
-        formData.set("fullName", inputs.fullName.value.trim());
-        formData.set("studentId", inputs.studentId.value.trim());
-        formData.set("department", inputs.department.value.trim());
-        formData.set("program", inputs.program.value.trim());
-        formData.set("gpa", inputs.gpa.value.trim());
-        formData.set("skills", normalizeSkillsForSubmit(inputs.skills.value));
-        formData.set("phone", inputs.phone.value.trim());
-        formData.set("address", inputs.address.value.trim());
-        formData.set("experience", inputs.experience.value.trim());
-        formData.set("motivation", inputs.motivation.value.trim());
+    function handleUpdate() {
+        hideMessage();
+
+        var validationError = validateForm();
+        if (validationError) {
+            showMessage(localizeText("portal.dynamic.fixHighlightedFields", "Please fix the highlighted fields and try again."), "error");
+            if (validationError.field && typeof validationError.field.focus === "function") {
+                validationError.field.focus();
+            }
+            return;
+        }
+
+        setSubmitting(true);
+
+        submitProfile(true)
+            .then(function (result) {
+                var response = result.response;
+                var payload = result.payload;
+
+                if (response.status === 401) {
+                    handleUnauthorized();
+                    return;
+                }
+
+                if (response.status === 404) {
+                    enableCreateMode();
+                    showMessage(localizeText("portal.dynamic.noProfileFound", "No profile found yet. Please complete the form below."), "error");
+                    return;
+                }
+
+                if (!response.ok || !payload || payload.success !== true) {
+                    var errorMessage = localizeText("portal.dynamic.unableUpdateProfile", "Unable to update your profile. Please review the form and try again.");
+                    if (payload && typeof payload.message === "string" && payload.message.trim()) {
+                        errorMessage = payload.message.trim();
+                    }
+                    showMessage(errorMessage, "error");
+                    return;
+                }
+
+                showMessage(localizeText("portal.dynamic.profileUpdatedSuccess", "Profile updated successfully."), "success");
+                return loadExistingProfile({ afterCreate: false, silentWhenMissing: false });
+            })
+            .catch(function () {
+                showMessage(localizeText("portal.dynamic.networkErrorMoment", "Network error. Please try again in a moment."), "error");
+            })
+            .finally(function () {
+                setSubmitting(false);
+            });
+    }
+
+    function submitProfile(isUpdate) {
+        if (isUpdate) {
+            // Backend PUT currently does not parse urlencoded bodies reliably.
+            // Use existing multipart update branch to submit profile edits.
+            var updateData = new FormData();
+            updateData.append("fullName", inputs.fullName.value.trim());
+            updateData.append("studentId", inputs.studentId.value.trim());
+            updateData.append("department", inputs.department.value.trim());
+            updateData.append("program", inputs.program.value.trim());
+            updateData.append("gpa", inputs.gpa.value.trim());
+            updateData.append("skills", normalizeSkillsForSubmit(inputs.skills.value));
+            updateData.append("phone", inputs.phone.value.trim());
+            updateData.append("address", "");
+            updateData.append("experience", inputs.experience.value.trim());
+            updateData.append("motivation", inputs.motivation.value.trim());
+
+            return request(contextPath + "/applicant", {
+                method: "POST",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: updateData
+            });
+        }
+
+        var createData = new URLSearchParams();
+        createData.set("fullName", inputs.fullName.value.trim());
+        createData.set("studentId", inputs.studentId.value.trim());
+        createData.set("department", inputs.department.value.trim());
+        createData.set("program", inputs.program.value.trim());
+        createData.set("gpa", inputs.gpa.value.trim());
+        createData.set("skills", normalizeSkillsForSubmit(inputs.skills.value));
+        createData.set("phone", inputs.phone.value.trim());
+        createData.set("address", "");
+        createData.set("experience", inputs.experience.value.trim());
+        createData.set("motivation", inputs.motivation.value.trim());
 
         return request(contextPath + "/applicant", {
             method: "POST",
@@ -261,7 +345,7 @@
                 "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
                 "X-Requested-With": "XMLHttpRequest"
             },
-            body: formData.toString()
+            body: createData.toString()
         });
     }
 
@@ -277,7 +361,6 @@
         setFieldValue(inputs.gpa, payload.gpa);
         setFieldValue(inputs.skills, formatSkillsForDisplay(payload.skills));
         setFieldValue(inputs.phone, payload.phone);
-        setFieldValue(inputs.address, payload.address);
         setFieldValue(inputs.experience, payload.experience);
         setFieldValue(inputs.motivation, payload.motivation);
 
@@ -288,13 +371,13 @@
 
         var completeness = typeof payload.completeness === "number" ? payload.completeness : null;
         var missingCount = Array.isArray(payload.missingFields) ? payload.missingFields.length : 0;
-        var bannerMessage = "Your profile has already been created and is now shown in read-only mode.";
+        var bannerMessage = localizeText("portal.dynamic.profileReadonly", "Your profile has already been created and is now shown in read-only mode.");
 
         if (completeness !== null) {
             bannerMessage += " Current completeness: " + completeness + "%.";
         }
         if (missingCount > 0) {
-            bannerMessage += " You can continue improving the remaining fields and upload or replace your resume from the side panel.";
+            bannerMessage += " You can continue improving the remaining fields and upload or replace your resume below.";
         }
 
         showBanner(bannerMessage);
@@ -302,7 +385,7 @@
         refreshResumeArea();
 
         if (createdNow) {
-            showMessage("Profile created successfully. Your saved information is now displayed below.", "success");
+            showMessage(localizeText("portal.dynamic.profileCreatedSuccess", "Profile created successfully. Your saved information is now displayed below."), "success");
         } else {
             hideMessage();
         }
@@ -321,6 +404,57 @@
         refreshResumeArea();
     }
 
+    function updateProfileActionState() {
+        if (!submitButton) {
+            return;
+        }
+
+        if (!state.hasExistingProfile || state.isEditing) {
+            submitButton.disabled = false;
+            submitButton.textContent = localizeText("portal.taDashboard.saveChangesButton", "Save changes");
+            if (editButton) {
+                editButton.hidden = true;
+            }
+            if (cancelEditButton) {
+                cancelEditButton.hidden = true;
+            }
+            return;
+        }
+
+        submitButton.disabled = true;
+        submitButton.textContent = localizeText("portal.taDashboard.saveChangesButton", "Save changes");
+
+        if (editButton) {
+            editButton.hidden = false;
+            editButton.disabled = false;
+        }
+        if (cancelEditButton) {
+            cancelEditButton.hidden = true;
+            cancelEditButton.disabled = false;
+        }
+    }
+
+    function enterEditMode() {
+        state.isEditing = true;
+        setFormDisabled(false);
+        form.classList.remove("is-readonly");
+        hideBanner();
+        hideMessage();
+        clearAllFieldValidation();
+
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = localizeText("portal.taDashboard.saveChangesButton", "Save changes");
+        }
+        if (editButton) {
+            editButton.hidden = true;
+        }
+        if (cancelEditButton) {
+            cancelEditButton.hidden = false;
+            cancelEditButton.disabled = false;
+        }
+    }
+
     function refreshSubmitButton() {
         if (state.hasExistingProfile && !state.isEditing) {
             updateProfileActionState();
@@ -328,24 +462,24 @@
         }
 
         if (state.isSubmitting) {
-            submitButton.textContent = "Creating profile...";
+            submitButton.textContent = localizeText("portal.dynamic.savingChanges", "Saving changes...");
             submitButton.disabled = true;
             return;
         }
 
         if (state.isLoading) {
-            submitButton.textContent = "Checking profile...";
+            submitButton.textContent = localizeText("portal.dynamic.checkingProfile", "Checking profile...");
             submitButton.disabled = true;
             return;
         }
 
-        submitButton.textContent = "Create profile";
+        submitButton.textContent = localizeText("portal.taDashboard.saveChangesButton", "Save changes");
         submitButton.disabled = false;
     }
 
     function setSubmitting(submitting) {
         state.isSubmitting = submitting;
-        if (!state.hasExistingProfile) {
+        if (!state.hasExistingProfile || state.isEditing) {
             setFormDisabled(submitting);
         }
         refreshSubmitButton();
@@ -376,9 +510,15 @@
 
         setSelectedResumeFile(file);
         if (state.hasExistingProfile) {
-            showResumeMessage("Resume file is ready. Click upload to replace your current resume.", "success");
+            showResumeMessage(localizeText(
+                "portal.dynamic.resumeReadyReplace",
+                "Resume file is ready. Click upload to replace your current resume."
+            ), "success");
         } else {
-            showResumeMessage("Resume file is ready and will upload right after profile creation.", "success");
+            showResumeMessage(localizeText(
+                "portal.dynamic.resumeReadyAfterCreate",
+                "Resume file is ready and will upload right after profile creation."
+            ), "success");
         }
     }
 
@@ -390,7 +530,10 @@
         }
 
         if (!state.hasExistingProfile) {
-            showResumeMessage("Please create your profile first. The selected resume will also upload automatically after creation.", "error");
+            showResumeMessage(localizeText(
+                "portal.dynamic.createProfileAutoUpload",
+                "Please create your profile first. The selected resume will also upload automatically after creation."
+            ), "error");
             return;
         }
 
@@ -550,16 +693,16 @@
             if (state.selectedResumeFile) {
                 resumeFileName.textContent = state.selectedResumeFile.name + " (" + formatFileSize(state.selectedResumeFile.size) + ")";
             } else {
-                resumeFileName.textContent = "No file selected.";
+                resumeFileName.textContent = localizeText("portal.taDashboard.noFileSelected", "No file selected.");
             }
         }
 
         if (resumeCurrentInfo) {
             if (state.resumePath) {
-                resumeCurrentInfo.textContent = "Current uploaded resume: " + state.resumePath;
+                resumeCurrentInfo.textContent = localizeText("portal.dynamic.currentResumePrefix", "Current uploaded resume:") + " " + state.resumePath;
                 resumeCurrentInfo.classList.remove("hidden");
             } else if (state.hasExistingProfile) {
-                resumeCurrentInfo.textContent = "No resume uploaded yet.";
+                resumeCurrentInfo.textContent = localizeText("portal.dynamic.noResumeUploaded", "No resume uploaded yet.");
                 resumeCurrentInfo.classList.remove("hidden");
             } else {
                 resumeCurrentInfo.textContent = "";
@@ -570,15 +713,17 @@
         if (resumeUploadButton) {
             if (state.isUploadingResume) {
                 resumeUploadButton.disabled = true;
-                resumeUploadButton.textContent = "Uploading...";
+                resumeUploadButton.textContent = localizeText("portal.dynamic.uploading", "Uploading") + "...";
             } else if (!state.hasExistingProfile) {
                 resumeUploadButton.disabled = true;
                 resumeUploadButton.textContent = state.selectedResumeFile
-                    ? "Will upload after profile creation"
-                    : "Upload selected resume";
+                    ? localizeText("portal.dynamic.resumeWillUploadAfterCreate", "Will upload after profile creation")
+                    : localizeText("portal.taDashboard.uploadSelectedResume", "Upload selected resume");
             } else {
                 resumeUploadButton.disabled = !state.selectedResumeFile;
-                resumeUploadButton.textContent = state.resumePath ? "Replace uploaded resume" : "Upload selected resume";
+                resumeUploadButton.textContent = state.resumePath
+                    ? localizeText("portal.dynamic.replaceUploadedResume", "Replace uploaded resume")
+                    : localizeText("portal.taDashboard.uploadSelectedResume", "Upload selected resume");
             }
         }
     }
@@ -612,7 +757,7 @@
             resumeProgressText.textContent = "0%";
         }
         if (resumeProgressStatus) {
-            resumeProgressStatus.textContent = "Waiting to upload";
+            resumeProgressStatus.textContent = localizeText("portal.taDashboard.waitingUpload", "Waiting to upload");
         }
     }
 
@@ -1089,28 +1234,6 @@
             return "";
         }
 
-        if (key === "address") {
-            if (value.length > 200) {
-                return "Address must be 200 characters or fewer.";
-            }
-            if (value.length < 5) {
-                return "Address should be at least 5 characters if provided.";
-            }
-            if (!hasLetterOrCjk(value)) {
-                return "Address should include letters.";
-            }
-            if (hasOnlyPunctuationAndSpace(value)) {
-                return "Address cannot contain only punctuation.";
-            }
-            if (!/^[A-Za-z0-9\u00C0-\u024F\u4E00-\u9FFF\s#&(),./:'-]+$/.test(value)) {
-                return "Address contains unsupported characters.";
-            }
-            if (hasExcessiveRepeatedChars(value, 8)) {
-                return "Address contains too many repeated characters.";
-            }
-            return "";
-        }
-
         if (key === "experience") {
             return validateLongTextField(value, "Related experience");
         }
@@ -1124,10 +1247,6 @@
 
     function hasLetterOrCjk(text) {
         return /[A-Za-z\u00C0-\u024F\u4E00-\u9FFF]/.test(text || "");
-    }
-
-    function hasOnlyPunctuationAndSpace(text) {
-        return !/[A-Za-z0-9\u00C0-\u024F\u4E00-\u9FFF]/.test(text || "");
     }
 
     function hasBalancedParentheses(text) {
@@ -1304,7 +1423,7 @@
     }
 
     function handleUnauthorized() {
-        showMessage("Your session has expired. Redirecting to login...", "error");
+        showMessage(localizeText("portal.dynamic.sessionExpiredRedirect", "Your session has expired. Redirecting to login..."), "error");
         window.setTimeout(function () {
             window.location.href = contextPath + "/login.jsp";
         }, 1000);
