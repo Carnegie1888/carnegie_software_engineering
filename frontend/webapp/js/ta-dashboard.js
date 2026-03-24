@@ -11,6 +11,7 @@
     var editButton = document.getElementById("profile-edit-btn");
     var cancelEditButton = document.getElementById("profile-cancel-btn");
     var formFields = form.querySelectorAll("input, select, textarea");
+    var resumeFileTrigger = document.getElementById("resume-file-trigger");
     var resumeFileInput = document.getElementById("resume-file-input");
     var resumeFileName = document.getElementById("resume-file-name");
     var resumeUploadButton = document.getElementById("resume-upload-btn");
@@ -112,6 +113,15 @@
 
     if (resumeFileInput) {
         resumeFileInput.addEventListener("change", handleResumeFileChange);
+    }
+
+    if (resumeFileTrigger && resumeFileInput) {
+        resumeFileTrigger.addEventListener("click", function () {
+            if (resumeFileTrigger.disabled) {
+                return;
+            }
+            resumeFileInput.click();
+        });
     }
 
     if (resumeUploadButton) {

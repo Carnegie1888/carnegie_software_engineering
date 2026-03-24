@@ -270,7 +270,15 @@
                                 <p class="side-card-copy" data-i18n="portal.taDashboard.resumeUploadLead">Upload your resume in PDF, DOC, or DOCX format. Maximum size is 10MB.</p>
 
                                 <div class="upload-file-panel">
-                                    <label class="upload-file-label" for="resume-file-input" data-i18n="portal.taDashboard.chooseFile">Choose file</label>
+                                    <button
+                                        id="resume-file-trigger"
+                                        class="upload-file-trigger"
+                                        type="button"
+                                        data-i18n="portal.taDashboard.chooseFile"
+                                    >
+                                        Choose file
+                                    </button>
+                                    <label class="sr-only" for="resume-file-input" data-i18n="portal.taDashboard.chooseFile">Choose file</label>
                                     <input
                                         id="resume-file-input"
                                         class="upload-file-input"
