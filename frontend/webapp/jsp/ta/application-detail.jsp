@@ -27,14 +27,14 @@
                         <path d="M9 7.5V6A1.5 1.5 0 0 1 10.5 4.5h3A1.5 1.5 0 0 1 15 6v1.5" />
                         <path d="M3 12h18" />
                     </svg>
-                    <span data-i18n="portal.nav.ta.jobs">Jobs</span>
+                    <span data-i18n="portal.nav.ta.jobs">Job List</span>
                 </a>
                 <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/ta/application-status.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <circle cx="12" cy="12" r="8"></circle>
                         <path d="m8.5 12.5 2.2 2.2L15.5 10"></path>
                     </svg>
-                    <span data-i18n="portal.nav.ta.status">Status</span>
+                    <span data-i18n="portal.nav.ta.status">My Applications</span>
                 </a>
                 <span class="portal-nav-link is-disabled" aria-disabled="true">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -125,30 +125,44 @@
                     </button>
 
                     <div class="app-detail-layout">
-                        <div class="app-detail-main">
-                            <article class="app-info-card app-info-card--skills" aria-labelledby="skills-card-title">
-                                <h2 id="skills-card-title" class="app-info-card-title" data-i18n="portal.taApplicationDetail.mySkills">My skills</h2>
-                                <div class="skills-chips-well">
-                                    <div id="skills-chips" class="skills-chips"></div>
-                                </div>
-                            </article>
-                            <div class="app-detail-split">
-                                <article class="app-info-card app-info-card--gpa" aria-labelledby="gpa-card-title">
-                                    <h2 id="gpa-card-title" class="app-info-card-title" data-i18n="portal.taDashboard.gpa">GPA</h2>
-                                    <p class="gpa-value" id="gpa-value">—</p>
-                                    <p class="gpa-scale muted" data-i18n="portal.taApplicationDetail.gpaScale">Out of 4.0</p>
-                                </article>
-                                <article class="app-info-card app-info-card--resume" aria-labelledby="resume-card-title">
-                                    <h2 id="resume-card-title" class="app-info-card-title" data-i18n="portal.taApplicationDetail.resumeShort">Resume</h2>
-                                    <p class="resume-name" id="resume-display-name">—</p>
-                                    <a class="resume-link" id="resume-link" href="#" target="_blank" rel="noopener" data-i18n="portal.taApplicationDetail.viewResumeFile">View file</a>
-                                </article>
-                                <article class="app-info-card app-info-card--cover" aria-labelledby="cover-title">
-                                    <h2 id="cover-title" class="app-info-card-title" data-i18n="portal.taJobDetail.coverLetter">Cover letter</h2>
-                                    <p class="cover-body" id="cover-letter-body">—</p>
-                                </article>
+                        <article class="app-info-card app-info-card--cover" aria-labelledby="cover-title">
+                            <div class="cover-card-head">
+                                <span class="cover-card-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                    </svg>
+                                </span>
+                                <h2 id="cover-title" class="app-info-card-title" data-i18n="portal.taJobDetail.coverLetter">Cover letter</h2>
                             </div>
-                        </div>
+                            <p class="cover-body" id="cover-letter-body">—</p>
+                        </article>
+
+                        <a class="profile-jump-card" id="profile-jump-card" href="<%= contextPath %>/jsp/ta/dashboard.jsp">
+                            <span class="profile-jump-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <circle cx="12" cy="8" r="3.2"></circle>
+                                    <path d="M5.2 19a6.8 6.8 0 0 1 13.6 0"></path>
+                                </svg>
+                            </span>
+                            <span class="profile-jump-body">
+                                <span class="profile-jump-title" data-i18n="portal.taApplicationDetail.profileCardTitle">My profile</span>
+                                <span class="profile-jump-copy" id="profile-jump-copy" data-i18n="portal.taApplicationDetail.profileCardHint">View or edit your resume and skills.</span>
+                            </span>
+                            <span class="profile-jump-arrow" aria-hidden="true">›</span>
+                        </a>
+
+                        <p class="profile-sync-note" id="profile-sync-note">
+                            <span class="profile-sync-note-icon" aria-hidden="true">
+                                <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <circle cx="10" cy="10" r="8"></circle>
+                                    <path d="M10 6.2v.2"></path>
+                                    <path d="M10 9v4.7"></path>
+                                </svg>
+                            </span>
+                            <span id="profile-sync-note-text" data-i18n="portal.taApplicationDetail.profileSyncNote">
+                                Your profile and resume were sent with this application to the MO. You can update your profile after submission, and changes will sync to the MO view.
+                            </span>
+                        </p>
                     </div>
                 </main>
             </div>

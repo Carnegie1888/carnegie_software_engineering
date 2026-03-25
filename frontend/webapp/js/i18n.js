@@ -298,8 +298,8 @@
                 nav: {
                     ta: {
                         aria: "TA portal navigation",
-                        jobs: "Jobs",
-                        status: "Status",
+                        jobs: "Job List",
+                        status: "My Applications",
                         aiMatch: "AI Match",
                         profile: "Profile"
                     },
@@ -404,6 +404,10 @@
                     editProfileButton: "Edit profile",
                     cancelButton: "Cancel",
                     profileLabel: "Personal Profile",
+                    photoUploadTitle: "Photo upload",
+                    photoCardEmptyTitle: "Upload your photo",
+                    photoCardEmptyHint: "JPG, PNG, or WEBP. Maximum size is 5MB.",
+                    photoRemoveAria: "Remove photo",
                     resumeUploadTitle: "Resume upload",
                     resumeUploadLead: "Upload one PDF, DOC, or DOCX resume. Maximum size is 10MB.",
                     resumeCardEmptyTitle: "Upload your resume",
@@ -462,12 +466,19 @@
                     workload: "Workload",
                     applicants: "Applicants",
                     deadline: "Deadline",
+                    deadlinePrefix: "Due",
                     noDescription: "No description.",
                     sessionExpired: "Your session has expired. Redirecting to login...",
                     progressSubmit: "Submit application",
                     progressReview: "Materials in review",
                     progressInterview: "Interview arrangement",
-                    progressFinal: "Final decision"
+                    progressFinal: "Final decision",
+                    profileCardTitle: "My profile",
+                    profileCardHint: "View or edit your resume and skills.",
+                    profileCardHintReady: "View or edit your resume and skills.",
+                    profileCardHintMissingResume: "Add or update your resume, skills, and profile details.",
+                    profileSyncNote: "Your profile and resume were sent with this application to the MO. You can update your profile after submission, and changes will sync to the MO view.",
+                    profileSyncUpdatedPrefix: "Latest profile sync:"
                 },
                 moDashboard: {
                     title: "Post New Job",
@@ -510,7 +521,10 @@
                     contact: "Contact",
                     email: "Email",
                     phone: "Phone",
-                    experience: "Experience"
+                    experience: "Experience",
+                    profileSyncedAt: "Profile synced at",
+                    profileSync: "Profile sync",
+                    profileSyncHint: "The profile will sync automatically after the applicant saves changes."
                 },
                 moAiSkillMatch: {
                     title: "AI Skill Match",
@@ -580,6 +594,10 @@
                     pendingResumeRemoved: "Pending resume removed.",
                     savedResumeRemoved: "Current resume removed. Upload a new one before saving changes.",
                     resumeReady: "Resume ready",
+                    choosePhotoFirst: "Please choose a photo file first.",
+                    photoReadyToSave: "Photo selected. Save changes to apply it.",
+                    savedPhotoRemoved: "Current photo removed. Save changes to apply it.",
+                    photoReady: "Photo ready",
                     pendingResumePrefix: "Pending resume:",
                     pendingResumeCreateSuffix: " It will be saved when you create the profile.",
                     pendingResumeReplaceSuffix: " It will replace your current resume after you save.",
@@ -600,6 +618,8 @@
                     resumeUploadFailed: "Resume upload failed. Please try again.",
                     invalidResumeFormat: "Invalid file format. Please upload a PDF, DOC, or DOCX file.",
                     resumeTooLarge: "File size exceeds 10MB. Please choose a smaller file.",
+                    invalidPhotoFormat: "Invalid photo format. Please upload JPG, PNG, or WEBP.",
+                    photoTooLarge: "Photo size exceeds 5MB. Please choose a smaller file.",
                     resumeWaitingUpload: "Waiting to upload",
                     noSpecificSkills: "No specific skills listed.",
                     searching: "Searching...",
@@ -1044,10 +1064,10 @@
                 nav: {
                     ta: {
                         aria: "TA 门户导航",
-                        jobs: "职位",
-                        status: "状态",
+                        jobs: "职位列表",
+                        status: "我的申请",
                         aiMatch: "AI 匹配",
-                        profile: "档案"
+                        profile: "个人档案"
                     },
                     mo: {
                         aria: "MO 门户导航",
@@ -1150,6 +1170,10 @@
                     editProfileButton: "编辑档案",
                     cancelButton: "取消",
                     profileLabel: "个人档案",
+                    photoUploadTitle: "照片上传",
+                    photoCardEmptyTitle: "上传你的照片",
+                    photoCardEmptyHint: "支持 JPG、PNG 或 WEBP，最大 5MB。",
+                    photoRemoveAria: "删除照片",
                     resumeUploadTitle: "简历上传",
                     resumeUploadLead: "请上传一份 PDF、DOC 或 DOCX 简历，最大 10MB。",
                     resumeCardEmptyTitle: "上传您的简历",
@@ -1208,12 +1232,19 @@
                     workload: "工作时长",
                     applicants: "申请人数",
                     deadline: "申请截止",
+                    deadlinePrefix: "截至",
                     noDescription: "暂无职位描述。",
                     sessionExpired: "登录已过期，正在跳转登录页...",
                     progressSubmit: "提交申请",
                     progressReview: "材料审核中",
                     progressInterview: "面试安排",
-                    progressFinal: "最终决定"
+                    progressFinal: "最终决定",
+                    profileCardTitle: "我的个人档案",
+                    profileCardHint: "查看或编辑您的简历与技能信息。",
+                    profileCardHintReady: "查看或编辑您的简历与技能信息。",
+                    profileCardHintMissingResume: "请前往个人档案补充或更新简历、技能和基础信息。",
+                    profileSyncNote: "您的档案简历已随求职信一同发送给当前职位 MO，如需更新信息请前往个人档案修改，更新后会自动同步到 MO 界面。",
+                    profileSyncUpdatedPrefix: "最近同步时间："
                 },
                 moDashboard: {
                     title: "发布新职位",
@@ -1256,7 +1287,10 @@
                     contact: "联系方式",
                     email: "邮箱",
                     phone: "电话",
-                    experience: "经历"
+                    experience: "经历",
+                    profileSyncedAt: "档案同步时间",
+                    profileSync: "档案同步",
+                    profileSyncHint: "申请人保存档案后会自动同步到此界面。"
                 },
                 moAiSkillMatch: {
                     title: "AI 技能匹配",
@@ -1326,6 +1360,10 @@
                     pendingResumeRemoved: "待保存简历已删除。",
                     savedResumeRemoved: "当前简历已移除，请先上传新的简历再保存更改。",
                     resumeReady: "简历已就绪",
+                    choosePhotoFirst: "请先选择照片文件。",
+                    photoReadyToSave: "照片已选择，点击保存更改后生效。",
+                    savedPhotoRemoved: "当前照片已移除，点击保存更改后生效。",
+                    photoReady: "照片已就绪",
                     pendingResumePrefix: "待保存简历：",
                     pendingResumeCreateSuffix: " 填写其他信息后点击保存更改即可创建档案。",
                     pendingResumeReplaceSuffix: " 点击保存更改后将替换当前简历。",
@@ -1346,6 +1384,8 @@
                     resumeUploadFailed: "简历上传失败，请重试。",
                     invalidResumeFormat: "文件格式不支持，请上传 PDF、DOC 或 DOCX。",
                     resumeTooLarge: "文件超过 10MB，请选择更小的文件。",
+                    invalidPhotoFormat: "照片格式不支持，请上传 JPG、PNG 或 WEBP。",
+                    photoTooLarge: "照片超过 5MB，请选择更小的文件。",
                     resumeWaitingUpload: "等待上传",
                     noSpecificSkills: "未列出具体技能。",
                     searching: "搜索中...",

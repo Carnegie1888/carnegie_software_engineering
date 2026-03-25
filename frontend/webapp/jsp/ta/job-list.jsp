@@ -32,14 +32,14 @@
                         <path d="M9 7.5V6A1.5 1.5 0 0 1 10.5 4.5h3A1.5 1.5 0 0 1 15 6v1.5" />
                         <path d="M3 12h18" />
                     </svg>
-                    <span data-i18n="portal.nav.ta.jobs">Jobs</span>
+                    <span data-i18n="portal.nav.ta.jobs">Job List</span>
                 </a>
                 <a class="portal-nav-link" href="<%= contextPath %>/jsp/ta/application-status.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <circle cx="12" cy="12" r="8"></circle>
                         <path d="m8.5 12.5 2.2 2.2L15.5 10"></path>
                     </svg>
-                    <span data-i18n="portal.nav.ta.status">Status</span>
+                    <span data-i18n="portal.nav.ta.status">My Applications</span>
                 </a>
                 <span class="portal-nav-link is-disabled" aria-disabled="true">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -69,7 +69,7 @@
                 <div class="portal-topbar-menu">
                     <span class="portal-topbar-role" data-i18n="portal.brand.ta">TA Portal</span>
                     <span class="portal-topbar-divider" aria-hidden="true"></span>
-                    <span class="portal-topbar-page" data-i18n="portal.nav.ta.jobs">Jobs</span>
+                    <span class="portal-topbar-page" data-i18n="portal.nav.ta.jobs">Job List</span>
                 </div>
                 <div class="portal-topbar-right">
                     <div class="portal-user">
@@ -90,7 +90,7 @@
             <div class="portal-content">
                 <main class="jobs-page">
                     <section class="jobs-hero" aria-labelledby="jobs-page-title">
-                        <h1 id="jobs-page-title" class="portal-page-title" data-i18n="portal.nav.ta.jobs">Jobs</h1>
+                        <h1 id="jobs-page-title" class="portal-page-title" data-i18n="portal.nav.ta.jobs">Job List</h1>
                         <p class="subtitle">Browse and apply for open TA positions.</p>
                     </section>
 

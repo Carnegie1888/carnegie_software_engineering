@@ -204,14 +204,24 @@
         var progressStage = safeText(application.progressStage, "SUBMITTED").toUpperCase();
         var statusClass = getStatusClass(status);
         var reviewingThis = state.reviewingId && state.reviewingId === applicationId;
+        var profileName = detail ? safeText(detail.fullName, "") : "";
+        var applicantDisplayName = profileName || safeText(application.applicantName, "Unknown applicant");
+        var profileUpdatedAt = detail ? safeText(detail.profileUpdatedAt, "") : "";
+        var profileSyncHint = profileUpdatedAt
+            ? "<p class=\"application-sync-hint\">" +
+                escapeHtml(t("portal.moApplicantSelection.profileSyncedAt", "Profile synced at")) + " " +
+                escapeHtml(formatDateTime(profileUpdatedAt)) +
+              "</p>"
+            : "";
         var coverLetter = safeText(application.coverLetter, "");
         var coverLetterText = coverLetter ? shortenText(coverLetter, 180) : "No cover letter provided.";
 
         card.innerHTML =
             "<header class=\"application-header\">" +
                 "<div class=\"application-heading\">" +
-                    "<h3>" + escapeHtml(safeText(application.applicantName, "Unknown applicant")) + "</h3>" +
+                    "<h3>" + escapeHtml(applicantDisplayName) + "</h3>" +
                     "<p>" + escapeHtml(safeText(application.applicantEmail, "-")) + "</p>" +
+                    profileSyncHint +
                 "</div>" +
                 "<span class=\"status-pill status-" + escapeHtml(statusClass) + "\">" + escapeHtml(status) + "</span>" +
             "</header>" +
@@ -340,6 +350,9 @@
         var resumeAction = detail.hasResume
             ? "<a class=\"inline-link\" href=\"" + contextPath + "/api/applicants/resume?applicationId=" + encodeURIComponent(applicationId) + "\" target=\"_blank\" rel=\"noopener\">View resume</a>"
             : "<span class=\"detail-muted\">Resume not uploaded</span>";
+        var profileSyncCopy = detail.profileUpdatedAt
+            ? t("portal.moApplicantSelection.profileSyncedAt", "Profile synced at") + " " + formatDateTime(detail.profileUpdatedAt)
+            : t("portal.moApplicantSelection.profileSyncHint", "The profile will sync automatically after the applicant saves changes.");
 
         return "<section class=\"applicant-detail-block\">" +
             "<p class=\"detail-title\">Applicant profile</p>" +
@@ -364,6 +377,10 @@
             "<div class=\"detail-section detail-actions\">" +
                 "<p class=\"detail-label\">Resume</p>" +
                 resumeAction +
+            "</div>" +
+            "<div class=\"detail-section\">" +
+                "<p class=\"detail-label\">" + escapeHtml(t("portal.moApplicantSelection.profileSync", "Profile sync")) + "</p>" +
+                "<p class=\"detail-copy\">" + escapeHtml(profileSyncCopy) + "</p>" +
             "</div>" +
         "</section>";
     }

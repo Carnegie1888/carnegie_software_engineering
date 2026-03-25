@@ -15,20 +15,39 @@
     var state = {
         loading: false,
         loadError: false,
-        approximateOnly: false
+        approximateOnly: false,
+        lastKeyword: "",
+        keywordSearchTriggered: false
     };
 
     searchForm.addEventListener("submit", function (event) {
         event.preventDefault();
-        loadApplications();
+        submitSearch();
     });
 
-    loadApplications();
+    searchInput.addEventListener("blur", function () {
+        if (searchInput.value.trim()) {
+            return;
+        }
+        if (state.lastKeyword !== "" || state.keywordSearchTriggered) {
+            loadApplications("", false);
+        }
+    });
 
-    function loadApplications() {
+    loadApplications("", false);
+
+    function submitSearch() {
+        loadApplications(searchInput.value.trim(), true);
+    }
+
+    function loadApplications(keyword, isUserTriggeredSearch) {
         if (state.loading) {
             return;
         }
+
+        var normalizedKeyword = typeof keyword === "string" ? keyword.trim() : searchInput.value.trim();
+        state.lastKeyword = normalizedKeyword;
+        state.keywordSearchTriggered = !!isUserTriggeredSearch && normalizedKeyword.length > 0;
 
         setLoading(true);
         state.loadError = false;
@@ -37,7 +56,7 @@
         listSummaryNode.textContent = t("portal.taApplicationStatus.loadingApplications", "Loading applications...");
         listNode.innerHTML = "";
 
-        request(buildApplyUrl(), {
+        request(buildApplyUrl(normalizedKeyword), {
             method: "GET",
             headers: {
                 "X-Requested-With": "XMLHttpRequest"
@@ -84,8 +103,7 @@
             });
     }
 
-    function buildApplyUrl() {
-        var keyword = searchInput.value.trim();
+    function buildApplyUrl(keyword) {
         if (!keyword) {
             return contextPath + "/apply";
         }
@@ -94,7 +112,8 @@
 
     function renderList(applications) {
         listNode.innerHTML = "";
-        var keyword = searchInput.value.trim();
+        var keyword = state.lastKeyword;
+        var hasKeywordSearch = state.keywordSearchTriggered;
 
         if (state.loadError) {
             listSummaryNode.textContent = t("portal.dynamic.unableLoadApplicationsNow", "Unable to load applications right now.");
@@ -103,7 +122,7 @@
         }
 
         if (!Array.isArray(applications) || applications.length === 0) {
-            if (keyword) {
+            if (hasKeywordSearch && keyword) {
                 listSummaryNode.textContent = t("portal.dynamic.noApplicationsForSearch", "No applications match your keyword.");
                 listNode.appendChild(createEmptyState("no-match"));
             } else {
@@ -115,7 +134,7 @@
 
         listSummaryNode.textContent = buildSummaryText(applications.length, t("portal.dynamic.applicationUnit", "application"));
 
-        if (state.approximateOnly && keyword) {
+        if (state.approximateOnly && hasKeywordSearch) {
             showMessage(t("portal.dynamic.closestMatchesNotice", "No exact matches. Showing closest results."), "success");
         } else {
             hideMessage();

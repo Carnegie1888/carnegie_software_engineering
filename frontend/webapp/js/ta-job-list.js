@@ -1,6 +1,5 @@
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
-    var currentRole = typeof window.APP_CURRENT_ROLE === "string" ? window.APP_CURRENT_ROLE.trim().toUpperCase() : "";
 
     var searchForm = document.getElementById("job-search-form");
     var searchInput = document.getElementById("job-search-input");
@@ -16,20 +15,39 @@
     var state = {
         loading: false,
         loadError: false,
-        approximateOnly: false
+        approximateOnly: false,
+        lastKeyword: "",
+        keywordSearchTriggered: false
     };
 
     searchForm.addEventListener("submit", function (event) {
         event.preventDefault();
-        loadJobs();
+        submitSearch();
     });
 
-    loadJobs();
+    searchInput.addEventListener("blur", function () {
+        if (searchInput.value.trim()) {
+            return;
+        }
+        if (state.lastKeyword !== "" || state.keywordSearchTriggered) {
+            loadJobs("", false);
+        }
+    });
 
-    function loadJobs() {
+    loadJobs("", false);
+
+    function submitSearch() {
+        loadJobs(searchInput.value.trim(), true);
+    }
+
+    function loadJobs(keyword, isUserTriggeredSearch) {
         if (state.loading) {
             return;
         }
+
+        var normalizedKeyword = typeof keyword === "string" ? keyword.trim() : searchInput.value.trim();
+        state.lastKeyword = normalizedKeyword;
+        state.keywordSearchTriggered = !!isUserTriggeredSearch && normalizedKeyword.length > 0;
 
         setLoading(true);
         state.loadError = false;
@@ -38,7 +56,7 @@
         listSummary.textContent = t("portal.taJobList.loadingPositions", "Loading positions...");
         jobList.innerHTML = "";
 
-        request(buildJobsUrl(), {
+        request(buildJobsUrl(normalizedKeyword), {
             method: "GET",
             headers: {
                 "X-Requested-With": "XMLHttpRequest"
@@ -79,8 +97,7 @@
             });
     }
 
-    function buildJobsUrl() {
-        var keyword = searchInput.value.trim();
+    function buildJobsUrl(keyword) {
         var params = new URLSearchParams();
         if (keyword) {
             params.set("keyword", keyword);
@@ -90,7 +107,8 @@
     }
 
     function renderJobs(jobs) {
-        var keyword = searchInput.value.trim();
+        var keyword = state.lastKeyword;
+        var hasKeywordSearch = state.keywordSearchTriggered;
         jobList.innerHTML = "";
 
         if (state.loadError) {
@@ -100,7 +118,7 @@
         }
 
         if (!Array.isArray(jobs) || jobs.length === 0) {
-            if (keyword) {
+            if (hasKeywordSearch && keyword) {
                 listSummary.textContent = t("portal.dynamic.noJobsForSearch", "No jobs match your keyword.");
                 jobList.appendChild(createEmptyState("no-match"));
             } else {
@@ -112,7 +130,7 @@
 
         listSummary.textContent = buildSummaryText(jobs.length, t("portal.dynamic.jobUnit", "job"));
 
-        if (state.approximateOnly && keyword) {
+        if (state.approximateOnly && hasKeywordSearch) {
             showMessage(t("portal.dynamic.closestMatchesNotice", "No exact matches. Showing closest results."), "success");
         } else {
             hideMessage();
@@ -124,56 +142,108 @@
     }
 
     function createJobCard(job) {
-        var article = document.createElement("article");
-        article.className = "job-card";
-
+        var card = document.createElement("article");
+        var jobId = getSafeText(job.jobId, "");
         var status = getSafeText(job.status || "OPEN").toUpperCase();
-        var canApply = currentRole === "TA" && status === "OPEN";
-        var detailHref = contextPath + "/jsp/ta/job-detail.jsp?id=" + encodeURIComponent(getSafeText(job.jobId));
-        var tagsHtml = buildTagItems(job);
+        var statusClass = getJobStatusClass(status);
+        var detailHref = contextPath + "/jsp/ta/job-detail.jsp?id=" + encodeURIComponent(jobId);
+        var title = getSafeText(job.title, t("portal.dynamic.untitledPosition", "Untitled position"));
+        var subtitle = buildJobSubtitle(job);
+        var metaLine = buildJobMeta(job);
 
-        article.innerHTML =
-            "<header class=\"job-card-header\">" +
+        card.className = "job-card status-" + statusClass;
+        card.setAttribute("role", "link");
+        card.setAttribute("tabindex", "0");
+        card.setAttribute("aria-label", t("portal.dynamic.viewDetails", "View details") + " " + title);
+        card.setAttribute("data-job-id", jobId);
+
+        card.innerHTML =
+            "<span class=\"job-accent\" aria-hidden=\"true\"></span>" +
+            "<div class=\"job-main\">" +
                 "<div class=\"job-heading\">" +
-                    "<h2>" + escapeHtml(getSafeText(job.title, t("portal.dynamic.untitledPosition", "Untitled position"))) + "</h2>" +
-                    "<p>" + escapeHtml(getSafeText(job.courseCode, "-")) +
-                        (job.courseName ? " · " + escapeHtml(job.courseName) : "") + "</p>" +
+                    "<h3>" + escapeHtml(title) + "</h3>" +
+                    "<p class=\"job-subtitle\">" + subtitle + "</p>" +
+                    (metaLine
+                        ? "<p class=\"job-meta-line\">" + metaLine + "</p>"
+                        : "") +
                 "</div>" +
-                "<span class=\"status-pill status-" + escapeHtml(status.toLowerCase()) + "\">" + escapeHtml(status) + "</span>" +
-            "</header>" +
-            "<div class=\"job-meta\">" +
-                "<p><span class=\"meta-label\">" + escapeHtml(t("portal.dynamic.moShort", "MO")) + "</span><span class=\"meta-value\">" + escapeHtml(getSafeText(job.moName, "-")) + "</span></p>" +
-                "<p><span class=\"meta-label\">" + escapeHtml(t("portal.common.positions", "Positions")) + "</span><span class=\"meta-value\">" + escapeHtml(String(job.positions || 0)) + "</span></p>" +
-                "<p><span class=\"meta-label\">" + escapeHtml(t("portal.common.deadline", "Deadline")) + "</span><span class=\"meta-value\">" + escapeHtml(formatDateTime(job.deadline)) + "</span></p>" +
             "</div>" +
-            "<div class=\"job-tags\">" + tagsHtml + "</div>" +
-            "<div class=\"job-card-actions\">" +
-                "<a class=\"primary-link\" href=\"" + detailHref + "\">" + escapeHtml(t("portal.dynamic.viewDetails", "View details")) + "</a>" +
-                (canApply ? "<a class=\"ghost-link\" href=\"" + detailHref + "#apply\">" + escapeHtml(t("portal.dynamic.applyNow", "Apply now")) + "</a>" : "") +
+            "<div class=\"job-side\">" +
+                "<span class=\"job-status-chip status-" + statusClass + "\">" + escapeHtml(getJobStatusLabel(status)) + "</span>" +
             "</div>";
 
-        return article;
+        card.addEventListener("click", function () {
+            window.location.href = detailHref;
+        });
+        card.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                window.location.href = detailHref;
+            }
+        });
+
+        return card;
     }
 
-    function buildTagItems(job) {
-        var tags = [];
+    function getJobStatusClass(status) {
+        if (status === "OPEN") {
+            return "open";
+        }
+        if (status === "CLOSED") {
+            return "closed";
+        }
+        if (status === "FILLED") {
+            return "filled";
+        }
+        return "unknown";
+    }
+
+    function getJobStatusLabel(status) {
+        if (status === "OPEN") {
+            return t("portal.common.open", "Open");
+        }
+        if (status === "CLOSED") {
+            return t("portal.common.closed", "Closed");
+        }
+        if (status === "FILLED") {
+            return t("portal.common.filled", "Filled");
+        }
+        return getSafeText(status, "-");
+    }
+
+    function buildJobSubtitle(job) {
+        var parts = [];
+        var courseCode = getSafeText(job.courseCode, "");
+        var courseName = getSafeText(job.courseName, "");
+        var moName = getSafeText(job.moName, "-");
+        var deadlineLabel = t("portal.common.deadline", "Deadline");
+        var deadlineText = formatDateTime(job.deadline);
+
+        if (courseCode) {
+            parts.push("<span class=\"job-course-code\">" + escapeHtml(courseCode) + "</span>");
+        }
+        if (courseName) {
+            parts.push("<span class=\"job-course-name\">" + escapeHtml(courseName) + "</span>");
+        }
+        parts.push("<span class=\"job-mo\">" + escapeHtml(t("portal.dynamic.moShort", "MO") + " " + moName) + "</span>");
+        parts.push("<span class=\"job-deadline\">" + escapeHtml(deadlineLabel + " " + deadlineText) + "</span>");
+
+        return parts.join("<span class=\"job-subtitle-separator\" aria-hidden=\"true\">·</span>");
+    }
+
+    function buildJobMeta(job) {
+        var parts = [];
+
+        parts.push(escapeHtml(t("portal.common.positions", "Positions") + " " + String(job.positions || 0)));
+
         if (job.salary) {
-            tags.push({ label: t("portal.common.salary", "Salary"), value: getSafeText(job.salary) });
+            parts.push(escapeHtml(t("portal.common.salary", "Salary") + " " + getSafeText(job.salary)));
         }
         if (job.workload) {
-            tags.push({ label: t("portal.common.workload", "Workload"), value: getSafeText(job.workload) });
-        }
-        if (job.requiredSkills) {
-            tags.push({ label: t("portal.common.requiredSkills", "Required skills"), value: normalizeSkills(job.requiredSkills) });
+            parts.push(escapeHtml(t("portal.common.workload", "Workload") + " " + getSafeText(job.workload)));
         }
 
-        if (tags.length === 0) {
-            return "<span class=\"tag-item muted\">" + escapeHtml(t("portal.dynamic.noExtraTags", "No extra tags")) + "</span>";
-        }
-
-        return tags.map(function (tag) {
-            return "<span class=\"tag-item\"><strong>" + escapeHtml(tag.label) + ":</strong> " + escapeHtml(tag.value) + "</span>";
-        }).join("");
+        return parts.join("<span class=\"job-meta-separator\" aria-hidden=\"true\">·</span>");
     }
 
     function createEmptyState(mode) {
@@ -293,21 +363,6 @@
             return payload.data;
         }
         return payload;
-    }
-
-    function normalizeSkills(rawSkills) {
-        if (typeof rawSkills !== "string" || !rawSkills.trim()) {
-            return "-";
-        }
-        return rawSkills
-            .split(/[;,]/)
-            .map(function (item) {
-                return item.trim();
-            })
-            .filter(function (item) {
-                return item.length > 0;
-            })
-            .join(", ");
     }
 
     function formatDateTime(value) {

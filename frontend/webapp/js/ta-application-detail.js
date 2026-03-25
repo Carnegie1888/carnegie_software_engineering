@@ -183,9 +183,8 @@
                 "</span>";
         }
 
-        renderSkills(detail);
-        renderGpaResume(detail);
         renderCoverLetter(app, detail);
+        renderProfileGuidance(detail);
         renderJobTeaser(job);
         renderJobModal(job);
     }
@@ -268,75 +267,6 @@
         );
     }
 
-    function normalizeSkillsFromProfile(raw) {
-        if (Array.isArray(raw)) {
-            return raw.map(function (s) {
-                return safeText(s, "");
-            }).filter(Boolean);
-        }
-        if (typeof raw === "string" && raw.trim()) {
-            return raw
-                .split(/[,;，、]/)
-                .map(function (s) {
-                    return s.trim();
-                })
-                .filter(Boolean);
-        }
-        return [];
-    }
-
-    function renderSkills(detail) {
-        var wrap = document.getElementById("skills-chips");
-        if (!wrap) {
-            return;
-        }
-        wrap.innerHTML = "";
-        var skills = detail ? normalizeSkillsFromProfile(detail.skills) : [];
-        if (skills.length === 0) {
-            var empty = document.createElement("span");
-            empty.className = "skill-chip muted";
-            empty.textContent = t("portal.taApplicationDetail.noSkills", "No skills listed");
-            wrap.appendChild(empty);
-            return;
-        }
-        skills.forEach(function (skill) {
-            var chip = document.createElement("span");
-            chip.className = "skill-chip";
-            chip.textContent = safeText(skill, "");
-            wrap.appendChild(chip);
-        });
-    }
-
-    function renderGpaResume(detail) {
-        var gpaEl = document.getElementById("gpa-value");
-        var resumeNameEl = document.getElementById("resume-display-name");
-        var resumeLink = document.getElementById("resume-link");
-
-        var gpa = detail && detail.gpa != null ? String(detail.gpa).trim() : "";
-        if (gpaEl) {
-            gpaEl.textContent = gpa || "—";
-        }
-
-        var hasResume = detail && detail.hasResume === true;
-        var path = detail && detail.resumePath ? String(detail.resumePath) : "";
-        var displayName = path ? path.replace(/^.*[/\\]/, "") : "";
-
-        if (resumeNameEl) {
-            resumeNameEl.textContent = hasResume && displayName ? displayName : "—";
-        }
-        if (resumeLink) {
-            if (hasResume && state.applicationId) {
-                resumeLink.href =
-                    contextPath + "/api/applicants/resume?applicationId=" + encodeURIComponent(state.applicationId);
-                resumeLink.classList.remove("hidden");
-                resumeLink.style.display = "";
-            } else {
-                resumeLink.removeAttribute("href");
-                resumeLink.style.display = "none";
-            }
-        }
-    }
-
     function renderCoverLetter(app, detail) {
         var el = document.getElementById("cover-letter-body");
         if (!el) {
@@ -347,6 +277,38 @@
             text = safeText(detail.coverLetter, "");
         }
         el.textContent = text || t("portal.taApplicationDetail.noCoverLetter", "No cover letter provided.");
+    }
+
+    function renderProfileGuidance(detail) {
+        var profileCopy = document.getElementById("profile-jump-copy");
+        if (profileCopy) {
+            profileCopy.textContent =
+                detail && detail.hasResume === true
+                    ? t("portal.taApplicationDetail.profileCardHintReady", "View or edit your resume and skills.")
+                    : t("portal.taApplicationDetail.profileCardHintMissingResume", "Add or update your resume, skills, and profile details.");
+        }
+
+        var noteText = document.getElementById("profile-sync-note-text");
+        if (!noteText) {
+            return;
+        }
+
+        var baseNote = t(
+            "portal.taApplicationDetail.profileSyncNote",
+            "Your profile and resume were sent with this application to the MO. You can update your profile after submission, and changes will sync to the MO view."
+        );
+        var profileUpdatedAt = detail ? safeText(detail.profileUpdatedAt, "") : "";
+        if (!profileUpdatedAt) {
+            noteText.textContent = baseNote;
+            return;
+        }
+
+        noteText.textContent =
+            baseNote +
+            " " +
+            t("portal.taApplicationDetail.profileSyncUpdatedPrefix", "Latest profile sync:") +
+            " " +
+            formatDisplayDateTime(profileUpdatedAt);
     }
 
     function renderJobTeaser(job) {
@@ -368,23 +330,60 @@
                 ? String(job.applicantCount)
                 : safeText(job.applicantCount, "0");
         var deadline = formatDisplayDateTime(job.deadline);
+        var deadlineText = deadline;
+        if (deadline && deadline !== "—") {
+            deadlineText = t("portal.taApplicationDetail.deadlinePrefix", "截至") + " " + deadline;
+        }
 
-        meta.appendChild(teaserMetaItem("⏱", t("portal.taApplicationDetail.workload", "Workload"), workload));
-        meta.appendChild(teaserMetaItem("👥", t("portal.taApplicationDetail.applicants", "Applicants"), applicants));
-        meta.appendChild(teaserMetaItem("📅", t("portal.taApplicationDetail.deadline", "Deadline"), deadline));
+        meta.appendChild(teaserMetaItem("workload", t("portal.taApplicationDetail.workload", "Workload"), workload));
+        meta.appendChild(teaserMetaItem("applicants", t("portal.taApplicationDetail.applicants", "Applicants"), applicants));
+        meta.appendChild(teaserMetaItem("deadline", t("portal.taApplicationDetail.deadline", "Deadline"), deadlineText));
     }
 
-    function teaserMetaItem(icon, label, value) {
+    function teaserMetaItem(iconType, label, value) {
         var span = document.createElement("span");
         span.innerHTML =
-            "<span aria-hidden=\"true\">" +
-            escapeHtml(icon) +
-            "</span> " +
+            teaserMetaIconMarkup(iconType) +
             "<strong>" +
             escapeHtml(value) +
             "</strong>";
         span.setAttribute("title", label);
         return span;
+    }
+
+    function teaserMetaIconMarkup(iconType) {
+        if (iconType === "workload") {
+            return (
+                "<span class=\"job-teaser-meta-icon\" aria-hidden=\"true\">" +
+                    "<svg viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">" +
+                        "<circle cx=\"10\" cy=\"10\" r=\"7\"></circle>" +
+                        "<path d=\"M10 6.4v3.8l2.4 1.6\"></path>" +
+                    "</svg>" +
+                "</span>"
+            );
+        }
+        if (iconType === "applicants") {
+            return (
+                "<span class=\"job-teaser-meta-icon\" aria-hidden=\"true\">" +
+                    "<svg viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">" +
+                        "<circle cx=\"7.2\" cy=\"7.4\" r=\"2.6\"></circle>" +
+                        "<circle cx=\"13.5\" cy=\"8.4\" r=\"2.2\"></circle>" +
+                        "<path d=\"M2.8 15.8c.6-2.1 2.3-3.4 4.4-3.4s3.8 1.3 4.4 3.4\"></path>" +
+                        "<path d=\"M11.5 15.8c.4-1.5 1.6-2.5 3.1-2.5 1.2 0 2.3.7 2.8 1.8\"></path>" +
+                    "</svg>" +
+                "</span>"
+            );
+        }
+        return (
+            "<span class=\"job-teaser-meta-icon\" aria-hidden=\"true\">" +
+                "<svg viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\">" +
+                    "<rect x=\"3.6\" y=\"5.2\" width=\"12.8\" height=\"11\" rx=\"2\"></rect>" +
+                    "<path d=\"M6.2 3.8v2.4\"></path>" +
+                    "<path d=\"M13.8 3.8v2.4\"></path>" +
+                    "<path d=\"M3.6 8.6h12.8\"></path>" +
+                "</svg>" +
+            "</span>"
+        );
     }
 
     function renderJobModal(job) {

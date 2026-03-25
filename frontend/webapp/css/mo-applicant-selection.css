@@ -188,6 +188,13 @@
     word-break: break-word;
 }
 
+.application-sync-hint {
+    margin: 4px 0 0;
+    color: #8a8a90;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
 .status-pill.status-pending {
     color: #0d4d8c;
     background: #e8f3ff;

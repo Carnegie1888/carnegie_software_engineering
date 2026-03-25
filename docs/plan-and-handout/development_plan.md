@@ -259,3 +259,4 @@
 |`member6`|#42|`refactor: 精简 TA/MO 检索交互并补齐双语文案`|✅|`git commit -m "refactor: 精简 TA/MO 检索交互并补齐双语文案" --author="member6 <member6@edu.com>"`|
 |`member4`|#43|`feat: 完善申请人档案接口并支持简历草稿与头像读写`|✅|`git commit -m "feat: 完善申请人档案接口并支持简历草稿与头像读写" --author="member4 <member4@edu.com>"`|
 |`member5`|#44|`feat: 重构TA档案页编辑流程并支持简历与头像交互`|✅|`git commit -m "feat: 重构TA档案页编辑流程并支持简历与头像交互" --author="member5 <member5@edu.com>"`|
+|`member6`|#45|`feat: 优化TA申请流程页面并增强MO候选人查看体验`|✅|`git commit -m "feat: 优化TA申请流程页面并增强MO候选人查看体验" --author="member6 <member6@edu.com>"`|
