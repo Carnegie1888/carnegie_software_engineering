@@ -13,6 +13,7 @@ author.md
 data/logs/
 /shelf/
 docs/proto/TADesign/
+frontend/webapp/WEB-INF/ai/*.local.properties
 
 # =========================
 
