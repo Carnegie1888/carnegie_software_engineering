@@ -261,3 +261,4 @@
 |`member5`|#44|`feat: 重构TA档案页编辑流程并支持简历与头像交互`|✅|`git commit -m "feat: 重构TA档案页编辑流程并支持简历与头像交互" --author="member5 <member5@edu.com>"`|
 |`member6`|#45|`feat: 优化TA申请流程页面并增强MO候选人查看体验`|✅|`git commit -m "feat: 优化TA申请流程页面并增强MO候选人查看体验" --author="member6 <member6@edu.com>"`|
 |`member3`|#46|`refactor: 统一职位发布校验并按有效状态返回列表`|✅|`git commit -m "refactor: 统一职位发布校验并按有效状态返回列表" --author="member3 <member3@edu.com>"`|
+|`member1`|#47|`test: 补充职位有效状态回归测试`|✅|`git commit -m "test: 补充职位有效状态回归测试" --author="member1 <member1@edu.com>"`|

@@ -7,6 +7,7 @@ import com.example.authlogin.model.Applicant;
 import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -69,6 +70,24 @@ public class ApplicantJobIntegrationTest {
                 assert jobDao.search("databse").size() >= 1 : "typo keyword should still hit created job";
                 assert jobDao.search("数据库").size() >= 1 : "Chinese keyword should hit created job";
                 assert jobDao.search("sjk").size() >= 1 : "Pinyin initials should hit Chinese keyword";
+            });
+
+            test("Expired OPEN job should be treated as CLOSED externally", () -> {
+                User mo = userDao.findByUsername("aj_mo").orElseThrow();
+                Job expiredJob = new Job();
+                expiredJob.setMoId(mo.getUserId());
+                expiredJob.setMoName("Dr. Work");
+                expiredJob.setTitle("Expired TA");
+                expiredJob.setCourseCode("CS599");
+                expiredJob.setDeadline(LocalDateTime.now().minusDays(1));
+                expiredJob.setStatus(Job.Status.OPEN);
+                jobDao.create(expiredJob);
+
+                assert expiredJob.getEffectiveStatus() == Job.Status.CLOSED : "expired job should expose CLOSED effective status";
+                assert jobDao.findOpenJobs().size() == 1 : "expired OPEN job should not be counted as open";
+                assert jobDao.findByStatus(Job.Status.CLOSED).stream()
+                        .anyMatch(job -> job.getJobId().equals(expiredJob.getJobId()))
+                        : "expired OPEN job should be returned by CLOSED status query";
             });
         } finally {
             jobDao.deleteAll();
