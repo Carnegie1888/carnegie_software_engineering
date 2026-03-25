@@ -1,19 +1,12 @@
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
-    var currentUserId = typeof window.APP_CURRENT_USER_ID === "string" ? window.APP_CURRENT_USER_ID.trim() : "";
 
-    var filterForm = document.getElementById("selection-filter-form");
-    var jobFilter = document.getElementById("job-filter");
-    var statusFilter = document.getElementById("status-filter");
-    var searchButton = document.getElementById("search-btn");
-    var clearButton = document.getElementById("clear-btn");
-    var refreshButton = document.getElementById("refresh-btn");
+    var searchForm = document.getElementById("selection-search-form");
+    var searchInput = document.getElementById("selection-search-input");
+    var searchButton = document.getElementById("selection-search-btn");
     var messageNode = document.getElementById("selection-message");
     var listSummaryNode = document.getElementById("selection-list-summary");
     var listNode = document.getElementById("applications-list");
-    var initialQuery = new URLSearchParams(window.location.search || "");
-    var initialJobIdFromQuery = safeText(initialQuery.get("jobId"), "");
-    var initialStatusFromQuery = safeText(initialQuery.get("status"), "").toUpperCase();
 
     var summaryNodes = {
         total: document.getElementById("summary-total"),
@@ -22,121 +15,24 @@
         rejected: document.getElementById("summary-rejected")
     };
 
-    if (!filterForm || !jobFilter || !statusFilter || !listSummaryNode || !listNode) {
+    if (!searchForm || !searchInput || !listSummaryNode || !listNode) {
         return;
     }
 
     var state = {
         loading: false,
         reviewingId: "",
-        jobs: [],
         applications: [],
         applicantDetailsByApplicationId: {},
-        initialJobId: initialJobIdFromQuery,
-        hasAppliedUrlFilters: false
+        approximateOnly: false
     };
 
-    if (initialStatusFromQuery && Array.prototype.some.call(statusFilter.options, function (option) {
-        return option.value === initialStatusFromQuery;
-    })) {
-        statusFilter.value = initialStatusFromQuery;
-    }
-
-    filterForm.addEventListener("submit", function (event) {
+    searchForm.addEventListener("submit", function (event) {
         event.preventDefault();
         loadApplications();
     });
 
-    if (clearButton) {
-        clearButton.addEventListener("click", function () {
-            jobFilter.value = "";
-            statusFilter.value = "";
-            state.initialJobId = "";
-            state.hasAppliedUrlFilters = true;
-            hideMessage();
-            loadApplications();
-        });
-    }
-
-    if (refreshButton) {
-        refreshButton.addEventListener("click", function () {
-            loadJobs().finally(function () {
-                loadApplications();
-            });
-        });
-    }
-
-    loadJobs().finally(function () {
-        loadApplications();
-    });
-
-    function loadJobs() {
-        var url = contextPath + "/jobs";
-        if (currentUserId) {
-            url += "?moId=" + encodeURIComponent(currentUserId);
-        }
-
-        return request(url, {
-            method: "GET",
-            headers: {
-                "X-Requested-With": "XMLHttpRequest"
-            }
-        })
-            .then(function (result) {
-                var response = result.response;
-                var payload = result.payload;
-
-                if (response.status === 401) {
-                    handleUnauthorized();
-                    return;
-                }
-
-                if (!response.ok || !payload || payload.success !== true) {
-                    state.jobs = [];
-                    renderJobOptions([]);
-                    return;
-                }
-
-                var jobs = getPayloadDataArray(payload, "jobs");
-                state.jobs = jobs;
-                renderJobOptions(jobs);
-            })
-            .catch(function () {
-                state.jobs = [];
-                renderJobOptions([]);
-            });
-    }
-
-    function renderJobOptions(jobs) {
-        var previousValue = jobFilter.value;
-        jobFilter.innerHTML = "<option value=\"\">All jobs</option>";
-
-        jobs.forEach(function (job) {
-            var option = document.createElement("option");
-            option.value = safeText(job.jobId, "");
-            option.textContent = buildJobLabel(job);
-            jobFilter.appendChild(option);
-        });
-
-        var hasPrevious = Array.prototype.some.call(jobFilter.options, function (option) {
-            return option.value === previousValue;
-        });
-        var fallbackToInitial = !hasPrevious && !state.hasAppliedUrlFilters && !!state.initialJobId;
-        if (hasPrevious) {
-            jobFilter.value = previousValue;
-        } else if (fallbackToInitial) {
-            var hasInitial = Array.prototype.some.call(jobFilter.options, function (option) {
-                return option.value === state.initialJobId;
-            });
-            if (hasInitial) {
-                jobFilter.value = state.initialJobId;
-            }
-        }
-
-        if (!state.hasAppliedUrlFilters) {
-            state.hasAppliedUrlFilters = true;
-        }
-    }
+    loadApplications();
 
     function loadApplications() {
         if (state.loading) {
@@ -144,8 +40,9 @@
         }
 
         setLoading(true);
+        state.approximateOnly = false;
         hideMessage();
-        listSummaryNode.textContent = "Loading applications...";
+        listSummaryNode.textContent = t("portal.moApplicantSelection.loadingApplications", "Loading applications...");
         listNode.innerHTML = "";
         state.applicantDetailsByApplicationId = {};
 
@@ -170,7 +67,7 @@
                 }
 
                 if (response.status === 403) {
-                    showMessage("This page is available for MO accounts only.", "error");
+                    showMessage(t("portal.dynamic.moOnlyPage", "This page is available for MO accounts only."), "error");
                     state.applications = [];
                     renderSummary([]);
                     renderList([]);
@@ -178,7 +75,7 @@
                 }
 
                 if (!response.ok || !payload || payload.success !== true) {
-                    var errorMessage = "Unable to load applications right now.";
+                    var errorMessage = t("portal.dynamic.unableLoadApplicationsNow", "Unable to load applications right now.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
                         errorMessage = payload.message.trim();
                     }
@@ -190,6 +87,7 @@
                 }
 
                 state.applications = getPayloadDataArray(payload, "applications");
+                state.approximateOnly = !!getPayloadDataObject(payload).approximateOnly;
                 return loadApplicantDetails(state.applications)
                     .then(function () {
                         renderSummary(state.applications);
@@ -197,7 +95,7 @@
                     });
             })
             .catch(function () {
-                showMessage("Network error. Please try again.", "error");
+                showMessage(t("portal.dynamic.networkErrorTryAgain", "Network error. Please try again."), "error");
                 state.applications = [];
                 renderSummary([]);
                 renderList([]);
@@ -239,19 +137,11 @@
     }
 
     function buildApplyUrl() {
-        var params = new URLSearchParams();
-        var selectedJobId = jobFilter.value.trim();
-        var selectedStatus = statusFilter.value.trim().toUpperCase();
-
-        if (selectedJobId) {
-            params.set("jobId", selectedJobId);
+        var keyword = searchInput.value.trim();
+        if (!keyword) {
+            return contextPath + "/apply";
         }
-        if (selectedStatus) {
-            params.set("status", selectedStatus);
-        }
-
-        var query = params.toString();
-        return contextPath + "/apply" + (query ? "?" + query : "");
+        return contextPath + "/apply?keyword=" + encodeURIComponent(keyword);
     }
 
     function renderSummary(applications) {
@@ -284,16 +174,22 @@
 
     function renderList(applications) {
         listNode.innerHTML = "";
+        var keyword = searchInput.value.trim();
         if (!Array.isArray(applications) || applications.length === 0) {
-            var filtered = !!jobFilter.value.trim() || !!statusFilter.value.trim();
-            listSummaryNode.textContent = filtered
-                ? "No applications match the current filters."
-                : "No applications submitted for your jobs yet.";
-            listNode.appendChild(createEmptyState(filtered));
+            var isSearching = !!keyword;
+            listSummaryNode.textContent = isSearching
+                ? t("portal.dynamic.noApplicationsForSearch", "No applications match your keyword.")
+                : t("portal.dynamic.noApplicationsForPostedJobs", "No applications submitted for your jobs yet.");
+            listNode.appendChild(createEmptyState(isSearching));
             return;
         }
 
-        listSummaryNode.textContent = "Showing " + applications.length + " application" + (applications.length > 1 ? "s" : "") + ".";
+        listSummaryNode.textContent = buildSummaryText(applications.length, t("portal.dynamic.applicationUnit", "application"));
+        if (state.approximateOnly && keyword) {
+            showMessage(t("portal.dynamic.closestMatchesNotice", "No exact matches. Showing closest results."), "success");
+        } else {
+            hideMessage();
+        }
         applications.forEach(function (application) {
             listNode.appendChild(createApplicationCard(application, state.applicantDetailsByApplicationId[safeText(application.applicationId, "")]));
         });
@@ -530,40 +426,29 @@
             });
     }
 
-    function createEmptyState(filtered) {
+    function createEmptyState(isSearching) {
         var empty = document.createElement("div");
         empty.className = "empty-state";
         empty.innerHTML =
-            "<p class=\"empty-title\">" + (filtered ? "No matching applications" : "No applications yet") + "</p>" +
+            "<p class=\"empty-title\">" + escapeHtml(isSearching
+                ? t("portal.dynamic.noMatchingApplicationsTitle", "No matching applications")
+                : t("portal.dynamic.noApplicationsYetTitle", "No applications yet")) + "</p>" +
             "<p class=\"empty-copy\">" +
-                (filtered
-                    ? "Try switching to another status or clearing the selected job filter."
-                    : "Once TAs apply for your posted jobs, applicant cards will appear here.") +
+                escapeHtml(isSearching
+                    ? t("portal.dynamic.tryAnotherKeyword", "Try another keyword.")
+                    : t("portal.dynamic.noApplicationsForPostedJobsHint", "Once TAs apply for your posted jobs, applicant cards will appear here.")) +
             "</p>";
         return empty;
     }
 
     function setLoading(loading) {
         state.loading = loading;
-        if (refreshButton) {
-            refreshButton.disabled = loading;
-        }
-        if (clearButton) {
-            clearButton.disabled = loading;
-        }
         if (searchButton) {
             searchButton.disabled = loading;
-            searchButton.textContent = loading ? "Loading..." : "Apply filters";
+            searchButton.textContent = loading
+                ? t("portal.dynamic.searching", "Searching...")
+                : t("portal.common.search", "Search");
         }
-    }
-
-    function buildJobLabel(job) {
-        var title = safeText(job.title, "Untitled");
-        var courseCode = safeText(job.courseCode, "");
-        if (!courseCode) {
-            return title;
-        }
-        return title + " (" + courseCode + ")";
     }
 
     function getStatusClass(status) {
@@ -601,7 +486,7 @@
     }
 
     function handleUnauthorized() {
-        showMessage("Your session has expired. Redirecting to login...", "error");
+        showMessage(t("portal.dynamic.sessionExpiredRedirect", "Session expired. Redirecting to login..."), "error");
         window.setTimeout(function () {
             window.location.href = contextPath + "/login.jsp";
         }, 900);
@@ -643,6 +528,28 @@
             return payload.data;
         }
         return payload;
+    }
+
+    function buildSummaryText(count, singularUnit) {
+        var unit = singularUnit;
+        if (useEnglishPluralSuffix() && count !== 1) {
+            unit += "s";
+        }
+        return t("portal.dynamic.showing", "Showing") + " " + count + " " + unit + ".";
+    }
+
+    function useEnglishPluralSuffix() {
+        if (window.AppI18n && typeof window.AppI18n.getLocale === "function") {
+            return window.AppI18n.getLocale() === "en";
+        }
+        return true;
+    }
+
+    function t(key, fallback) {
+        if (window.AppI18n && typeof window.AppI18n.t === "function") {
+            return window.AppI18n.t(key, fallback || key);
+        }
+        return fallback || key;
     }
 
     function safeText(value, fallback) {

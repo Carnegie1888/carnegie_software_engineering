@@ -89,7 +89,7 @@
                                 <div>
                                     <p class="eyebrow">Create posting</p>
                                     <h2>Post a new TA position</h2>
-                                    <p class="section-copy">Fields marked with * are required for publishing.</p>
+                                    <p class="section-copy" data-i18n="portal.moDashboard.requiredLead">Fields labeled Required are required for publishing.</p>
                                 </div>
                             </div>
 
@@ -98,12 +98,18 @@
                             <form id="job-create-form" class="mo-form" novalidate>
                                 <div class="field-grid">
                                     <div class="field field-full">
-                                        <label for="job-title">Job title *</label>
+                                        <div class="field-label-row">
+                                            <label for="job-title" data-i18n="portal.moDashboard.jobTitle">Job title</label>
+                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                        </div>
                                         <input id="job-title" name="title" type="text" maxlength="200" placeholder="e.g. Teaching Assistant - Data Structures" required>
                                     </div>
 
                                     <div class="field">
-                                        <label for="course-code">Course code *</label>
+                                        <div class="field-label-row">
+                                            <label for="course-code" data-i18n="portal.common.courseCode">Course code</label>
+                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                        </div>
                                         <input id="course-code" name="courseCode" type="text" maxlength="50" placeholder="e.g. EBU6304" required>
                                     </div>
 
@@ -123,7 +129,10 @@
                                     </div>
 
                                     <div class="field">
-                                        <label for="positions">Positions *</label>
+                                        <div class="field-label-row">
+                                            <label for="positions" data-i18n="portal.common.positions">Positions</label>
+                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                        </div>
                                         <input id="positions" name="positions" type="number" min="1" max="200" value="1" required>
                                     </div>
 

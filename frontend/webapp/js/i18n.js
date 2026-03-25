@@ -350,6 +350,7 @@
                     }
                 },
                 common: {
+                    search: "Search",
                     keyword: "Keyword",
                     all: "All",
                     open: "Open",
@@ -418,7 +419,8 @@
                 },
                 taJobList: {
                     subtitle: "Browse and apply for open TA positions.",
-                    loadingPositions: "Loading positions..."
+                    loadingPositions: "Loading positions...",
+                    searchPlaceholder: "Search jobs by title, course code, or keywords"
                 },
                 taJobDetail: {
                     title: "Job Detail",
@@ -434,7 +436,8 @@
                 taApplicationStatus: {
                     title: "My Applications",
                     subtitle: "Track the status of your submitted applications.",
-                    loadingApplications: "Loading applications..."
+                    loadingApplications: "Loading applications...",
+                    searchPlaceholder: "Search by job title, course code, or MO"
                 },
                 taApplicationDetail: {
                     title: "Application detail",
@@ -471,7 +474,9 @@
                     subtitle: "Create a new TA position listing for your course.",
                     createPosting: "Create posting",
                     postPosition: "Post a new TA position",
-                    requiredLead: "Fields marked with * are required for publishing.",
+                    jobTitle: "Job title",
+                    required: "Required",
+                    requiredLead: "Fields labeled Required are required for publishing.",
                     jobTitleRequired: "Job title *",
                     courseCodeRequired: "Course code *",
                     courseName: "Course name",
@@ -494,6 +499,8 @@
                 },
                 moApplicantSelection: {
                     subtitle: "Review and manage all candidate applications.",
+                    loadingApplications: "Loading applications...",
+                    searchPlaceholder: "Search by applicant name, email, job title, or course code",
                     job: "Job",
                     allJobs: "All jobs",
                     applicantProfile: "Applicant profile",
@@ -595,9 +602,11 @@
                     resumeTooLarge: "File size exceeds 10MB. Please choose a smaller file.",
                     resumeWaitingUpload: "Waiting to upload",
                     noSpecificSkills: "No specific skills listed.",
+                    searching: "Searching...",
                     unableLoadJobs: "Unable to load jobs right now.",
                     unableLoadJobsRetry: "Unable to load jobs right now. Please try again.",
                     noJobsForFilters: "No jobs found for the current filters.",
+                    noJobsForSearch: "No jobs match your keyword.",
                     noJobsAvailable: "No jobs available right now.",
                     showing: "Showing",
                     jobUnit: "job",
@@ -606,6 +615,8 @@
                     noPositionsPublishedTitle: "No positions published yet",
                     positionsAppearAfterPublish: "When MO publishes new jobs, they will appear here.",
                     noMatchingPositionsTitle: "No matching positions",
+                    closestMatchesNotice: "No exact matches. Showing closest results.",
+                    tryAnotherKeyword: "Try another keyword.",
                     broadenKeywordHint: "Try broadening your keyword or clearing one filter.",
                     noExtraTags: "No extra tags",
                     viewDetails: "View details",
@@ -642,6 +653,9 @@
                     unableLoadApplications: "Unable to load your applications.",
                     unableLoadApplicationsNow: "Unable to load applications right now.",
                     noApplicationsSubmitted: "No applications submitted yet.",
+                    noApplicationsForSearch: "No applications match your keyword.",
+                    noApplicationsForPostedJobs: "No applications submitted for your jobs yet.",
+                    noApplicationsForPostedJobsHint: "Once TAs apply for your posted jobs, applicant cards will appear here.",
                     noApplicationsMatchFilters: "No applications match the current filters.",
                     applicationUnit: "application",
                     unableLoadApplicationsTitle: "Unable to load applications",
@@ -1082,6 +1096,7 @@
                     }
                 },
                 common: {
+                    search: "搜索",
                     keyword: "关键词",
                     all: "全部",
                     open: "开放中",
@@ -1150,7 +1165,8 @@
                 },
                 taJobList: {
                     subtitle: "浏览并申请当前开放的 TA 职位。",
-                    loadingPositions: "正在加载职位..."
+                    loadingPositions: "正在加载职位...",
+                    searchPlaceholder: "按职位名称、课程编号或关键词搜索"
                 },
                 taJobDetail: {
                     title: "职位详情",
@@ -1166,7 +1182,8 @@
                 taApplicationStatus: {
                     title: "我的申请",
                     subtitle: "跟踪你已提交申请的状态变化。",
-                    loadingApplications: "正在加载申请..."
+                    loadingApplications: "正在加载申请...",
+                    searchPlaceholder: "按职位名称、课程编号或 MO 搜索"
                 },
                 taApplicationDetail: {
                     title: "申请详情",
@@ -1203,7 +1220,9 @@
                     subtitle: "为你的课程创建新的 TA 招聘职位。",
                     createPosting: "创建职位",
                     postPosition: "发布新的 TA 职位",
-                    requiredLead: "标记 * 的字段为发布必填项。",
+                    jobTitle: "职位名称",
+                    required: "必填",
+                    requiredLead: "标记“必填”的字段为发布必填项。",
                     jobTitleRequired: "职位名称 *",
                     courseCodeRequired: "课程编号 *",
                     courseName: "课程名称",
@@ -1226,6 +1245,8 @@
                 },
                 moApplicantSelection: {
                     subtitle: "审核并管理所有候选人的申请。",
+                    loadingApplications: "正在加载申请...",
+                    searchPlaceholder: "按申请人姓名、邮箱、职位名称或课程编号搜索",
                     job: "职位",
                     allJobs: "全部职位",
                     applicantProfile: "申请人档案",
@@ -1327,9 +1348,11 @@
                     resumeTooLarge: "文件超过 10MB，请选择更小的文件。",
                     resumeWaitingUpload: "等待上传",
                     noSpecificSkills: "未列出具体技能。",
+                    searching: "搜索中...",
                     unableLoadJobs: "暂时无法加载职位。",
                     unableLoadJobsRetry: "暂时无法加载职位，请稍后重试。",
                     noJobsForFilters: "当前筛选条件下未找到职位。",
+                    noJobsForSearch: "没有匹配关键词的职位。",
                     noJobsAvailable: "当前暂无可申请职位。",
                     showing: "显示",
                     jobUnit: "个职位",
@@ -1338,6 +1361,8 @@
                     noPositionsPublishedTitle: "暂无已发布职位",
                     positionsAppearAfterPublish: "MO 发布新职位后会显示在这里。",
                     noMatchingPositionsTitle: "没有匹配的职位",
+                    closestMatchesNotice: "未找到精确匹配，已显示最接近结果。",
+                    tryAnotherKeyword: "换个关键词试试。",
                     broadenKeywordHint: "可尝试放宽关键词或清除部分筛选。",
                     noExtraTags: "暂无额外标签",
                     viewDetails: "查看详情",
@@ -1374,6 +1399,9 @@
                     unableLoadApplications: "无法加载你的申请记录。",
                     unableLoadApplicationsNow: "当前无法加载申请列表。",
                     noApplicationsSubmitted: "你还未提交任何申请。",
+                    noApplicationsForSearch: "没有匹配关键词的申请。",
+                    noApplicationsForPostedJobs: "你的职位暂未收到申请。",
+                    noApplicationsForPostedJobsHint: "当 TA 开始申请你发布的职位后，申请卡片会显示在这里。",
                     noApplicationsMatchFilters: "当前筛选条件下无匹配申请。",
                     applicationUnit: "个申请",
                     unableLoadApplicationsTitle: "无法加载申请",

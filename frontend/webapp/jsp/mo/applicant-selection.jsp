@@ -84,29 +84,18 @@
                     </section>
 
                     <section class="selection-panel" aria-label="申请人筛选与审核列表">
-                        <form id="selection-filter-form" class="filter-form" novalidate>
-                            <div class="field-group">
-                                <label for="job-filter">Job</label>
-                                <select id="job-filter" name="jobId">
-                                    <option value="">All jobs</option>
-                                </select>
-                            </div>
-
-                            <div class="field-group">
-                                <label for="status-filter">Status</label>
-                                <select id="status-filter" name="status">
-                                    <option value="">All</option>
-                                    <option value="PENDING">Pending</option>
-                                    <option value="ACCEPTED">Accepted</option>
-                                    <option value="REJECTED">Rejected</option>
-                                    <option value="WITHDRAWN">Withdrawn</option>
-                                </select>
-                            </div>
-
-                            <div class="filter-actions">
-                                <button id="search-btn" class="primary-btn" type="submit">Apply filters</button>
-                                <button id="clear-btn" class="ghost-btn" type="button">Clear</button>
-                                <button id="refresh-btn" class="inline-btn" type="button">Refresh</button>
+                        <form id="selection-search-form" class="search-form" novalidate>
+                            <label for="selection-search-input" data-i18n="portal.common.search">Search</label>
+                            <div class="search-row">
+                                <input
+                                    id="selection-search-input"
+                                    name="keyword"
+                                    type="text"
+                                    maxlength="160"
+                                    data-i18n-placeholder="portal.moApplicantSelection.searchPlaceholder"
+                                    placeholder="Search by applicant name, email, job title, or course code"
+                                >
+                                <button id="selection-search-btn" class="primary-btn search-submit" type="submit" data-i18n="portal.common.search">Search</button>
                             </div>
                         </form>
 
@@ -185,7 +174,7 @@
                             </article>
                         </section>
 
-                        <p id="selection-list-summary" class="list-summary">Loading applications...</p>
+                        <p id="selection-list-summary" class="list-summary" data-i18n="portal.moApplicantSelection.loadingApplications">Loading applications...</p>
                         <div id="applications-list" class="applications-list" aria-live="polite"></div>
                     </section>
                 </main>

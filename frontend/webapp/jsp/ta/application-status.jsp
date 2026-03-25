@@ -90,37 +90,24 @@
                     </section>
 
                     <section class="status-panel" aria-label="申请状态列表">
-                        <form id="status-filter-form" class="filter-form" novalidate>
-                            <div class="field-group">
-                                <label for="status-filter">Status</label>
-                                <select id="status-filter" name="status">
-                                    <option value="">All</option>
-                                    <option value="PENDING">Pending</option>
-                                    <option value="ACCEPTED">Accepted</option>
-                                    <option value="REJECTED">Rejected</option>
-                                    <option value="WITHDRAWN">Withdrawn</option>
-                                </select>
-                            </div>
-                            <div class="field-group field-wide">
-                                <label for="keyword-filter">Keyword</label>
+                        <form id="status-search-form" class="search-form" novalidate>
+                            <label for="status-search-input" data-i18n="portal.common.search">Search</label>
+                            <div class="search-row">
                                 <input
-                                    id="keyword-filter"
+                                    id="status-search-input"
                                     name="keyword"
                                     type="text"
                                     maxlength="120"
+                                    data-i18n-placeholder="portal.taApplicationStatus.searchPlaceholder"
                                     placeholder="Search by job title, course code, or MO"
                                 >
-                            </div>
-                            <div class="filter-actions">
-                                <button class="primary-btn" id="search-btn" type="submit">Apply filters</button>
-                                <button class="ghost-btn" id="reset-btn" type="button">Clear</button>
-                                <button class="inline-btn" id="refresh-btn" type="button">Refresh</button>
+                                <button class="primary-btn search-submit" id="status-search-btn" type="submit" data-i18n="portal.common.search">Search</button>
                             </div>
                         </form>
 
                         <div id="status-message" class="form-message hidden" role="status" aria-live="polite"></div>
 
-                        <p id="list-summary" class="list-summary">Loading applications...</p>
+                        <p id="list-summary" class="list-summary" data-i18n="portal.taApplicationStatus.loadingApplications">Loading applications...</p>
                         <div id="applications-list" class="applications-list" aria-live="polite"></div>
                     </section>
                 </main>

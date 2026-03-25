@@ -256,3 +256,4 @@
 |`member6`|#39|`chore: 整理 gitignore 并补充 Maven 本地目录`|✅|`git commit -m "chore: 整理 gitignore 并补充 Maven 本地目录" --author="member6 <member6@edu.com>"`|
 |`member4`|#40|`feat: 新增统一模糊搜索并接入职位与申请查询`|✅|`git commit -m "feat: 新增统一模糊搜索并接入职位与申请查询" --author="member4 <member4@edu.com>"`|
 |`member1`|#41|`test: 补充模糊搜索与申请检索范围回归测试`|✅|`git commit -m "test: 补充模糊搜索与申请检索范围回归测试" --author="member1 <member1@edu.com>"`|
+|`member6`|#42|`refactor: 精简 TA/MO 检索交互并补齐双语文案`|✅|`git commit -m "refactor: 精简 TA/MO 检索交互并补齐双语文案" --author="member6 <member6@edu.com>"`|

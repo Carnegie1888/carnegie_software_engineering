@@ -95,49 +95,24 @@
                     </section>
 
                     <section class="jobs-panel" aria-label="职位列表与筛选">
-                        <form id="job-filter-form" class="filter-form" novalidate>
-                            <div class="field-group">
-                                <label for="keyword">Keyword</label>
+                        <form id="job-search-form" class="search-form" novalidate>
+                            <label for="job-search-input" data-i18n="portal.common.search">Search</label>
+                            <div class="search-row">
                                 <input
-                                    id="keyword"
+                                    id="job-search-input"
                                     name="keyword"
                                     type="text"
                                     maxlength="120"
-                                    placeholder="Title, course code, or course name"
+                                    data-i18n-placeholder="portal.taJobList.searchPlaceholder"
+                                    placeholder="Search jobs by title, course code, or keywords"
                                 >
-                            </div>
-                            <div class="field-group">
-                                <label for="status">Status</label>
-                                <select id="status" name="status">
-                                    <option value="">All</option>
-                                    <option value="OPEN">Open</option>
-                                    <option value="CLOSED">Closed</option>
-                                    <option value="FILLED">Filled</option>
-                                </select>
-                            </div>
-                            <div class="field-group">
-                                <label for="course-code">Course code</label>
-                                <input
-                                    id="course-code"
-                                    name="courseCode"
-                                    type="text"
-                                    maxlength="50"
-                                    placeholder="e.g. EBU6304"
-                                >
-                            </div>
-
-                            <div class="filter-actions">
-                                <button id="search-btn" class="primary-btn" type="submit">Apply filters</button>
-                                <button id="clear-filters-btn" class="ghost-btn" type="button">Clear</button>
+                                <button id="job-search-btn" class="primary-btn search-submit" type="submit" data-i18n="portal.common.search">Search</button>
                             </div>
                         </form>
 
                         <div id="list-message" class="form-message hidden" role="status" aria-live="polite"></div>
 
-                        <div class="list-meta">
-                            <p id="job-list-summary">Loading positions...</p>
-                            <button id="refresh-jobs-btn" class="inline-btn" type="button">Refresh</button>
-                        </div>
+                        <p id="job-list-summary" class="list-summary" data-i18n="portal.taJobList.loadingPositions">Loading positions...</p>
 
                         <div id="job-list" class="job-list" aria-live="polite"></div>
                     </section>

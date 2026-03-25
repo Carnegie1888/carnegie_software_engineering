@@ -1,45 +1,27 @@
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
 
-    var filterForm = document.getElementById("status-filter-form");
-    var statusFilter = document.getElementById("status-filter");
-    var keywordFilter = document.getElementById("keyword-filter");
-    var resetButton = document.getElementById("reset-btn");
-    var refreshButton = document.getElementById("refresh-btn");
-    var searchButton = document.getElementById("search-btn");
+    var searchForm = document.getElementById("status-search-form");
+    var searchInput = document.getElementById("status-search-input");
+    var searchButton = document.getElementById("status-search-btn");
     var messageNode = document.getElementById("status-message");
     var listSummaryNode = document.getElementById("list-summary");
     var listNode = document.getElementById("applications-list");
 
-    if (!filterForm || !listNode || !listSummaryNode) {
+    if (!searchForm || !searchInput || !listNode || !listSummaryNode) {
         return;
     }
 
     var state = {
         loading: false,
-        applications: [],
-        loadError: false
+        loadError: false,
+        approximateOnly: false
     };
 
-    filterForm.addEventListener("submit", function (event) {
+    searchForm.addEventListener("submit", function (event) {
         event.preventDefault();
-        render();
+        loadApplications();
     });
-
-    if (resetButton) {
-        resetButton.addEventListener("click", function () {
-            statusFilter.value = "";
-            keywordFilter.value = "";
-            hideMessage();
-            render();
-        });
-    }
-
-    if (refreshButton) {
-        refreshButton.addEventListener("click", function () {
-            loadApplications();
-        });
-    }
 
     loadApplications();
 
@@ -50,11 +32,12 @@
 
         setLoading(true);
         state.loadError = false;
+        state.approximateOnly = false;
         hideMessage();
-        listSummaryNode.textContent = "Loading applications...";
+        listSummaryNode.textContent = t("portal.taApplicationStatus.loadingApplications", "Loading applications...");
         listNode.innerHTML = "";
 
-        request(contextPath + "/apply", {
+        request(buildApplyUrl(), {
             method: "GET",
             headers: {
                 "X-Requested-With": "XMLHttpRequest"
@@ -70,91 +53,73 @@
                 }
 
                 if (response.status === 403) {
-                    showMessage("This page is available for TA accounts only.", "error");
+                    showMessage(t("portal.dynamic.taOnlyPage", "This page is available for TA accounts only."), "error");
                     state.loadError = true;
-                    state.applications = [];
-                    render();
+                    renderList([]);
                     return;
                 }
 
                 if (!response.ok || !payload || payload.success !== true) {
-                    var errorMessage = "Unable to load your applications.";
+                    var errorMessage = t("portal.dynamic.unableLoadApplications", "Unable to load your applications.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
                         errorMessage = payload.message.trim();
                     }
                     showMessage(errorMessage, "error");
                     state.loadError = true;
-                    state.applications = [];
-                    render();
+                    renderList([]);
                     return;
                 }
 
-                state.applications = getPayloadDataArray(payload, "applications");
-                render();
+                var data = getPayloadDataObject(payload);
+                state.approximateOnly = !!data.approximateOnly;
+                renderList(getPayloadDataArray(payload, "applications"));
             })
             .catch(function () {
-                showMessage("Network error. Please try again.", "error");
+                showMessage(t("portal.dynamic.networkErrorTryAgain", "Network error. Please try again."), "error");
                 state.loadError = true;
-                state.applications = [];
-                render();
+                renderList([]);
             })
             .finally(function () {
                 setLoading(false);
             });
     }
 
-    function render() {
-        var filtered = getFilteredApplications();
-        renderList(filtered);
-    }
-
-    function getFilteredApplications() {
-        var selectedStatus = statusFilter.value.trim().toUpperCase();
-        var keyword = keywordFilter.value.trim().toLowerCase();
-
-        return state.applications.filter(function (app) {
-            var appStatus = safeText(app.status, "").toUpperCase();
-            if (selectedStatus && appStatus !== selectedStatus) {
-                return false;
-            }
-
-            if (!keyword) {
-                return true;
-            }
-
-            var searchable = [
-                safeText(app.jobTitle, ""),
-                safeText(app.courseCode, ""),
-                safeText(app.moName, ""),
-                safeText(app.status, "")
-            ].join(" ").toLowerCase();
-
-            return searchable.indexOf(keyword) >= 0;
-        });
+    function buildApplyUrl() {
+        var keyword = searchInput.value.trim();
+        if (!keyword) {
+            return contextPath + "/apply";
+        }
+        return contextPath + "/apply?keyword=" + encodeURIComponent(keyword);
     }
 
     function renderList(applications) {
         listNode.innerHTML = "";
+        var keyword = searchInput.value.trim();
 
         if (state.loadError) {
-            listSummaryNode.textContent = "Unable to load applications right now.";
+            listSummaryNode.textContent = t("portal.dynamic.unableLoadApplicationsNow", "Unable to load applications right now.");
             listNode.appendChild(createEmptyState("load-error"));
             return;
         }
 
-        if (!Array.isArray(state.applications) || state.applications.length === 0) {
-            listSummaryNode.textContent = "No applications submitted yet.";
-            listNode.appendChild(createEmptyState("no-applications"));
-            return;
-        }
-
         if (!Array.isArray(applications) || applications.length === 0) {
-            listSummaryNode.textContent = "No applications match the current filters.";
-            listNode.appendChild(createEmptyState("no-match"));
+            if (keyword) {
+                listSummaryNode.textContent = t("portal.dynamic.noApplicationsForSearch", "No applications match your keyword.");
+                listNode.appendChild(createEmptyState("no-match"));
+            } else {
+                listSummaryNode.textContent = t("portal.dynamic.noApplicationsSubmitted", "No applications submitted yet.");
+                listNode.appendChild(createEmptyState("no-applications"));
+            }
             return;
         }
 
-        listSummaryNode.textContent = "Showing " + applications.length + " application" + (applications.length > 1 ? "s" : "") + ".";
+        listSummaryNode.textContent = buildSummaryText(applications.length, t("portal.dynamic.applicationUnit", "application"));
+
+        if (state.approximateOnly && keyword) {
+            showMessage(t("portal.dynamic.closestMatchesNotice", "No exact matches. Showing closest results."), "success");
+        } else {
+            hideMessage();
+        }
 
         applications.forEach(function (app) {
             listNode.appendChild(createApplicationCard(app));
@@ -168,13 +133,13 @@
         var statusClass = getApplicationStatusClass(status);
         var detailLink =
             contextPath + "/jsp/ta/application-detail.jsp?id=" + encodeURIComponent(applicationId);
-        var title = safeText(app.jobTitle, "Untitled position");
+        var title = safeText(app.jobTitle, t("portal.dynamic.untitledPosition", "Untitled position"));
         var subtitle = buildApplicationSubtitle(safeText(app.courseCode, ""), app.appliedAt);
 
         card.className = "application-card status-" + statusClass;
         card.setAttribute("role", "link");
         card.setAttribute("tabindex", "0");
-        card.setAttribute("aria-label", "View details of " + title);
+        card.setAttribute("aria-label", t("portal.dynamic.viewDetails", "View details") + " " + title);
         card.setAttribute("data-application-id", applicationId);
 
         card.innerHTML =
@@ -211,7 +176,7 @@
             parts.push("<span class=\"application-course-code\">" + escapeHtml(courseCode) + "</span>");
         }
 
-        parts.push("<span class=\"application-date-label\">Applied at</span>");
+        parts.push("<span class=\"application-date-label\">" + escapeHtml(t("portal.dynamic.appliedAt", "Applied at")) + "</span>");
         parts.push(
             "<time class=\"application-date-value\" datetime=\"" + escapeHtml(safeText(appliedAt, "")) + "\">" +
                 escapeHtml(formatDateTime(appliedAt)) +
@@ -239,16 +204,16 @@
 
     function getApplicationStatusLabel(status) {
         if (status === "PENDING") {
-            return "Pending";
+            return t("portal.common.pending", "Pending");
         }
         if (status === "ACCEPTED") {
-            return "Accepted";
+            return t("portal.common.accepted", "Accepted");
         }
         if (status === "REJECTED") {
-            return "Rejected";
+            return t("portal.common.rejected", "Rejected");
         }
         if (status === "WITHDRAWN") {
-            return "Withdrawn";
+            return t("portal.common.withdrawn", "Withdrawn");
         }
         return safeText(status, "-");
     }
@@ -305,35 +270,31 @@
 
         if (mode === "load-error") {
             empty.innerHTML =
-                "<p class=\"empty-title\">Unable to load applications</p>" +
-                "<p class=\"empty-copy\">Please check your network and click refresh to retry.</p>";
+                "<p class=\"empty-title\">" + escapeHtml(t("portal.dynamic.unableLoadApplicationsTitle", "Unable to load applications")) + "</p>" +
+                "<p class=\"empty-copy\">" + escapeHtml(t("portal.dynamic.networkErrorTryAgain", "Network error. Please try again.")) + "</p>";
             return empty;
         }
 
         if (mode === "no-match") {
             empty.innerHTML =
-                "<p class=\"empty-title\">No matching applications</p>" +
-                "<p class=\"empty-copy\">Try clearing status or keyword filters to broaden results.</p>";
+                "<p class=\"empty-title\">" + escapeHtml(t("portal.dynamic.noMatchingApplicationsTitle", "No matching applications")) + "</p>" +
+                "<p class=\"empty-copy\">" + escapeHtml(t("portal.dynamic.tryAnotherKeyword", "Try another keyword.")) + "</p>";
             return empty;
         }
 
         empty.innerHTML =
-            "<p class=\"empty-title\">No applications yet</p>" +
-            "<p class=\"empty-copy\">After you apply for a job, the status will appear here.</p>";
+            "<p class=\"empty-title\">" + escapeHtml(t("portal.dynamic.noApplicationsYetTitle", "No applications yet")) + "</p>" +
+            "<p class=\"empty-copy\">" + escapeHtml(t("portal.dynamic.statusAppearsAfterApply", "After you apply for a job, the status will appear here.")) + "</p>";
         return empty;
     }
 
     function setLoading(loading) {
         state.loading = loading;
-        if (refreshButton) {
-            refreshButton.disabled = loading;
-        }
-        if (resetButton) {
-            resetButton.disabled = loading;
-        }
         if (searchButton) {
             searchButton.disabled = loading;
-            searchButton.textContent = loading ? "Loading..." : "Apply filters";
+            searchButton.textContent = loading
+                ? t("portal.dynamic.searching", "Searching...")
+                : t("portal.common.search", "Search");
         }
     }
 
@@ -350,7 +311,7 @@
     }
 
     function handleUnauthorized() {
-        showMessage("Your session has expired. Redirecting to login...", "error");
+        showMessage(t("portal.dynamic.sessionExpiredRedirect", "Session expired. Redirecting to login..."), "error");
         window.setTimeout(function () {
             window.location.href = contextPath + "/login.jsp";
         }, 900);
@@ -382,6 +343,38 @@
             return payload[key];
         }
         return [];
+    }
+
+    function getPayloadDataObject(payload) {
+        if (!payload || typeof payload !== "object") {
+            return {};
+        }
+        if (payload.data && typeof payload.data === "object") {
+            return payload.data;
+        }
+        return payload;
+    }
+
+    function buildSummaryText(count, singularUnit) {
+        var unit = singularUnit;
+        if (useEnglishPluralSuffix() && count !== 1) {
+            unit += "s";
+        }
+        return t("portal.dynamic.showing", "Showing") + " " + count + " " + unit + ".";
+    }
+
+    function useEnglishPluralSuffix() {
+        if (window.AppI18n && typeof window.AppI18n.getLocale === "function") {
+            return window.AppI18n.getLocale() === "en";
+        }
+        return true;
+    }
+
+    function t(key, fallback) {
+        if (window.AppI18n && typeof window.AppI18n.t === "function") {
+            return window.AppI18n.t(key, fallback || key);
+        }
+        return fallback || key;
     }
 
     function safeText(value, fallback) {

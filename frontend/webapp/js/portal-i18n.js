@@ -339,6 +339,8 @@
             "Create posting": { key: "portal.moDashboard.createPosting" },
             "Post a new TA position": { key: "portal.moDashboard.postPosition" },
             "Fields marked with * are required for publishing.": { key: "portal.moDashboard.requiredLead" },
+            "Fields labeled Required are required for publishing.": { key: "portal.moDashboard.requiredLead" },
+            "Job title": { key: "portal.moDashboard.jobTitle" },
             "Job title *": { key: "portal.moDashboard.jobTitleRequired" },
             "Course code *": { key: "portal.moDashboard.courseCodeRequired" },
             "Course name": { key: "portal.moDashboard.courseName" },

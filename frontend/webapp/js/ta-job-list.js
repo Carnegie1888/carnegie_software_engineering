@@ -2,47 +2,27 @@
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
     var currentRole = typeof window.APP_CURRENT_ROLE === "string" ? window.APP_CURRENT_ROLE.trim().toUpperCase() : "";
 
-    var filterForm = document.getElementById("job-filter-form");
-    var keywordInput = document.getElementById("keyword");
-    var statusSelect = document.getElementById("status");
-    var courseCodeInput = document.getElementById("course-code");
-    var refreshButton = document.getElementById("refresh-jobs-btn");
-    var clearButton = document.getElementById("clear-filters-btn");
+    var searchForm = document.getElementById("job-search-form");
+    var searchInput = document.getElementById("job-search-input");
+    var searchButton = document.getElementById("job-search-btn");
     var listMessage = document.getElementById("list-message");
     var listSummary = document.getElementById("job-list-summary");
     var jobList = document.getElementById("job-list");
-    var searchButton = document.getElementById("search-btn");
 
-    if (!filterForm || !jobList || !listSummary) {
+    if (!searchForm || !searchInput || !listSummary || !jobList) {
         return;
     }
 
     var state = {
         loading: false,
-        jobs: [],
-        loadError: false
+        loadError: false,
+        approximateOnly: false
     };
 
-    filterForm.addEventListener("submit", function (event) {
+    searchForm.addEventListener("submit", function (event) {
         event.preventDefault();
         loadJobs();
     });
-
-    if (refreshButton) {
-        refreshButton.addEventListener("click", function () {
-            loadJobs();
-        });
-    }
-
-    if (clearButton) {
-        clearButton.addEventListener("click", function () {
-            keywordInput.value = "";
-            statusSelect.value = "";
-            courseCodeInput.value = "";
-            hideMessage();
-            loadJobs();
-        });
-    }
 
     loadJobs();
 
@@ -53,7 +33,10 @@
 
         setLoading(true);
         state.loadError = false;
+        state.approximateOnly = false;
         hideMessage();
+        listSummary.textContent = t("portal.taJobList.loadingPositions", "Loading positions...");
+        jobList.innerHTML = "";
 
         request(buildJobsUrl(), {
             method: "GET",
@@ -71,7 +54,7 @@
                 }
 
                 if (!response.ok || !payload || payload.success !== true) {
-                    var errorMessage = "Unable to load jobs right now. Please try again.";
+                    var errorMessage = t("portal.dynamic.unableLoadJobsRetry", "Unable to load jobs right now. Please try again.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
                         errorMessage = payload.message.trim();
                     }
@@ -81,12 +64,13 @@
                     return;
                 }
 
+                var data = getPayloadDataObject(payload);
                 var jobs = getPayloadDataArray(payload, "jobs");
-                state.jobs = jobs.slice();
+                state.approximateOnly = !!data.approximateOnly;
                 renderJobs(jobs);
             })
             .catch(function () {
-                showMessage("Network error. Please try again in a moment.", "error");
+                showMessage(t("portal.dynamic.networkErrorMoment", "Network error. Please try again in a moment."), "error");
                 state.loadError = true;
                 renderJobs([]);
             })
@@ -96,47 +80,43 @@
     }
 
     function buildJobsUrl() {
+        var keyword = searchInput.value.trim();
         var params = new URLSearchParams();
-        var keyword = keywordInput.value.trim();
-        var status = statusSelect.value.trim();
-        var courseCode = courseCodeInput.value.trim();
-
         if (keyword) {
             params.set("keyword", keyword);
         }
-        if (status) {
-            params.set("status", status);
-        }
-        if (courseCode) {
-            params.set("courseCode", courseCode);
-        }
-
         var queryString = params.toString();
         return contextPath + "/jobs" + (queryString ? "?" + queryString : "");
     }
 
     function renderJobs(jobs) {
+        var keyword = searchInput.value.trim();
         jobList.innerHTML = "";
 
         if (state.loadError) {
-            listSummary.textContent = "Unable to load jobs right now.";
+            listSummary.textContent = t("portal.dynamic.unableLoadJobs", "Unable to load jobs right now.");
             jobList.appendChild(createEmptyState("load-error"));
             return;
         }
 
         if (!Array.isArray(jobs) || jobs.length === 0) {
-            var hasFilters = !!keywordInput.value.trim() || !!statusSelect.value.trim() || !!courseCodeInput.value.trim();
-            if (hasFilters) {
-                listSummary.textContent = "No jobs found for the current filters.";
+            if (keyword) {
+                listSummary.textContent = t("portal.dynamic.noJobsForSearch", "No jobs match your keyword.");
                 jobList.appendChild(createEmptyState("no-match"));
-                return;
+            } else {
+                listSummary.textContent = t("portal.dynamic.noJobsAvailable", "No jobs available right now.");
+                jobList.appendChild(createEmptyState("no-jobs"));
             }
-            listSummary.textContent = "No jobs available right now.";
-            jobList.appendChild(createEmptyState("no-jobs"));
             return;
         }
 
-        listSummary.textContent = "Showing " + jobs.length + " job" + (jobs.length > 1 ? "s" : "") + ".";
+        listSummary.textContent = buildSummaryText(jobs.length, t("portal.dynamic.jobUnit", "job"));
+
+        if (state.approximateOnly && keyword) {
+            showMessage(t("portal.dynamic.closestMatchesNotice", "No exact matches. Showing closest results."), "success");
+        } else {
+            hideMessage();
+        }
 
         jobs.forEach(function (job) {
             jobList.appendChild(createJobCard(job));
@@ -150,27 +130,26 @@
         var status = getSafeText(job.status || "OPEN").toUpperCase();
         var canApply = currentRole === "TA" && status === "OPEN";
         var detailHref = contextPath + "/jsp/ta/job-detail.jsp?id=" + encodeURIComponent(getSafeText(job.jobId));
-
         var tagsHtml = buildTagItems(job);
 
         article.innerHTML =
             "<header class=\"job-card-header\">" +
                 "<div class=\"job-heading\">" +
-                    "<h2>" + escapeHtml(getSafeText(job.title, "Untitled position")) + "</h2>" +
+                    "<h2>" + escapeHtml(getSafeText(job.title, t("portal.dynamic.untitledPosition", "Untitled position"))) + "</h2>" +
                     "<p>" + escapeHtml(getSafeText(job.courseCode, "-")) +
                         (job.courseName ? " · " + escapeHtml(job.courseName) : "") + "</p>" +
                 "</div>" +
                 "<span class=\"status-pill status-" + escapeHtml(status.toLowerCase()) + "\">" + escapeHtml(status) + "</span>" +
             "</header>" +
             "<div class=\"job-meta\">" +
-                "<p><span class=\"meta-label\">MO</span><span class=\"meta-value\">" + escapeHtml(getSafeText(job.moName, "-")) + "</span></p>" +
-                "<p><span class=\"meta-label\">Positions</span><span class=\"meta-value\">" + escapeHtml(String(job.positions || 0)) + "</span></p>" +
-                "<p><span class=\"meta-label\">Deadline</span><span class=\"meta-value\">" + escapeHtml(formatDateTime(job.deadline)) + "</span></p>" +
+                "<p><span class=\"meta-label\">" + escapeHtml(t("portal.dynamic.moShort", "MO")) + "</span><span class=\"meta-value\">" + escapeHtml(getSafeText(job.moName, "-")) + "</span></p>" +
+                "<p><span class=\"meta-label\">" + escapeHtml(t("portal.common.positions", "Positions")) + "</span><span class=\"meta-value\">" + escapeHtml(String(job.positions || 0)) + "</span></p>" +
+                "<p><span class=\"meta-label\">" + escapeHtml(t("portal.common.deadline", "Deadline")) + "</span><span class=\"meta-value\">" + escapeHtml(formatDateTime(job.deadline)) + "</span></p>" +
             "</div>" +
             "<div class=\"job-tags\">" + tagsHtml + "</div>" +
             "<div class=\"job-card-actions\">" +
-                "<a class=\"primary-link\" href=\"" + detailHref + "\">View details</a>" +
-                (canApply ? "<a class=\"ghost-link\" href=\"" + detailHref + "#apply\">Apply now</a>" : "") +
+                "<a class=\"primary-link\" href=\"" + detailHref + "\">" + escapeHtml(t("portal.dynamic.viewDetails", "View details")) + "</a>" +
+                (canApply ? "<a class=\"ghost-link\" href=\"" + detailHref + "#apply\">" + escapeHtml(t("portal.dynamic.applyNow", "Apply now")) + "</a>" : "") +
             "</div>";
 
         return article;
@@ -179,17 +158,17 @@
     function buildTagItems(job) {
         var tags = [];
         if (job.salary) {
-            tags.push({ label: "Salary", value: getSafeText(job.salary) });
+            tags.push({ label: t("portal.common.salary", "Salary"), value: getSafeText(job.salary) });
         }
         if (job.workload) {
-            tags.push({ label: "Workload", value: getSafeText(job.workload) });
+            tags.push({ label: t("portal.common.workload", "Workload"), value: getSafeText(job.workload) });
         }
         if (job.requiredSkills) {
-            tags.push({ label: "Skills", value: normalizeSkills(job.requiredSkills) });
+            tags.push({ label: t("portal.common.requiredSkills", "Required skills"), value: normalizeSkills(job.requiredSkills) });
         }
 
         if (tags.length === 0) {
-            return "<span class=\"tag-item muted\">No extra tags</span>";
+            return "<span class=\"tag-item muted\">" + escapeHtml(t("portal.dynamic.noExtraTags", "No extra tags")) + "</span>";
         }
 
         return tags.map(function (tag) {
@@ -203,37 +182,54 @@
 
         if (mode === "load-error") {
             empty.innerHTML =
-                "<p class=\"empty-title\">Unable to load positions</p>" +
-                "<p class=\"empty-copy\">Please refresh the list after checking your network connection.</p>";
+                "<p class=\"empty-title\">" + escapeHtml(t("portal.dynamic.unableLoadPositionsTitle", "Unable to load positions")) + "</p>" +
+                "<p class=\"empty-copy\">" + escapeHtml(t("portal.dynamic.refreshAfterNetworkCheck", "Please refresh the list after checking your network connection.")) + "</p>";
             return empty;
         }
 
         if (mode === "no-jobs") {
             empty.innerHTML =
-                "<p class=\"empty-title\">No positions published yet</p>" +
-                "<p class=\"empty-copy\">When MO publishes new jobs, they will appear here.</p>";
+                "<p class=\"empty-title\">" + escapeHtml(t("portal.dynamic.noPositionsPublishedTitle", "No positions published yet")) + "</p>" +
+                "<p class=\"empty-copy\">" + escapeHtml(t("portal.dynamic.positionsAppearAfterPublish", "When MO publishes new jobs, they will appear here.")) + "</p>";
             return empty;
         }
 
         empty.innerHTML =
-            "<p class=\"empty-title\">No matching positions</p>" +
-            "<p class=\"empty-copy\">Try broadening your keyword or clearing one filter.</p>";
+            "<p class=\"empty-title\">" + escapeHtml(t("portal.dynamic.noMatchingPositionsTitle", "No matching positions")) + "</p>" +
+            "<p class=\"empty-copy\">" + escapeHtml(t("portal.dynamic.tryAnotherKeyword", "Try another keyword.")) + "</p>";
         return empty;
     }
 
     function setLoading(loading) {
         state.loading = loading;
-        var loadingText = loading ? "Loading..." : "Apply filters";
         if (searchButton) {
             searchButton.disabled = loading;
-            searchButton.textContent = loadingText;
+            searchButton.textContent = loading
+                ? t("portal.dynamic.searching", "Searching...")
+                : t("portal.common.search", "Search");
         }
-        if (refreshButton) {
-            refreshButton.disabled = loading;
+    }
+
+    function buildSummaryText(count, singularUnit) {
+        var unit = singularUnit;
+        if (useEnglishPluralSuffix() && count !== 1) {
+            unit += "s";
         }
-        if (clearButton) {
-            clearButton.disabled = loading;
+        return t("portal.dynamic.showing", "Showing") + " " + count + " " + unit + ".";
+    }
+
+    function useEnglishPluralSuffix() {
+        if (window.AppI18n && typeof window.AppI18n.getLocale === "function") {
+            return window.AppI18n.getLocale() === "en";
         }
+        return true;
+    }
+
+    function t(key, fallback) {
+        if (window.AppI18n && typeof window.AppI18n.t === "function") {
+            return window.AppI18n.t(key, fallback || key);
+        }
+        return fallback || key;
     }
 
     function showMessage(message, type) {
@@ -255,7 +251,7 @@
     }
 
     function handleUnauthorized() {
-        showMessage("Your session has expired. Redirecting to login...", "error");
+        showMessage(t("portal.dynamic.sessionExpiredRedirect", "Session expired. Redirecting to login..."), "error");
         window.setTimeout(function () {
             window.location.href = contextPath + "/login.jsp";
         }, 900);
@@ -289,13 +285,14 @@
         return [];
     }
 
-    function decodeEscapedText(value) {
-        return value
-            .replace(/\\"/g, "\"")
-            .replace(/\\\\/g, "\\")
-            .replace(/\\n/g, "\n")
-            .replace(/\\r/g, "\r")
-            .replace(/\\t/g, "\t");
+    function getPayloadDataObject(payload) {
+        if (!payload || typeof payload !== "object") {
+            return {};
+        }
+        if (payload.data && typeof payload.data === "object") {
+            return payload.data;
+        }
+        return payload;
     }
 
     function normalizeSkills(rawSkills) {
@@ -317,18 +314,15 @@
         if (typeof value !== "string" || !value.trim()) {
             return "-";
         }
-
         var date = new Date(value);
         if (isNaN(date.getTime())) {
             return value;
         }
-
-        var year = date.getFullYear();
-        var month = pad2(date.getMonth() + 1);
-        var day = pad2(date.getDate());
-        var hour = pad2(date.getHours());
-        var minute = pad2(date.getMinutes());
-        return year + "-" + month + "-" + day + " " + hour + ":" + minute;
+        return date.getFullYear() + "-" +
+            pad2(date.getMonth() + 1) + "-" +
+            pad2(date.getDate()) + " " +
+            pad2(date.getHours()) + ":" +
+            pad2(date.getMinutes());
     }
 
     function pad2(value) {
