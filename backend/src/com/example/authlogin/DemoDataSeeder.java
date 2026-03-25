@@ -214,91 +214,104 @@ public final class DemoDataSeeder {
                     "ta_demo",
                     "demo-job-se601",
                     Application.Status.PENDING,
-                    "I can support sprint reviews, debugging sessions, and Git workflow questions."
+                    "I can support sprint reviews, debugging sessions, and Git workflow questions.",
+                    Application.ProgressStage.UNDER_REVIEW
             ),
             new ApplicationSpec(
                     "demo-application-ta-core-db602",
                     "ta_demo",
                     "demo-job-db602",
                     Application.Status.ACCEPTED,
-                    "I have prior experience helping students with SQL labs and schema design."
+                    "I have prior experience helping students with SQL labs and schema design.",
+                    null
             ),
             new ApplicationSpec(
                     "demo-application-ta-core-web604",
                     "ta_demo",
                     "demo-job-web604",
                     Application.Status.REJECTED,
-                    "I can mentor beginner developers on frontend foundations and debugging."
+                    "I can mentor beginner developers on frontend foundations and debugging.",
+                    null
             ),
             new ApplicationSpec(
                     "demo-application-ta-mia-se601",
                     "ta_demo_mia",
                     "demo-job-se601",
                     Application.Status.ACCEPTED,
-                    "My communication skills help me translate complex concepts into simple examples."
+                    "My communication skills help me translate complex concepts into simple examples.",
+                    null
             ),
             new ApplicationSpec(
                     "demo-application-ta-mia-ai603",
                     "ta_demo_mia",
                     "demo-job-ai603",
                     Application.Status.PENDING,
-                    "I can guide project teams through data prep and model evaluation tasks."
+                    "I can guide project teams through data prep and model evaluation tasks.",
+                    Application.ProgressStage.INTERVIEW_SCHEDULED
             ),
             new ApplicationSpec(
                     "demo-application-ta-mia-alg605",
                     "ta_demo_mia",
                     "demo-job-alg605",
                     Application.Status.WITHDRAWN,
-                    "I was interested in the role but decided to focus on analytics modules this term."
+                    "I was interested in the role but decided to focus on analytics modules this term.",
+                    null
             ),
             new ApplicationSpec(
                     "demo-application-ta-noah-se601",
                     "ta_demo_noah",
                     "demo-job-se601",
                     Application.Status.REJECTED,
-                    "I can help with systems design and code performance reviews."
+                    "I can help with systems design and code performance reviews.",
+                    null
             ),
             new ApplicationSpec(
                     "demo-application-ta-noah-ai603",
                     "ta_demo_noah",
                     "demo-job-ai603",
                     Application.Status.ACCEPTED,
-                    "My research background lets me coach students on experiments and implementation."
+                    "My research background lets me coach students on experiments and implementation.",
+                    null
             ),
             new ApplicationSpec(
                     "demo-application-ta-noah-da606",
                     "ta_demo_noah",
                     "demo-job-da606",
                     Application.Status.ACCEPTED,
-                    "I can help students reason about analysis pipelines and reproducible results."
+                    "I can help students reason about analysis pipelines and reproducible results.",
+                    null
             ),
             new ApplicationSpec(
                     "demo-application-ta-olivia-ai603",
                     "ta_demo_olivia",
                     "demo-job-ai603",
                     Application.Status.PENDING,
-                    "I would like to support student teams with demos, slides, and testing."
+                    "I would like to support student teams with demos, slides, and testing.",
+                    null
             ),
             new ApplicationSpec(
                     "demo-application-ta-olivia-alg605",
                     "ta_demo_olivia",
                     "demo-job-alg605",
                     Application.Status.PENDING,
-                    "I am comfortable helping students debug implementations during lab hours."
+                    "I am comfortable helping students debug implementations during lab hours.",
+                    null
             ),
             new ApplicationSpec(
                     "demo-application-ta-liam-web604",
                     "ta_demo_liam",
                     "demo-job-web604",
                     Application.Status.REJECTED,
-                    "I can contribute structured feedback and support assignment moderation."
+                    "I can contribute structured feedback and support assignment moderation.",
+                    null
             ),
             new ApplicationSpec(
                     "demo-application-ta-liam-se601",
                     "ta_demo_liam",
                     "demo-job-se601",
                     Application.Status.WITHDRAWN,
-                    "I was initially available for this role but later adjusted my term workload."
+                    "I was initially available for this role but later adjusted my term workload.",
+                    null
             )
     );
 
@@ -540,6 +553,40 @@ public final class DemoDataSeeder {
                 changed = true;
             }
 
+            if (application.getStatus() != Application.Status.PENDING) {
+                if (application.getProgressStage() != Application.ProgressStage.COMPLETED) {
+                    application.setProgressStage(Application.ProgressStage.COMPLETED);
+                    changed = true;
+                }
+                if (application.getFinalDecisionAt() == null) {
+                    application.setFinalDecisionAt(
+                            application.getReviewedAt() != null ? application.getReviewedAt() : LocalDateTime.now());
+                    changed = true;
+                }
+            } else if (spec.pendingProgressStage() != null) {
+                Application.ProgressStage target = spec.pendingProgressStage();
+                if (application.getProgressStage() != target) {
+                    application.setProgressStage(target);
+                    changed = true;
+                }
+                if (target == Application.ProgressStage.UNDER_REVIEW) {
+                    if (application.getReviewStartedAt() == null) {
+                        application.setReviewStartedAt(LocalDateTime.now().minusDays(2));
+                        changed = true;
+                    }
+                }
+                if (target == Application.ProgressStage.INTERVIEW_SCHEDULED) {
+                    if (application.getReviewStartedAt() == null) {
+                        application.setReviewStartedAt(LocalDateTime.now().minusDays(5));
+                        changed = true;
+                    }
+                    if (application.getInterviewScheduledAt() == null) {
+                        application.setInterviewScheduledAt(LocalDateTime.now().minusDays(1));
+                        changed = true;
+                    }
+                }
+            }
+
             if (changed) {
                 applicationDao.update(application);
             }
@@ -561,6 +608,17 @@ public final class DemoDataSeeder {
         application.setCoverLetter(spec.coverLetter());
         if (spec.status() != Application.Status.PENDING) {
             application.setReviewedAt(LocalDateTime.now());
+            application.setProgressStage(Application.ProgressStage.COMPLETED);
+            application.setFinalDecisionAt(application.getReviewedAt());
+        } else if (spec.pendingProgressStage() != null) {
+            application.setProgressStage(spec.pendingProgressStage());
+            if (spec.pendingProgressStage() == Application.ProgressStage.UNDER_REVIEW) {
+                application.setReviewStartedAt(LocalDateTime.now().minusDays(2));
+            }
+            if (spec.pendingProgressStage() == Application.ProgressStage.INTERVIEW_SCHEDULED) {
+                application.setReviewStartedAt(LocalDateTime.now().minusDays(5));
+                application.setInterviewScheduledAt(LocalDateTime.now().minusDays(1));
+            }
         }
         Application savedApplication = applicationDao.create(application);
         summary.incrementCreatedApplications();
@@ -753,7 +811,9 @@ public final class DemoDataSeeder {
             String username,
             String jobId,
             Application.Status status,
-            String coverLetter
+            String coverLetter,
+            /** 仅当 status 为 PENDING 时用于演示进度；非 PENDING 时忽略 */
+            Application.ProgressStage pendingProgressStage
     ) {
     }
 

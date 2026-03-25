@@ -79,6 +79,8 @@ public class ApplicationFlowE2ETest {
 
                 assert applicationDao.hasApplied(job.getJobId(), ta.getUserId()) : "application should be recorded";
                 assert applicationDao.findByMoId(mo.getUserId()).size() == 1 : "MO should see one application";
+                Application seeded = applicationDao.findByJobIdAndApplicantId(job.getJobId(), ta.getUserId()).orElseThrow();
+                assert seeded.getProgressStage() == Application.ProgressStage.SUBMITTED : "new application should start in SUBMITTED stage";
             });
 
             test("End-to-end: MO accepts application", () -> {
@@ -87,6 +89,53 @@ public class ApplicationFlowE2ETest {
                 assert updated : "accept operation should succeed";
                 Application refreshed = applicationDao.findById(app.getApplicationId()).orElseThrow();
                 assert refreshed.getStatus() == Application.Status.ACCEPTED : "application status should become ACCEPTED";
+                assert refreshed.getProgressStage() == Application.ProgressStage.COMPLETED : "accepted application should be COMPLETED stage";
+                assert refreshed.getFinalDecisionAt() != null : "final decision timestamp should be set";
+            });
+
+            test("End-to-end: MO can advance review stages before decision", () -> {
+                User mo = userDao.findByUsername("e2e_mo").orElseThrow();
+                User ta = userDao.create(new User("e2e_ta_stage", "Pass1234", "e2e_ta_stage@example.com", User.Role.TA));
+                Applicant ap = new Applicant();
+                ap.setUserId(ta.getUserId());
+                ap.setFullName("Stage TA");
+                ap.setStudentId("2023002099");
+                ap.setDepartment("Computer Science");
+                ap.setProgram("Master");
+                ap.setSkills(Arrays.asList("Java"));
+                ap.setResumePath("resumes/stage-ta.pdf");
+                applicantDao.create(ap);
+
+                Job job = new Job();
+                job.setMoId(mo.getUserId());
+                job.setMoName("Dr. E2E");
+                job.setTitle("Stage Flow TA");
+                job.setCourseCode("CS699");
+                job.setRequiredSkills(Arrays.asList("Java"));
+                job.setStatus(Job.Status.OPEN);
+                jobDao.create(job);
+
+                Application application = new Application();
+                application.setJobId(job.getJobId());
+                application.setApplicantId(ta.getUserId());
+                application.setApplicantName(ta.getUsername());
+                application.setApplicantEmail(ta.getEmail());
+                application.setJobTitle(job.getTitle());
+                application.setCourseCode(job.getCourseCode());
+                application.setMoId(job.getMoId());
+                application.setMoName(job.getMoName());
+                applicationDao.create(application);
+
+                String aid = application.getApplicationId();
+                assert applicationDao.startReview(aid) : "startReview should succeed";
+                Application a1 = applicationDao.findById(aid).orElseThrow();
+                assert a1.getProgressStage() == Application.ProgressStage.UNDER_REVIEW : "stage should be UNDER_REVIEW";
+                assert a1.getReviewStartedAt() != null : "review start time should be set";
+
+                assert applicationDao.scheduleInterview(aid) : "scheduleInterview should succeed";
+                Application a2 = applicationDao.findById(aid).orElseThrow();
+                assert a2.getProgressStage() == Application.ProgressStage.INTERVIEW_SCHEDULED : "stage should be INTERVIEW_SCHEDULED";
+                assert a2.getInterviewScheduledAt() != null : "interview time should be set";
             });
 
             test("End-to-end: accepted count should not exceed positions", () -> {
