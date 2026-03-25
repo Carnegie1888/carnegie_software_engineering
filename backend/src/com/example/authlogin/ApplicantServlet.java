@@ -16,6 +16,8 @@ import jakarta.servlet.http.Part;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +49,10 @@ public class ApplicantServlet extends HttpServlet {
 
     // 上传目录
     private static final String UPLOAD_DIR = StoragePaths.getResumeDir();
+    private static final String DRAFT_UPLOAD_DIR = StoragePaths.getResumeDraftDir();
+    private static final String DRAFT_RESUME_FLAG = "draftResume";
+    private static final String SESSION_DRAFT_RESUME_PATH = "applicantDraftResumePath";
+    private static final String SESSION_DRAFT_RESUME_NAME = "applicantDraftResumeName";
 
     // 允许的文件类型
     private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
@@ -88,9 +94,14 @@ public class ApplicantServlet extends HttpServlet {
     }
 
     private void createUploadDirectory() {
-        File uploadDir = new File(UPLOAD_DIR);
-        if (!uploadDir.exists()) {
-            uploadDir.mkdirs();
+        ensureDirectoryExists(UPLOAD_DIR);
+        ensureDirectoryExists(DRAFT_UPLOAD_DIR);
+    }
+
+    private void ensureDirectoryExists(String dirPath) {
+        File dir = new File(dirPath);
+        if (!dir.exists()) {
+            dir.mkdirs();
         }
     }
 
@@ -111,7 +122,13 @@ public class ApplicantServlet extends HttpServlet {
             Optional<Applicant> applicantOpt = applicantDao.findByUserId(currentUser.getUserId());
 
             if (applicantOpt.isEmpty()) {
-                JsonResponseUtil.writeResponse(response, 404, false, "Applicant profile not found", null);
+                JsonResponseUtil.writeJsonResponse(
+                        response,
+                        404,
+                        false,
+                        "Applicant profile not found",
+                        buildDraftResumePayload(request)
+                );
                 return;
             }
 
@@ -121,7 +138,7 @@ public class ApplicantServlet extends HttpServlet {
                     200,
                     true,
                     "Applicant profile retrieved successfully",
-                    buildApplicantPayload(applicant)
+                    buildApplicantPayload(applicant, request)
             );
 
         } catch (Exception e) {
@@ -138,6 +155,10 @@ public class ApplicantServlet extends HttpServlet {
         // 检查是否是multipart请求（文件上传）
         String contentType = request.getContentType();
         if (contentType != null && contentType.toLowerCase().contains("multipart/form-data")) {
+            if (isDraftResumeRequest(request)) {
+                handleDraftResumeUpload(request, response);
+                return;
+            }
             handleMultipartRequest(request, response);
             return;
         }
@@ -151,6 +172,9 @@ public class ApplicantServlet extends HttpServlet {
      */
     private void handleFormRequest(HttpServletRequest request, HttpServletResponse response, boolean isUpdate)
             throws ServletException, IOException {
+        String newResumePath = null;
+        boolean clearDraftAfterSave = false;
+        String draftResumeName = "";
         try {
             // 获取当前登录用户
             User currentUser = getCurrentUser(request);
@@ -215,6 +239,7 @@ public class ApplicantServlet extends HttpServlet {
                 applicant = new Applicant();
                 applicant.setUserId(currentUser.getUserId());
             }
+            String previousResumePath = applicant.getResumePath();
 
             applicant.setFullName(fullName);
             applicant.setStudentId(studentId);
@@ -227,6 +252,20 @@ public class ApplicantServlet extends HttpServlet {
             applicant.setMotivation(motivation);
             applicant.setSkills(parseSkills(skills));
 
+            HttpSession session = request.getSession(false);
+            String draftResumePath = getDraftResumePath(session);
+            draftResumeName = getDraftResumeName(session);
+            if (isNotEmpty(draftResumePath)) {
+                newResumePath = copyDraftResumeToFinal(draftResumePath, currentUser.getUserId(), draftResumeName);
+                applicant.setResumePath(newResumePath);
+                clearDraftAfterSave = true;
+            }
+
+            if (!isNotEmpty(applicant.getResumePath())) {
+                JsonResponseUtil.writeResponse(response, 400, false, "Please upload your resume before saving your profile.", null);
+                return;
+            }
+
             // 保存档案
             Applicant savedApplicant;
             if (isUpdate) {
@@ -238,16 +277,28 @@ public class ApplicantServlet extends HttpServlet {
                 logInfo("Applicant profile created successfully for user: " + currentUser.getUsername());
             }
 
+            if (clearDraftAfterSave) {
+                clearDraftResumeState(session, true);
+            }
+            cleanupReplacedResume(previousResumePath, savedApplicant.getResumePath());
+
             java.util.Map<String, Object> data = new java.util.LinkedHashMap<>();
             data.put("applicantId", savedApplicant.getApplicantId());
+            appendStoredResumePayload(data, savedApplicant.getResumePath(), draftResumeName);
             int status = isUpdate ? 200 : 201;
             String message = isUpdate ? "Applicant profile updated successfully!" : "Applicant profile created successfully!";
             JsonResponseUtil.writeJsonResponse(response, status, true, message, data);
 
         } catch (IllegalArgumentException e) {
+            if (isNotEmpty(newResumePath)) {
+                deleteStoredFile(newResumePath);
+            }
             logInfo("Profile operation failed: " + e.getMessage());
             JsonResponseUtil.writeResponse(response, 400, false, e.getMessage(), null);
         } catch (Exception e) {
+            if (isNotEmpty(newResumePath)) {
+                deleteStoredFile(newResumePath);
+            }
             logError("Unexpected error during profile operation", e);
             JsonResponseUtil.writeResponse(response, 500, false, "An error occurred. Please try again later.", null);
         }
@@ -258,6 +309,9 @@ public class ApplicantServlet extends HttpServlet {
      */
     private void handleMultipartRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String newResumePath = null;
+        boolean clearDraftAfterSave = false;
+        String currentResumeName = "";
         try {
             // 获取当前登录用户
             User currentUser = getCurrentUser(request);
@@ -274,6 +328,9 @@ public class ApplicantServlet extends HttpServlet {
             }
 
             Applicant applicant = applicantOpt.get();
+            String previousResumePath = applicant.getResumePath();
+            HttpSession session = request.getSession(false);
+            currentResumeName = getDraftResumeName(session);
 
             // 获取文本参数
             String fullName = request.getParameter("fullName");
@@ -299,8 +356,6 @@ public class ApplicantServlet extends HttpServlet {
 
             // 处理文件上传
             Part filePart = request.getPart("resume");
-            String resumePath = null;
-
             if (filePart != null && filePart.getSize() > 0) {
                 // 验证文件
                 String fileError = validateFile(filePart);
@@ -310,9 +365,21 @@ public class ApplicantServlet extends HttpServlet {
                 }
 
                 // 保存文件
-                resumePath = saveFile(filePart, currentUser.getUserId());
-                applicant.setResumePath(resumePath);
-                logInfo("Resume uploaded successfully: " + resumePath);
+                newResumePath = saveFile(filePart, currentUser.getUserId());
+                applicant.setResumePath(newResumePath);
+                currentResumeName = extractFileName(filePart);
+                clearDraftAfterSave = hasDraftResume(session);
+                logInfo("Resume prepared for profile save: " + newResumePath);
+            } else if (hasDraftResume(session)) {
+                newResumePath = copyDraftResumeToFinal(getDraftResumePath(session), currentUser.getUserId(), currentResumeName);
+                applicant.setResumePath(newResumePath);
+                clearDraftAfterSave = true;
+                logInfo("Resume draft prepared for profile save: " + newResumePath);
+            }
+
+            if (!isNotEmpty(applicant.getResumePath())) {
+                JsonResponseUtil.writeResponse(response, 400, false, "Please upload your resume before saving your profile.", null);
+                return;
             }
 
             // 更新文本字段（如果有提供）
@@ -359,31 +426,96 @@ public class ApplicantServlet extends HttpServlet {
             // 保存更新
             Applicant updatedApplicant = applicantDao.update(applicant);
 
-            logInfo("Applicant profile updated with resume for user: " + currentUser.getUsername());
+            if (clearDraftAfterSave) {
+                clearDraftResumeState(session, true);
+            }
+            cleanupReplacedResume(previousResumePath, updatedApplicant.getResumePath());
+
+            logInfo("Applicant profile saved successfully for user: " + currentUser.getUsername());
 
             java.util.Map<String, Object> data = new java.util.LinkedHashMap<>();
             data.put("applicantId", updatedApplicant.getApplicantId());
-            if (resumePath != null) {
-                data.put("resumePath", resumePath);
-            }
+            appendStoredResumePayload(data, updatedApplicant.getResumePath(), currentResumeName);
 
-            JsonResponseUtil.writeJsonResponse(response, 200, true, "Profile updated with resume!", data);
+            JsonResponseUtil.writeJsonResponse(response, 200, true, "Applicant profile updated successfully!", data);
 
         } catch (IllegalArgumentException e) {
-            logInfo("Resume upload failed: " + e.getMessage());
+            if (isNotEmpty(newResumePath)) {
+                deleteStoredFile(newResumePath);
+            }
+            logInfo("Resume save failed: " + e.getMessage());
             JsonResponseUtil.writeResponse(response, 400, false, e.getMessage(), null);
         } catch (ServletException e) {
+            if (isNotEmpty(newResumePath)) {
+                deleteStoredFile(newResumePath);
+            }
             // 处理文件大小超限异常
             String message = e.getMessage();
             if (message != null && message.toLowerCase().contains("size")) {
                 logInfo("File size exceeded: " + message);
                 JsonResponseUtil.writeResponse(response, 413, false, "File size exceeds the maximum limit of 10MB. Please upload a smaller file.", null);
             } else {
-                logError("Servlet error during resume upload", e);
+                logError("Servlet error during profile save", e);
                 JsonResponseUtil.writeResponse(response, 400, false, "File upload failed. " + e.getMessage(), null);
             }
         } catch (Exception e) {
-            logError("Unexpected error during resume upload", e);
+            if (isNotEmpty(newResumePath)) {
+                deleteStoredFile(newResumePath);
+            }
+            logError("Unexpected error during profile save", e);
+            JsonResponseUtil.writeResponse(response, 500, false, "An error occurred. Please try again later.", null);
+        }
+    }
+
+    private void handleDraftResumeUpload(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            User currentUser = getCurrentUser(request);
+            if (currentUser == null) {
+                JsonResponseUtil.writeResponse(response, 401, false, "Please login first", null);
+                return;
+            }
+
+            Part filePart = request.getPart("resume");
+            if (filePart == null || filePart.getSize() <= 0) {
+                JsonResponseUtil.writeResponse(response, 400, false, "Please choose a resume file first.", null);
+                return;
+            }
+
+            String fileError = validateFile(filePart);
+            if (fileError != null) {
+                JsonResponseUtil.writeResponse(response, 400, false, fileError, null);
+                return;
+            }
+
+            HttpSession session = request.getSession();
+            clearDraftResumeState(session, true);
+
+            String originalFileName = extractFileName(filePart);
+            String draftResumePath = saveDraftFile(filePart, currentUser.getUserId());
+            storeDraftResumeState(session, draftResumePath, originalFileName);
+
+            JsonResponseUtil.writeJsonResponse(
+                    response,
+                    200,
+                    true,
+                    "Resume draft uploaded successfully!",
+                    buildDraftResumePayload(request)
+            );
+        } catch (IllegalArgumentException e) {
+            logInfo("Draft resume upload failed: " + e.getMessage());
+            JsonResponseUtil.writeResponse(response, 400, false, e.getMessage(), null);
+        } catch (ServletException e) {
+            String message = e.getMessage();
+            if (message != null && message.toLowerCase().contains("size")) {
+                logInfo("Draft file size exceeded: " + message);
+                JsonResponseUtil.writeResponse(response, 413, false, "File size exceeds the maximum limit of 10MB. Please upload a smaller file.", null);
+            } else {
+                logError("Servlet error during draft resume upload", e);
+                JsonResponseUtil.writeResponse(response, 400, false, "File upload failed. " + e.getMessage(), null);
+            }
+        } catch (Exception e) {
+            logError("Unexpected error during draft resume upload", e);
             JsonResponseUtil.writeResponse(response, 500, false, "An error occurred. Please try again later.", null);
         }
     }
@@ -423,21 +555,204 @@ public class ApplicantServlet extends HttpServlet {
         String fileName = extractFileName(filePart);
 
         // 生成唯一文件名
-        String extension = fileName.substring(fileName.lastIndexOf("."));
-        String newFileName = userId + "_" + System.currentTimeMillis() + extension;
+        String newFileName = buildStoredFileName(fileName, userId, "");
 
         // 确保目录存在
-        File uploadDir = new File(UPLOAD_DIR);
-        if (!uploadDir.exists()) {
-            uploadDir.mkdirs();
-        }
+        ensureDirectoryExists(UPLOAD_DIR);
 
         // 保存文件
-        File file = new File(uploadDir, newFileName);
+        File file = new File(UPLOAD_DIR, newFileName);
         filePart.write(file.getAbsolutePath());
 
         // 返回相对路径
         return "resumes/" + newFileName;
+    }
+
+    private String saveDraftFile(Part filePart, String userId) throws IOException {
+        String fileName = extractFileName(filePart);
+        String newFileName = buildStoredFileName(fileName, userId, "draft_");
+
+        ensureDirectoryExists(DRAFT_UPLOAD_DIR);
+
+        File file = new File(DRAFT_UPLOAD_DIR, newFileName);
+        filePart.write(file.getAbsolutePath());
+
+        return "resume-drafts/" + newFileName;
+    }
+
+    private String copyDraftResumeToFinal(String draftRelativePath, String userId, String originalFileName) throws IOException {
+        File draftFile = resolveStoredFile(draftRelativePath);
+        if (draftFile == null || !draftFile.exists() || !draftFile.isFile()) {
+            throw new IllegalArgumentException("The pending resume draft is unavailable. Please choose the file again.");
+        }
+
+        String sourceFileName = isNotEmpty(originalFileName) ? originalFileName : buildDisplayFileName(draftRelativePath, draftFile.getName());
+        String newFileName = buildStoredFileName(sourceFileName, userId, "");
+        ensureDirectoryExists(UPLOAD_DIR);
+
+        File finalFile = new File(UPLOAD_DIR, newFileName);
+        Files.copy(draftFile.toPath(), finalFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        return "resumes/" + newFileName;
+    }
+
+    private String buildStoredFileName(String originalFileName, String userId, String prefix) {
+        String extension = extractExtension(originalFileName);
+        String safeBaseName = sanitizeBaseName(originalFileName);
+        return prefix + userId + "_" + System.currentTimeMillis() + "_" + safeBaseName + extension;
+    }
+
+    private String extractExtension(String fileName) {
+        if (fileName == null) {
+            return ".pdf";
+        }
+        int dotIndex = fileName.lastIndexOf(".");
+        if (dotIndex < 0 || dotIndex == fileName.length() - 1) {
+            return ".pdf";
+        }
+        return fileName.substring(dotIndex);
+    }
+
+    private String sanitizeBaseName(String fileName) {
+        String safeFileName = fileName != null ? fileName.trim() : "";
+        int slashIndex = Math.max(safeFileName.lastIndexOf('/'), safeFileName.lastIndexOf('\\'));
+        if (slashIndex >= 0 && slashIndex < safeFileName.length() - 1) {
+            safeFileName = safeFileName.substring(slashIndex + 1);
+        }
+
+        int dotIndex = safeFileName.lastIndexOf('.');
+        String baseName = dotIndex > 0 ? safeFileName.substring(0, dotIndex) : safeFileName;
+        baseName = baseName.replaceAll("[^\\p{L}\\p{N}._-]+", "_");
+        baseName = baseName.replaceAll("_+", "_");
+        baseName = baseName.replaceAll("^[._-]+", "");
+        baseName = baseName.replaceAll("[._-]+$", "");
+
+        if (!isNotEmpty(baseName)) {
+            return "resume";
+        }
+        if (baseName.length() > 60) {
+            return baseName.substring(0, 60);
+        }
+        return baseName;
+    }
+
+    private File resolveStoredFile(String relativePath) {
+        if (!isNotEmpty(relativePath)) {
+            return null;
+        }
+        return new File(StoragePaths.getDataDir(), relativePath);
+    }
+
+    private long getStoredFileSize(String relativePath) {
+        File file = resolveStoredFile(relativePath);
+        if (file == null || !file.exists() || !file.isFile()) {
+            return 0L;
+        }
+        return file.length();
+    }
+
+    private String buildDisplayFileName(String relativePath, String fallbackName) {
+        String safeFallbackName = fallbackName != null ? fallbackName.trim() : "";
+        if (isNotEmpty(safeFallbackName)) {
+            return safeFallbackName;
+        }
+
+        File file = resolveStoredFile(relativePath);
+        String fileName = file != null ? file.getName() : "";
+        if (!isNotEmpty(fileName) && isNotEmpty(relativePath)) {
+            int slashIndex = Math.max(relativePath.lastIndexOf('/'), relativePath.lastIndexOf('\\'));
+            fileName = slashIndex >= 0 ? relativePath.substring(slashIndex + 1) : relativePath;
+        }
+
+        if (!isNotEmpty(fileName)) {
+            return "";
+        }
+
+        String normalizedName = fileName.replaceFirst("^(draft_)?[^_]+_\\d+_", "");
+        return isNotEmpty(normalizedName) ? normalizedName : fileName;
+    }
+
+    private void appendStoredResumePayload(java.util.Map<String, Object> data, String resumePath, String fallbackName) {
+        String safeResumePath = resumePath != null ? resumePath : "";
+        data.put("resumePath", safeResumePath);
+        data.put("resumeName", buildDisplayFileName(safeResumePath, fallbackName));
+        data.put("resumeSize", getStoredFileSize(safeResumePath));
+    }
+
+    private void deleteStoredFile(String relativePath) {
+        File file = resolveStoredFile(relativePath);
+        if (file != null && file.exists() && !file.delete()) {
+            file.deleteOnExit();
+        }
+    }
+
+    private void cleanupReplacedResume(String previousResumePath, String currentResumePath) {
+        if (!isNotEmpty(previousResumePath)) {
+            return;
+        }
+        String safeCurrentResumePath = currentResumePath != null ? currentResumePath.trim() : "";
+        if (previousResumePath.equals(safeCurrentResumePath)) {
+            return;
+        }
+        deleteStoredFile(previousResumePath);
+    }
+
+    private boolean isDraftResumeRequest(HttpServletRequest request) {
+        String draftFlag = request.getParameter(DRAFT_RESUME_FLAG);
+        if (draftFlag == null) {
+            return false;
+        }
+        return "true".equalsIgnoreCase(draftFlag) || "1".equals(draftFlag);
+    }
+
+    private void storeDraftResumeState(HttpSession session, String draftResumePath, String originalFileName) {
+        if (session == null) {
+            return;
+        }
+        session.setAttribute(SESSION_DRAFT_RESUME_PATH, draftResumePath);
+        session.setAttribute(SESSION_DRAFT_RESUME_NAME, originalFileName != null ? originalFileName : "");
+    }
+
+    private void clearDraftResumeState(HttpSession session, boolean deleteFile) {
+        if (session == null) {
+            return;
+        }
+        String draftResumePath = getDraftResumePath(session);
+        if (deleteFile && isNotEmpty(draftResumePath)) {
+            deleteStoredFile(draftResumePath);
+        }
+        session.removeAttribute(SESSION_DRAFT_RESUME_PATH);
+        session.removeAttribute(SESSION_DRAFT_RESUME_NAME);
+    }
+
+    private String getDraftResumePath(HttpSession session) {
+        if (session == null) {
+            return "";
+        }
+        Object value = session.getAttribute(SESSION_DRAFT_RESUME_PATH);
+        return value instanceof String ? ((String) value).trim() : "";
+    }
+
+    private String getDraftResumeName(HttpSession session) {
+        if (session == null) {
+            return "";
+        }
+        Object value = session.getAttribute(SESSION_DRAFT_RESUME_NAME);
+        return value instanceof String ? ((String) value).trim() : "";
+    }
+
+    private boolean hasDraftResume(HttpSession session) {
+        return isNotEmpty(getDraftResumePath(session));
+    }
+
+    private java.util.Map<String, Object> buildDraftResumePayload(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        java.util.LinkedHashMap<String, Object> data = new java.util.LinkedHashMap<>();
+        String pendingResumePath = getDraftResumePath(session);
+        data.put("pendingResumePath", pendingResumePath);
+        data.put("pendingResumeName", buildDisplayFileName(pendingResumePath, getDraftResumeName(session)));
+        data.put("pendingResumeSize", getStoredFileSize(pendingResumePath));
+        data.put("hasPendingResume", hasDraftResume(session));
+        return data;
     }
 
     /**
@@ -468,6 +783,11 @@ public class ApplicantServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("application/json;charset=UTF-8");
 
+        if (isDraftResumeRequest(request)) {
+            handleDraftResumeUpload(request, response);
+            return;
+        }
+
         // 检查是否是multipart请求
         String contentType = request.getContentType();
         if (contentType != null && contentType.toLowerCase().contains("multipart/form-data")) {
@@ -476,6 +796,32 @@ public class ApplicantServlet extends HttpServlet {
         }
 
         handleFormRequest(request, response, true);
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("application/json;charset=UTF-8");
+
+        if (!isDraftResumeRequest(request)) {
+            JsonResponseUtil.writeJsonResponse(response, 405, false, "Delete is not supported for this endpoint.", null);
+            return;
+        }
+
+        User currentUser = getCurrentUser(request);
+        if (currentUser == null) {
+            JsonResponseUtil.writeResponse(response, 401, false, "Please login first", null);
+            return;
+        }
+
+        clearDraftResumeState(request.getSession(false), true);
+        JsonResponseUtil.writeJsonResponse(
+                response,
+                200,
+                true,
+                "Pending resume changes discarded.",
+                buildDraftResumePayload(request)
+        );
     }
 
     /**
@@ -1085,7 +1431,7 @@ public class ApplicantServlet extends HttpServlet {
         return json.toString();
     }
 
-    private java.util.Map<String, Object> buildApplicantPayload(Applicant applicant) {
+    private java.util.Map<String, Object> buildApplicantPayload(Applicant applicant, HttpServletRequest request) {
         CompletenessResult completeness = calculateCompleteness(applicant);
         java.util.LinkedHashMap<String, Object> data = new java.util.LinkedHashMap<>();
         data.put("applicantId", applicant.getApplicantId());
@@ -1096,13 +1442,14 @@ public class ApplicantServlet extends HttpServlet {
         data.put("program", applicant.getProgram() != null ? applicant.getProgram() : "");
         data.put("gpa", applicant.getGpa() != null ? applicant.getGpa() : "");
         data.put("skills", applicant.getSkillsAsString());
-        data.put("resumePath", applicant.getResumePath() != null ? applicant.getResumePath() : "");
+        appendStoredResumePayload(data, applicant.getResumePath(), "");
         data.put("phone", applicant.getPhone() != null ? applicant.getPhone() : "");
         data.put("address", applicant.getAddress() != null ? applicant.getAddress() : "");
         data.put("experience", applicant.getExperience() != null ? applicant.getExperience() : "");
         data.put("motivation", applicant.getMotivation() != null ? applicant.getMotivation() : "");
         data.put("completeness", completeness.completeness);
         data.put("missingFields", completeness.missingFields);
+        data.putAll(buildDraftResumePayload(request));
         return data;
     }
 

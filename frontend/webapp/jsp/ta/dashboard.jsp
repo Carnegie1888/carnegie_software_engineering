@@ -14,7 +14,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="portal.page.taDashboard.title">TA Profile Setup - TA Hiring System</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/ta-dashboard.css">
+    <link rel="stylesheet" href="<%= contextPath %>/css/ta-dashboard.css?v=20260325c">
 </head>
 <body>
     <div class="portal-shell portal-shell-ta">
@@ -54,20 +54,9 @@
                         <circle cx="12" cy="8" r="3"></circle>
                         <path d="M6 18c1.2-2 3.2-3 6-3s4.8 1 6 3"></path>
                     </svg>
-                    <span data-i18n="portal.nav.ta.profile">Profile</span>
+                    <span data-i18n="portal.taDashboard.profileLabel">Personal Profile</span>
                 </a>
             </nav>
-            <div class="portal-sidebar-bottom">
-                <a class="portal-nav-link" href="<%= contextPath %>/login.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M4 7h12"></path>
-                        <path d="m12 4 4 3-4 3"></path>
-                        <path d="M20 17H8"></path>
-                        <path d="m12 20-4-3 4-3"></path>
-                    </svg>
-                    <span data-i18n="portal.action.switchRoles">Switch Roles</span>
-                </a>
-            </div>
         </aside>
 
         <section class="portal-main">
@@ -75,7 +64,7 @@
                 <div class="portal-topbar-menu">
                     <span class="portal-topbar-role" data-i18n="portal.brand.ta">TA Portal</span>
                     <span class="portal-topbar-divider" aria-hidden="true"></span>
-                    <span class="portal-topbar-page" data-i18n="portal.nav.ta.profile">Profile</span>
+                    <span class="portal-topbar-page" data-i18n="portal.taDashboard.profileLabel">Personal Profile</span>
                 </div>
                 <div class="portal-topbar-right">
                     <div class="portal-user">
@@ -96,7 +85,7 @@
             <div class="portal-content">
                 <main class="profile-page">
                     <section class="profile-hero" aria-labelledby="profile-page-title">
-                        <h1 id="profile-page-title" class="portal-page-title" data-i18n="portal.nav.ta.profile">Profile</h1>
+                        <h1 id="profile-page-title" class="portal-page-title" data-i18n="portal.taDashboard.profileLabel">Personal Profile</h1>
                         <p class="subtitle">Manage your personal information and academic background.</p>
                     </section>
 
@@ -107,7 +96,6 @@
                             </div>
 
                             <div id="form-message" class="form-message hidden" role="alert" aria-live="polite"></div>
-                            <div id="existing-profile-banner" class="profile-banner hidden" role="status" aria-live="polite"></div>
 
                             <form id="ta-profile-form" class="profile-form" method="post" action="<%= contextPath %>/applicant" novalidate>
                                 <section class="form-section" aria-labelledby="section-basic-info">
@@ -254,30 +242,19 @@
                                     </div>
                                 </section>
 
-                                <div class="form-actions">
-                                    <button id="profile-submit" class="profile-submit-btn" type="submit" data-i18n="portal.taDashboard.saveChangesButton">
-                                        Save changes
-                                    </button>
-                                    <button id="profile-edit-btn" class="ghost-btn" type="button" hidden data-i18n="portal.taDashboard.editProfileButton">Edit profile</button>
-                                    <button id="profile-cancel-btn" class="ghost-btn" type="button" hidden data-i18n="portal.taDashboard.cancelButton">Cancel</button>
-                                </div>
                             </form>
 
                             <div class="profile-card-divider" aria-hidden="true"></div>
 
                             <section class="upload-card" aria-labelledby="resume-upload-title">
-                                <h3 id="resume-upload-title" data-i18n="portal.taDashboard.resumeUploadTitle">Resume upload</h3>
-                                <p class="side-card-copy" data-i18n="portal.taDashboard.resumeUploadLead">Upload your resume in PDF, DOC, or DOCX format. Maximum size is 10MB.</p>
+                                <div class="form-section-header">
+                                    <div class="section-header-row">
+                                        <h3 id="resume-upload-title" data-i18n="portal.taDashboard.resumeUploadTitle">Resume upload</h3>
+                                        <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                    </div>
+                                </div>
 
                                 <div class="upload-file-panel">
-                                    <button
-                                        id="resume-file-trigger"
-                                        class="upload-file-trigger"
-                                        type="button"
-                                        data-i18n="portal.taDashboard.chooseFile"
-                                    >
-                                        Choose file
-                                    </button>
                                     <label class="sr-only" for="resume-file-input" data-i18n="portal.taDashboard.chooseFile">Choose file</label>
                                     <input
                                         id="resume-file-input"
@@ -286,35 +263,69 @@
                                         name="resume"
                                         accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                                     >
-                                    <p id="resume-file-name" class="upload-file-name">No file selected.</p>
-                                </div>
-
-                                <div id="resume-current-info" class="upload-current hidden" aria-live="polite"></div>
-
-                                <div class="upload-progress-box hidden" id="resume-progress-wrap" aria-live="polite">
-                                    <div class="upload-progress-meta">
-                                        <span id="resume-progress-text">0%</span>
-                                        <span id="resume-progress-status">Waiting to upload</span>
-                                    </div>
-                                    <div class="upload-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-                                        <span id="resume-progress-bar" class="upload-progress-bar"></span>
-                                    </div>
-                                </div>
-
-                                <div class="upload-hint-box">
-                                    <div class="upload-hint-icon" aria-hidden="true">
-                                        <svg viewBox="0 0 24 24" focusable="false">
-                                            <path d="M12 3.75L16.5 8.25V18.75H7.5V5.25H12ZM12.75 4.81V8.25H16.19L12.75 4.81ZM9.75 12H14.25V13.5H9.75V12ZM9.75 15H14.25V16.5H9.75V15ZM9.75 9H11.25V10.5H9.75V9Z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="upload-placeholder-title" data-i18n="portal.taDashboard.createProfileFirst">Create profile first</p>
-                                        <p class="upload-placeholder-text" data-i18n="portal.taDashboard.resumeTip">If you choose a file before profile creation, it will upload automatically right after the profile is created.</p>
+                                    <div id="resume-upload-shell" class="resume-upload-shell is-empty">
+                                        <button
+                                            id="resume-file-trigger"
+                                            class="resume-upload-card"
+                                            type="button"
+                                        >
+                                            <span id="resume-empty-state" class="resume-card-empty">
+                                                <span class="resume-card-icon resume-card-icon-upload" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" focusable="false">
+                                                        <path d="M12 15V7.5"></path>
+                                                        <path d="m8.75 10.75 3.25-3.25 3.25 3.25"></path>
+                                                        <path d="M5.25 15.75v1.5a1.5 1.5 0 0 0 1.5 1.5h10.5a1.5 1.5 0 0 0 1.5-1.5v-1.5"></path>
+                                                    </svg>
+                                                </span>
+                                                <span class="resume-card-title" data-i18n="portal.taDashboard.resumeCardEmptyTitle">Upload your resume</span>
+                                                <span class="resume-card-subtitle" data-i18n="portal.taDashboard.resumeCardEmptyHint">PDF, DOC, or DOCX. Maximum size is 10MB.</span>
+                                            </span>
+                                            <span id="resume-filled-state" class="resume-card-file hidden" hidden>
+                                                <span class="resume-card-icon resume-card-icon-file" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" focusable="false">
+                                                        <path d="M8.25 3.75h5.19l4.31 4.31v10.19a1.5 1.5 0 0 1-1.5 1.5h-8a1.5 1.5 0 0 1-1.5-1.5v-13a1.5 1.5 0 0 1 1.5-1.5Z"></path>
+                                                        <path d="M13.5 3.75v4.5H18"></path>
+                                                        <path d="M9.75 12h4.5"></path>
+                                                        <path d="M9.75 15h4.5"></path>
+                                                    </svg>
+                                                </span>
+                                                <span class="resume-card-file-meta">
+                                                    <span id="resume-file-display-name" class="resume-card-file-name">resume.pdf</span>
+                                                    <span id="resume-file-display-detail" class="resume-card-file-detail">0 KB</span>
+                                                </span>
+                                            </span>
+                                        </button>
+                                        <button
+                                            id="resume-remove-btn"
+                                            class="resume-remove-btn hidden"
+                                            type="button"
+                                            data-i18n-aria-label="portal.taDashboard.resumeRemoveAria"
+                                            aria-label="Remove resume"
+                                            hidden
+                                        >
+                                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                                <path d="m7 7 10 10"></path>
+                                                <path d="M17 7 7 17"></path>
+                                            </svg>
+                                        </button>
                                     </div>
                                 </div>
                                 <div id="resume-upload-message" class="upload-message hidden" role="status" aria-live="polite"></div>
-                                <button id="resume-upload-btn" class="placeholder-button" type="button" disabled data-i18n="portal.taDashboard.uploadSelectedResume">Upload selected resume</button>
                             </section>
+
+                            <div id="profile-card-actions" class="form-actions profile-card-actions">
+                                <button
+                                    id="profile-submit"
+                                    class="profile-submit-btn"
+                                    type="submit"
+                                    form="ta-profile-form"
+                                    data-i18n="portal.taDashboard.saveChangesButton"
+                                >
+                                    Save changes
+                                </button>
+                                <button id="profile-edit-btn" class="ghost-btn" type="button" hidden data-i18n="portal.taDashboard.editProfileButton">Edit profile</button>
+                                <button id="profile-cancel-btn" class="ghost-btn" type="button" hidden data-i18n="portal.taDashboard.cancelButton">Cancel</button>
+                            </div>
                         </section>
                     </section>
                 </main>
@@ -325,8 +336,8 @@
     <script>
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
-    <script src="<%= contextPath %>/js/i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/portal-i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/ta-dashboard.js" defer></script>
+    <script src="<%= contextPath %>/js/i18n.js?v=20260325d" defer></script>
+    <script src="<%= contextPath %>/js/portal-i18n.js?v=20260325c" defer></script>
+    <script src="<%= contextPath %>/js/ta-dashboard.js?v=20260325c" defer></script>
 </body>
 </html>

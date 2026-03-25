@@ -1,6 +1,11 @@
 @import url("./register.css");
 @import url("./portal-shell.css");
 
+.hidden,
+[hidden] {
+    display: none !important;
+}
+
 .profile-page {
     min-height: auto;
     padding: 28px 28px 36px;
@@ -132,6 +137,13 @@
     line-height: 1.6;
 }
 
+.section-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
 .logout-link {
     flex-shrink: 0;
     display: inline-flex;
@@ -208,21 +220,6 @@
     outline: none;
     border-color: #0071e3;
     box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.16), 0 4px 24px rgba(0, 113, 227, 0.15);
-}
-
-.profile-banner {
-    margin-bottom: 16px;
-    padding: 14px 16px;
-    border-radius: 14px;
-    border: 1px solid #cce8d0;
-    background: #edf7ed;
-    color: #1f7a34;
-    font-size: 14px;
-    line-height: 1.6;
-}
-
-.profile-banner.hidden {
-    display: none;
 }
 
 .profile-form {
@@ -354,6 +351,10 @@
     gap: 10px;
 }
 
+.profile-card-actions {
+    margin-top: 28px;
+}
+
 .profile-submit-btn {
     width: 100%;
     min-height: 50px;
@@ -418,15 +419,15 @@
 
 .profile-card-divider {
     height: 0;
-    margin: 14px 0 30px;
-    border-top: 2px dashed #8f95a3;
-    opacity: 0.95;
+    margin: 24px 0;
+    border-top: 1px solid #f0f0f3;
 }
 
 .upload-card {
     background: transparent;
     display: flex;
     flex-direction: column;
+    gap: 18px;
     min-height: 0;
     border: 0;
     box-shadow: none;
@@ -435,17 +436,13 @@
 
 .upload-card h3 {
     margin: 0;
-    font-size: 22px;
-    line-height: 1.3;
+    font-size: 18px;
+    line-height: 1.4;
     font-weight: 600;
-    letter-spacing: -0.4px;
 }
 
 .upload-file-panel {
-    margin-top: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    position: relative;
 }
 
 .sr-only {
@@ -460,36 +457,6 @@
     border: 0;
 }
 
-.upload-file-trigger {
-    width: 100%;
-    min-height: 46px;
-    border: 1px solid #d2d2d7;
-    border-radius: 14px;
-    background: #fff;
-    color: #1d1d1f;
-    font-size: 14px;
-    font-weight: 600;
-    padding: 0 14px;
-    cursor: pointer;
-    text-align: left;
-    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-}
-
-.upload-file-trigger:hover {
-    transform: translateY(-1px);
-    border-color: #0071e3;
-}
-
-.upload-file-trigger:active {
-    transform: translateY(0);
-}
-
-.upload-file-trigger:focus-visible {
-    outline: none;
-    border-color: #0071e3;
-    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.16);
-}
-
 .upload-file-input {
     position: absolute;
     width: 1px;
@@ -502,115 +469,219 @@
     border: 0;
 }
 
-.upload-file-label {
-    display: inline-block;
-    margin-bottom: 0;
-    color: #1d1d1f;
-    font-size: 13px;
-    line-height: 1.4;
-    font-weight: 600;
+.resume-upload-shell {
+    position: relative;
 }
 
-.upload-file-name {
-    margin: 0;
-    color: #6e6e73;
-    font-size: 12px;
-    line-height: 1.5;
-    word-break: break-all;
+.resume-upload-card {
+    width: 100%;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, background-color 0.2s;
 }
 
-.upload-current {
-    margin-top: 18px;
-    padding: 10px 12px;
-    border: 1px solid #d8e9fb;
-    border-radius: 12px;
-    background: rgba(0, 113, 227, 0.07);
-    color: #0d4d8c;
-    font-size: 12px;
-    line-height: 1.5;
-    word-break: break-all;
+.resume-upload-card:hover {
+    transform: translateY(-1px);
 }
 
-.upload-progress-box {
-    margin-top: 18px;
-    padding: 12px;
-    border: 1px solid #d2d2d7;
-    border-radius: 14px;
+.resume-upload-card:active {
+    transform: translateY(0);
+}
+
+.resume-upload-card:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.14);
+}
+
+.resume-upload-card:disabled {
+    cursor: not-allowed;
+    transform: none;
+}
+
+.resume-upload-shell.is-empty .resume-upload-card {
+    min-height: 264px;
+    border: 2px dashed #d6d6db;
+    border-radius: 28px;
     background: #fff;
 }
 
-.upload-progress-meta {
+.resume-upload-shell.is-filled .resume-upload-card {
+    min-height: 128px;
+    border: 1px solid #e6e6eb;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.resume-upload-shell.is-disabled .resume-upload-card {
+    box-shadow: none;
+}
+
+.resume-upload-shell.is-disabled.is-empty .resume-upload-card {
+    background: #fbfbfc;
+}
+
+.resume-upload-shell.is-disabled.is-filled .resume-upload-card {
+    background: #fcfcfd;
+    border-color: #ececf1;
+}
+
+.resume-upload-shell.is-uploading .resume-upload-card {
+    cursor: progress;
+}
+
+.resume-card-empty {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 8px;
-    font-size: 12px;
-    line-height: 1.4;
-    color: #3a3a3c;
-}
-
-.upload-progress-track {
-    height: 10px;
-    border-radius: 999px;
-    background: #e9e9ee;
-    overflow: hidden;
-}
-
-.upload-progress-bar {
-    display: block;
-    height: 100%;
-    width: 0;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #0071e3, #4aa1f8);
-    transition: width 0.2s ease;
-}
-
-.upload-hint-box {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    padding: 16px;
-    margin-top: 18px;
-    border: 1px dashed #b9d9fb;
-    border-radius: 18px;
-    background: rgba(0, 113, 227, 0.05);
-}
-
-.upload-hint-icon {
-    flex-shrink: 0;
-    width: 42px;
-    height: 42px;
-    display: flex;
+    min-height: 264px;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    border-radius: 14px;
-    background: #fff;
-    box-shadow: 0 4px 18px rgba(0, 113, 227, 0.12);
+    gap: 16px;
+    padding: 40px 28px;
+    text-align: center;
 }
 
-.upload-hint-icon svg {
-    width: 20px;
-    height: 20px;
-    fill: #0071e3;
+.resume-card-file {
+    display: flex;
+    min-height: 128px;
+    align-items: center;
+    gap: 18px;
+    padding: 26px 100px 26px 28px;
+    text-align: left;
 }
 
-.upload-placeholder-title {
-    margin: 0;
-    font-size: 15px;
-    line-height: 1.45;
+.resume-card-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.resume-card-icon-upload {
+    width: 76px;
+    height: 76px;
+    border-radius: 24px;
+    background: #f7f7f9;
+}
+
+.resume-card-icon-upload svg {
+    width: 30px;
+    height: 30px;
+    fill: none;
+    stroke: #8f8f96;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.resume-card-icon-file {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    background: #eaf8ef;
+}
+
+.resume-card-icon-file svg {
+    width: 28px;
+    height: 28px;
+    fill: none;
+    stroke: #37a866;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.resume-card-title {
+    display: block;
+    color: #1d1d1f;
+    font-size: 18px;
+    line-height: 1.35;
     font-weight: 600;
 }
 
-.upload-placeholder-text {
-    margin: 6px 0 0;
-    color: #6e6e73;
-    font-size: 13px;
+.resume-card-subtitle {
+    display: block;
+    color: #8e8e93;
+    font-size: 14px;
     line-height: 1.55;
 }
 
+.resume-card-file-meta {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.resume-card-file-name {
+    display: block;
+    overflow: hidden;
+    color: #1d1d1f;
+    font-size: 16px;
+    line-height: 1.4;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.resume-card-file-detail {
+    display: block;
+    color: #8e8e93;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.resume-remove-btn {
+    position: absolute;
+    top: 50%;
+    right: 22px;
+    display: inline-flex;
+    width: 48px;
+    height: 48px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 999px;
+    background: #f4f4f6;
+    color: #1d1d1f;
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: background-color 0.2s, color 0.2s, transform 0.2s;
+}
+
+.resume-remove-btn:hover {
+    background: #ebebef;
+}
+
+.resume-remove-btn:active {
+    transform: translateY(-50%) scale(0.98);
+}
+
+.resume-remove-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.14);
+}
+
+.resume-remove-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.resume-remove-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+}
+
 .upload-message {
-    margin-top: 18px;
     padding: 10px 12px;
     border-radius: 12px;
     border: 1px solid transparent;
@@ -628,38 +699,6 @@
     border-color: #f3c5cc;
     background: #fff1f3;
     color: #b42332;
-}
-
-.placeholder-button {
-    width: 100%;
-    min-height: 46px;
-    margin-top: 18px;
-    border: 1px solid transparent;
-    border-radius: 14px;
-    background: #0071e3;
-    color: #fff;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.2s, background-color 0.2s, opacity 0.2s;
-}
-
-.placeholder-button:hover {
-    transform: translateY(-1px);
-    background: #0067d1;
-}
-
-.placeholder-button:active {
-    transform: translateY(0);
-}
-
-.placeholder-button:disabled {
-    border-color: #d2d2d7;
-    background: #fff;
-    color: #86868b;
-    cursor: not-allowed;
-    transform: none;
-    opacity: 1;
 }
 
 @media (min-width: 961px) {
@@ -697,6 +736,52 @@
     .profile-card {
         border-radius: 20px;
         padding: 22px 18px;
+    }
+
+    .resume-upload-shell.is-empty .resume-upload-card,
+    .resume-card-empty {
+        min-height: 220px;
+    }
+
+    .resume-card-empty {
+        padding: 32px 18px;
+    }
+
+    .resume-card-icon-upload {
+        width: 68px;
+        height: 68px;
+        border-radius: 22px;
+    }
+
+    .resume-card-title {
+        font-size: 17px;
+    }
+
+    .resume-card-subtitle,
+    .resume-card-file-detail {
+        font-size: 13px;
+    }
+
+    .resume-card-file {
+        min-height: 110px;
+        gap: 14px;
+        padding: 20px 76px 20px 20px;
+    }
+
+    .resume-card-icon-file {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+    }
+
+    .resume-card-file-name {
+        font-size: 15px;
+    }
+
+    .resume-remove-btn {
+        right: 16px;
+        width: 42px;
+        height: 42px;
     }
 
     .section-heading {

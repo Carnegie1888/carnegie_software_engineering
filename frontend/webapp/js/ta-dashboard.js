@@ -6,21 +6,19 @@
 
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
     var messageBox = document.getElementById("form-message");
-    var bannerBox = document.getElementById("existing-profile-banner");
     var submitButton = document.getElementById("profile-submit");
     var editButton = document.getElementById("profile-edit-btn");
     var cancelEditButton = document.getElementById("profile-cancel-btn");
     var formFields = form.querySelectorAll("input, select, textarea");
     var resumeFileTrigger = document.getElementById("resume-file-trigger");
     var resumeFileInput = document.getElementById("resume-file-input");
-    var resumeFileName = document.getElementById("resume-file-name");
-    var resumeUploadButton = document.getElementById("resume-upload-btn");
+    var resumeUploadShell = document.getElementById("resume-upload-shell");
+    var resumeEmptyState = document.getElementById("resume-empty-state");
+    var resumeFilledState = document.getElementById("resume-filled-state");
+    var resumeFileDisplayName = document.getElementById("resume-file-display-name");
+    var resumeFileDisplayDetail = document.getElementById("resume-file-display-detail");
+    var resumeRemoveButton = document.getElementById("resume-remove-btn");
     var resumeUploadMessage = document.getElementById("resume-upload-message");
-    var resumeCurrentInfo = document.getElementById("resume-current-info");
-    var resumeProgressWrap = document.getElementById("resume-progress-wrap");
-    var resumeProgressBar = document.getElementById("resume-progress-bar");
-    var resumeProgressText = document.getElementById("resume-progress-text");
-    var resumeProgressStatus = document.getElementById("resume-progress-status");
 
     var ALLOWED_RESUME_EXTENSIONS = [".pdf", ".doc", ".docx"];
     var MAX_RESUME_SIZE = 10 * 1024 * 1024;
@@ -51,7 +49,13 @@
         isLoading: false,
         isUploadingResume: false,
         selectedResumeFile: null,
-        resumePath: ""
+        resumePath: "",
+        resumeName: "",
+        resumeSize: 0,
+        removedSavedResume: false,
+        pendingResumePath: "",
+        pendingResumeName: "",
+        pendingResumeSize: 0
     };
 
     var fieldValidationState = {
@@ -103,11 +107,10 @@
 
     if (cancelEditButton) {
         cancelEditButton.addEventListener("click", function () {
-            if (!state.hasExistingProfile || state.isSubmitting || state.isLoading) {
+            if (!state.hasExistingProfile || state.isSubmitting || state.isLoading || state.isUploadingResume) {
                 return;
             }
-            state.isEditing = false;
-            loadExistingProfile({ afterCreate: false, silentWhenMissing: false });
+            handleCancelEdit();
         });
     }
 
@@ -124,12 +127,15 @@
         });
     }
 
-    if (resumeUploadButton) {
-        resumeUploadButton.addEventListener("click", handleManualResumeUpload);
+    if (resumeRemoveButton) {
+        resumeRemoveButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            handleResumeRemove();
+        });
     }
 
     refreshResumeArea();
-    hideResumeProgress();
     loadExistingProfile({ silentWhenMissing: true });
 
     document.addEventListener("app:locale-changed", function () {
@@ -146,6 +152,12 @@
             if (validationError.field && typeof validationError.field.focus === "function") {
                 validationError.field.focus();
             }
+            return;
+        }
+
+        validationError = validateResumeRequirement();
+        if (validationError) {
+            showMessage(validationError.message, "error");
             return;
         }
 
@@ -175,29 +187,7 @@
                     return;
                 }
 
-                if (!state.selectedResumeFile) {
-                    return loadExistingProfile({ afterCreate: true, silentWhenMissing: false });
-                }
-
-                showMessage(localizeText("portal.dynamic.profileCreatedUploadingResume", "Profile created. Uploading your selected resume..."), "success");
-                return uploadSelectedResume({ expectExistingProfile: true, fromCreateFlow: true })
-                    .then(function () {
-                        return { uploadSuccess: true };
-                    })
-                    .catch(function (error) {
-                        var uploadErrorMessage = "Profile created, but resume upload failed. Please try uploading again.";
-                        if (error && typeof error.userMessage === "string" && error.userMessage.trim()) {
-                            uploadErrorMessage = error.userMessage.trim();
-                        }
-                        showResumeMessage(uploadErrorMessage, "error");
-                        return {
-                            uploadSuccess: false
-                        };
-                    })
-                    .then(function (uploadResult) {
-                        var createdNow = uploadResult && uploadResult.uploadSuccess === true;
-                        return loadExistingProfile({ afterCreate: createdNow, silentWhenMissing: false });
-                    });
+                return loadExistingProfile({ afterCreate: true, silentWhenMissing: false });
             })
             .catch(function () {
                 showMessage(localizeText("portal.dynamic.networkErrorMoment", "Network error. Please try again in a moment."), "error");
@@ -211,6 +201,7 @@
         var settings = options || {};
 
         state.isLoading = true;
+        refreshResumeArea();
         if (!state.isSubmitting) {
             submitButton.disabled = true;
             submitButton.textContent = localizeText("portal.dynamic.checkingProfile", "Checking profile...");
@@ -225,9 +216,10 @@
             .then(function (result) {
                 var response = result.response;
                 var payload = result.payload;
+                var payloadData = extractData(payload);
 
                 if (response.status === 404) {
-                    enableCreateMode();
+                    enableCreateMode(payloadData);
                     if (!settings.silentWhenMissing) {
                         showMessage(localizeText("portal.dynamic.noProfileFound", "No profile found yet. Please complete the form below."), "success");
                     }
@@ -249,7 +241,7 @@
                     return;
                 }
 
-                applyExistingProfile(extractData(payload), settings.afterCreate === true);
+                applyExistingProfile(payloadData, settings.afterCreate === true);
             })
             .catch(function () {
                 enableCreateMode();
@@ -271,6 +263,12 @@
             if (validationError.field && typeof validationError.field.focus === "function") {
                 validationError.field.focus();
             }
+            return;
+        }
+
+        validationError = validateResumeRequirement();
+        if (validationError) {
+            showMessage(validationError.message, "error");
             return;
         }
 
@@ -362,7 +360,9 @@
     function applyExistingProfile(payload, createdNow) {
         state.hasExistingProfile = true;
         state.isEditing = false;
-        state.resumePath = payload && typeof payload.resumePath === "string" ? payload.resumePath : "";
+        state.removedSavedResume = false;
+        syncSavedResumeState(payload);
+        syncResumeDraftState(payload);
 
         setFieldValue(inputs.fullName, payload.fullName);
         setFieldValue(inputs.studentId, payload.studentId);
@@ -379,18 +379,6 @@
         setFormDisabled(true);
         form.classList.add("is-readonly");
 
-        var completeness = typeof payload.completeness === "number" ? payload.completeness : null;
-        var missingCount = Array.isArray(payload.missingFields) ? payload.missingFields.length : 0;
-        var bannerMessage = localizeText("portal.dynamic.profileReadonly", "Your profile has already been created and is now shown in read-only mode.");
-
-        if (completeness !== null) {
-            bannerMessage += " Current completeness: " + completeness + "%.";
-        }
-        if (missingCount > 0) {
-            bannerMessage += " You can continue improving the remaining fields and upload or replace your resume below.";
-        }
-
-        showBanner(bannerMessage);
         updateProfileActionState();
         refreshResumeArea();
 
@@ -401,13 +389,16 @@
         }
     }
 
-    function enableCreateMode() {
+    function enableCreateMode(payload) {
         state.hasExistingProfile = false;
         state.isEditing = false;
         state.resumePath = "";
+        state.resumeName = "";
+        state.resumeSize = 0;
+        state.removedSavedResume = false;
+        syncResumeDraftState(payload);
         setFormDisabled(false);
         form.classList.remove("is-readonly");
-        hideBanner();
         clearAllFieldValidation();
         resetFieldTouchedState();
         refreshSubmitButton();
@@ -448,7 +439,6 @@
         state.isEditing = true;
         setFormDisabled(false);
         form.classList.remove("is-readonly");
-        hideBanner();
         hideMessage();
         clearAllFieldValidation();
 
@@ -463,6 +453,33 @@
             cancelEditButton.hidden = false;
             cancelEditButton.disabled = false;
         }
+        refreshResumeArea();
+    }
+
+    function handleCancelEdit() {
+        var reloadProfile = function () {
+            state.isEditing = false;
+            setSelectedResumeFile(null);
+            hideResumeMessage();
+            return loadExistingProfile({ afterCreate: false, silentWhenMissing: false });
+        };
+
+        if (!state.pendingResumePath) {
+            reloadProfile();
+            return;
+        }
+
+        discardPendingResume()
+            .then(function () {
+                return reloadProfile();
+            })
+            .catch(function (error) {
+                var errorMessage = localizeText("portal.dynamic.resumeDiscardFailed", "Unable to discard the pending resume. Please try again.");
+                if (error && typeof error.userMessage === "string" && error.userMessage.trim()) {
+                    errorMessage = error.userMessage.trim();
+                }
+                showResumeMessage(errorMessage, "error");
+            });
     }
 
     function refreshSubmitButton() {
@@ -483,6 +500,12 @@
             return;
         }
 
+        if (state.isUploadingResume) {
+            submitButton.textContent = localizeText("portal.dynamic.uploading", "Uploading") + "...";
+            submitButton.disabled = true;
+            return;
+        }
+
         submitButton.textContent = localizeText("portal.taDashboard.saveChangesButton", "Save changes");
         submitButton.disabled = false;
     }
@@ -493,6 +516,7 @@
             setFormDisabled(submitting);
         }
         refreshSubmitButton();
+        refreshResumeArea();
     }
 
     function setFormDisabled(disabled) {
@@ -501,12 +525,42 @@
         });
     }
 
+    function syncResumeDraftState(payload) {
+        state.pendingResumePath = payload && typeof payload.pendingResumePath === "string" ? payload.pendingResumePath : "";
+        state.pendingResumeName = payload && typeof payload.pendingResumeName === "string" ? payload.pendingResumeName : "";
+        state.pendingResumeSize = getPositiveNumber(payload && payload.pendingResumeSize);
+    }
+
+    function validateResumeRequirement() {
+        if (state.pendingResumePath || hasSavedResume()) {
+            return null;
+        }
+
+        var errorMessage = localizeText("portal.dynamic.resumeRequiredToSave", "Please upload your resume before saving your profile.");
+        showResumeMessage(errorMessage, "error");
+        if (resumeFileTrigger && typeof resumeFileTrigger.focus === "function") {
+            resumeFileTrigger.focus();
+        }
+        return buildValidationError(errorMessage, resumeFileTrigger || submitButton);
+    }
+
+    function canEditResumeSection() {
+        if (state.isLoading || state.isSubmitting || state.isUploadingResume) {
+            return false;
+        }
+        return !state.hasExistingProfile || state.isEditing;
+    }
+
     function handleResumeFileChange(event) {
         hideResumeMessage();
-        hideResumeProgress();
 
         var file = event && event.target && event.target.files ? event.target.files[0] : null;
         if (!file) {
+            setSelectedResumeFile(null);
+            return;
+        }
+
+        if (!canEditResumeSection()) {
             setSelectedResumeFile(null);
             return;
         }
@@ -519,69 +573,31 @@
         }
 
         setSelectedResumeFile(file);
-        if (state.hasExistingProfile) {
-            showResumeMessage(localizeText(
-                "portal.dynamic.resumeReadyReplace",
-                "Resume file is ready. Click upload to replace your current resume."
-            ), "success");
-        } else {
-            showResumeMessage(localizeText(
-                "portal.dynamic.resumeReadyAfterCreate",
-                "Resume file is ready and will upload right after profile creation."
-            ), "success");
-        }
-    }
-
-    function handleManualResumeUpload() {
-        hideMessage();
-
-        if (state.isUploadingResume || state.isLoading || state.isSubmitting) {
-            return;
-        }
-
-        if (!state.hasExistingProfile) {
-            showResumeMessage(localizeText(
-                "portal.dynamic.createProfileAutoUpload",
-                "Please create your profile first. The selected resume will also upload automatically after creation."
-            ), "error");
-            return;
-        }
-
-        uploadSelectedResume({ expectExistingProfile: true, fromCreateFlow: false })
-            .then(function () {
-                return loadExistingProfile({ afterCreate: false, silentWhenMissing: false });
-            })
+        uploadDraftResume(file)
             .catch(function (error) {
-                var uploadErrorMessage = "Resume upload failed. Please try again.";
+                var uploadErrorMessage = localizeText("portal.dynamic.resumeUploadFailed", "Resume upload failed. Please try again.");
                 if (error && typeof error.userMessage === "string" && error.userMessage.trim()) {
                     uploadErrorMessage = error.userMessage.trim();
                 }
+                setSelectedResumeFile(null);
                 showResumeMessage(uploadErrorMessage, "error");
             });
     }
 
-    function uploadSelectedResume(options) {
-        var settings = options || {};
-
-        if (!state.selectedResumeFile) {
+    function uploadDraftResume(file) {
+        if (!file) {
             var noFileError = new Error("No resume file selected.");
-            noFileError.userMessage = "Please choose a resume file first.";
+            noFileError.userMessage = localizeText("portal.dynamic.chooseResumeFirst", "Please choose a resume file first.");
             return Promise.reject(noFileError);
         }
 
-        var file = state.selectedResumeFile;
-        var fileError = validateResumeFile(file);
-        if (fileError) {
-            var invalidFileError = new Error(fileError);
-            invalidFileError.userMessage = fileError;
-            return Promise.reject(invalidFileError);
-        }
-
         setResumeUploading(true);
-        updateResumeProgress(0, "Uploading...");
-        showResumeMessage("Uploading " + file.name + "...", "success");
+        showResumeMessage(
+            localizeText("portal.dynamic.resumeDraftUploading", "Uploading resume draft:") + " " + file.name + "...",
+            "success"
+        );
 
-        return uploadResumeWithProgress(file)
+        return uploadDraftResumeWithProgress(file)
             .then(function (result) {
                 var status = result.status;
                 var payload = result.payload;
@@ -593,30 +609,26 @@
                     throw unauthorizedError;
                 }
 
-                if (status === 404 && settings.expectExistingProfile) {
-                    var notFoundError = new Error("Applicant profile not found.");
-                    notFoundError.userMessage = "Please create your profile first, then upload the resume.";
-                    throw notFoundError;
-                }
-
                 if (status < 200 || status >= 300 || !payload || payload.success !== true) {
                     var serverMessage = payload && typeof payload.message === "string" && payload.message.trim()
                         ? payload.message.trim()
-                        : "Resume upload failed. Please try again.";
+                        : localizeText("portal.dynamic.resumeUploadFailed", "Resume upload failed. Please try again.");
                     var uploadError = new Error(serverMessage);
                     uploadError.userMessage = serverMessage;
                     throw uploadError;
                 }
 
-                updateResumeProgress(100, "Upload completed");
-                var uploadData = extractData(payload);
-                state.resumePath = typeof uploadData.resumePath === "string" ? uploadData.resumePath : state.resumePath;
+                syncResumeDraftState(extractData(payload));
                 setSelectedResumeFile(null);
-                showResumeMessage("Resume uploaded successfully.", "success");
-
-                if (!settings.fromCreateFlow) {
-                    showMessage("Resume updated successfully.", "success");
-                }
+                showResumeMessage(
+                    localizeText(
+                        state.resumePath ? "portal.dynamic.resumeDraftReplaceSaved" : "portal.dynamic.resumeDraftSaved",
+                        state.resumePath
+                            ? "New resume uploaded. Save changes to replace the current resume."
+                            : "Resume draft uploaded. Save changes to apply it."
+                    ),
+                    "success"
+                );
             })
             .finally(function () {
                 setResumeUploading(false);
@@ -624,31 +636,21 @@
             });
     }
 
-    function uploadResumeWithProgress(file) {
+    function uploadDraftResumeWithProgress(file) {
         return new Promise(function (resolve, reject) {
             var xhr = new XMLHttpRequest();
-            xhr.open("PUT", contextPath + "/applicant", true);
+            xhr.open("PUT", contextPath + "/applicant?draftResume=true", true);
             xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-
-            xhr.upload.onprogress = function (event) {
-                if (!event || !event.lengthComputable) {
-                    updateResumeProgress(0, "Uploading...");
-                    return;
-                }
-
-                var percent = Math.min(100, Math.max(0, Math.round((event.loaded / event.total) * 100)));
-                updateResumeProgress(percent, "Uploading...");
-            };
 
             xhr.onerror = function () {
                 var networkError = new Error("Network error.");
-                networkError.userMessage = "Network error during file upload. Please try again.";
+                networkError.userMessage = localizeText("portal.dynamic.uploadNetworkError", "Network error during file upload. Please try again.");
                 reject(networkError);
             };
 
             xhr.onabort = function () {
                 var abortError = new Error("Upload aborted.");
-                abortError.userMessage = "Upload was interrupted. Please try again.";
+                abortError.userMessage = localizeText("portal.dynamic.uploadInterrupted", "Upload was interrupted. Please try again.");
                 reject(abortError);
             };
 
@@ -667,7 +669,7 @@
 
     function validateResumeFile(file) {
         if (!file) {
-            return "Please choose a resume file first.";
+            return localizeText("portal.dynamic.chooseResumeFirst", "Please choose a resume file first.");
         }
 
         var lowerName = typeof file.name === "string" ? file.name.toLowerCase() : "";
@@ -675,11 +677,11 @@
             return lowerName.endsWith(extension);
         });
         if (!extensionAllowed) {
-            return "Invalid file format. Please upload a PDF, DOC, or DOCX file.";
+            return localizeText("portal.dynamic.invalidResumeFormat", "Invalid file format. Please upload a PDF, DOC, or DOCX file.");
         }
 
         if (typeof file.size === "number" && file.size > MAX_RESUME_SIZE) {
-            return "File size exceeds 10MB. Please choose a smaller file.";
+            return localizeText("portal.dynamic.resumeTooLarge", "File size exceeds 10MB. Please choose a smaller file.");
         }
 
         return null;
@@ -695,80 +697,131 @@
 
     function setResumeUploading(uploading) {
         state.isUploadingResume = uploading;
+        refreshSubmitButton();
         refreshResumeArea();
     }
 
+    function handleResumeRemove() {
+        if (!canEditResumeSection()) {
+            return;
+        }
+
+        hideResumeMessage();
+
+        if (state.pendingResumePath) {
+            discardPendingResume()
+                .then(function () {
+                    setSelectedResumeFile(null);
+                    showResumeMessage(localizeText("portal.dynamic.pendingResumeRemoved", "Pending resume removed."), "success");
+                    refreshResumeArea();
+                })
+                .catch(function (error) {
+                    var pendingRemoveError = localizeText("portal.dynamic.resumeDiscardFailed", "Unable to discard the pending resume. Please try again.");
+                    if (error && typeof error.userMessage === "string" && error.userMessage.trim()) {
+                        pendingRemoveError = error.userMessage.trim();
+                    }
+                    showResumeMessage(pendingRemoveError, "error");
+                });
+            return;
+        }
+
+        if (state.selectedResumeFile) {
+            setSelectedResumeFile(null);
+            return;
+        }
+
+        if (hasSavedResume()) {
+            state.removedSavedResume = true;
+            refreshResumeArea();
+            showResumeMessage(
+                localizeText("portal.dynamic.savedResumeRemoved", "Current resume removed. Upload a new one before saving changes."),
+                "success"
+            );
+        }
+    }
+
     function refreshResumeArea() {
-        if (resumeFileName) {
-            if (state.selectedResumeFile) {
-                resumeFileName.textContent = state.selectedResumeFile.name + " (" + formatFileSize(state.selectedResumeFile.size) + ")";
-            } else {
-                resumeFileName.textContent = localizeText("portal.taDashboard.noFileSelected", "No file selected.");
-            }
+        var resumeSectionEditable = canEditResumeSection();
+        var activeResumeCard = buildActiveResumeCard();
+
+        if (resumeFileTrigger) {
+            resumeFileTrigger.disabled = !resumeSectionEditable;
+        }
+        if (resumeFileInput) {
+            resumeFileInput.disabled = !resumeSectionEditable;
         }
 
-        if (resumeCurrentInfo) {
-            if (state.resumePath) {
-                resumeCurrentInfo.textContent = localizeText("portal.dynamic.currentResumePrefix", "Current uploaded resume:") + " " + state.resumePath;
-                resumeCurrentInfo.classList.remove("hidden");
-            } else if (state.hasExistingProfile) {
-                resumeCurrentInfo.textContent = localizeText("portal.dynamic.noResumeUploaded", "No resume uploaded yet.");
-                resumeCurrentInfo.classList.remove("hidden");
-            } else {
-                resumeCurrentInfo.textContent = "";
-                resumeCurrentInfo.classList.add("hidden");
-            }
+        if (resumeUploadShell) {
+            resumeUploadShell.classList.toggle("is-empty", !activeResumeCard);
+            resumeUploadShell.classList.toggle("is-filled", !!activeResumeCard);
+            resumeUploadShell.classList.toggle("is-disabled", !resumeSectionEditable);
+            resumeUploadShell.classList.toggle("is-uploading", state.isUploadingResume);
         }
 
-        if (resumeUploadButton) {
-            if (state.isUploadingResume) {
-                resumeUploadButton.disabled = true;
-                resumeUploadButton.textContent = localizeText("portal.dynamic.uploading", "Uploading") + "...";
-            } else if (!state.hasExistingProfile) {
-                resumeUploadButton.disabled = true;
-                resumeUploadButton.textContent = state.selectedResumeFile
-                    ? localizeText("portal.dynamic.resumeWillUploadAfterCreate", "Will upload after profile creation")
-                    : localizeText("portal.taDashboard.uploadSelectedResume", "Upload selected resume");
-            } else {
-                resumeUploadButton.disabled = !state.selectedResumeFile;
-                resumeUploadButton.textContent = state.resumePath
-                    ? localizeText("portal.dynamic.replaceUploadedResume", "Replace uploaded resume")
-                    : localizeText("portal.taDashboard.uploadSelectedResume", "Upload selected resume");
-            }
+        if (resumeEmptyState) {
+            resumeEmptyState.hidden = !!activeResumeCard;
+            resumeEmptyState.classList.toggle("hidden", !!activeResumeCard);
+        }
+        if (resumeFilledState) {
+            resumeFilledState.hidden = !activeResumeCard;
+            resumeFilledState.classList.toggle("hidden", !activeResumeCard);
+        }
+
+        if (resumeFileDisplayName && activeResumeCard) {
+            resumeFileDisplayName.textContent = activeResumeCard.name;
+        }
+        if (resumeFileDisplayDetail && activeResumeCard) {
+            resumeFileDisplayDetail.textContent = activeResumeCard.detail;
+        }
+
+        if (resumeRemoveButton) {
+            var canRemoveCurrentResume = !!activeResumeCard && resumeSectionEditable && !state.isUploadingResume;
+            resumeRemoveButton.hidden = !canRemoveCurrentResume;
+            resumeRemoveButton.classList.toggle("hidden", !canRemoveCurrentResume);
+            resumeRemoveButton.disabled = !canRemoveCurrentResume;
         }
     }
 
-    function updateResumeProgress(percent, statusText) {
-        var normalizedPercent = typeof percent === "number" ? Math.min(100, Math.max(0, percent)) : 0;
-        if (resumeProgressWrap) {
-            resumeProgressWrap.classList.remove("hidden");
+    function buildActiveResumeCard() {
+        if (state.selectedResumeFile) {
+            return {
+                name: state.selectedResumeFile.name,
+                detail: buildResumeCardDetail(state.selectedResumeFile.size)
+            };
         }
-        if (resumeProgressBar) {
-            resumeProgressBar.style.width = normalizedPercent + "%";
+
+        if (state.pendingResumePath) {
+            return {
+                name: state.pendingResumeName || extractFileNameFromPath(state.pendingResumePath),
+                detail: buildResumeCardDetail(state.pendingResumeSize)
+            };
         }
-        if (resumeProgressText) {
-            resumeProgressText.textContent = normalizedPercent + "%";
+
+        if (hasSavedResume()) {
+            return {
+                name: state.resumeName || extractFileNameFromPath(state.resumePath),
+                detail: buildResumeCardDetail(state.resumeSize)
+            };
         }
-        if (resumeProgressStatus) {
-            resumeProgressStatus.textContent = typeof statusText === "string" && statusText.trim()
-                ? statusText
-                : "Uploading...";
-        }
+
+        return null;
     }
 
-    function hideResumeProgress() {
-        if (resumeProgressWrap) {
-            resumeProgressWrap.classList.add("hidden");
+    function buildResumeCardDetail(fileSize) {
+        if (typeof fileSize === "number" && fileSize > 0) {
+            return formatFileSize(fileSize);
         }
-        if (resumeProgressBar) {
-            resumeProgressBar.style.width = "0%";
-        }
-        if (resumeProgressText) {
-            resumeProgressText.textContent = "0%";
-        }
-        if (resumeProgressStatus) {
-            resumeProgressStatus.textContent = localizeText("portal.taDashboard.waitingUpload", "Waiting to upload");
-        }
+        return localizeText("portal.dynamic.resumeReady", "Resume ready");
+    }
+
+    function hasSavedResume() {
+        return hasText(state.resumePath) && !state.removedSavedResume;
+    }
+
+    function syncSavedResumeState(payload) {
+        state.resumePath = payload && typeof payload.resumePath === "string" ? payload.resumePath : "";
+        state.resumeName = payload && typeof payload.resumeName === "string" ? payload.resumeName : "";
+        state.resumeSize = getPositiveNumber(payload && payload.resumeSize);
     }
 
     function showResumeMessage(message, type) {
@@ -789,6 +842,36 @@
         resumeUploadMessage.classList.add("hidden");
     }
 
+    function discardPendingResume() {
+        return request(contextPath + "/applicant?draftResume=true", {
+            method: "DELETE",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        }).then(function (result) {
+            var response = result.response;
+            var payload = result.payload;
+
+            if (response.status === 401) {
+                handleUnauthorized();
+                var unauthorizedError = new Error("Unauthorized.");
+                unauthorizedError.userMessage = "Your session has expired. Redirecting to login...";
+                throw unauthorizedError;
+            }
+
+            if (!response.ok || !payload || payload.success !== true) {
+                var errorMessage = payload && typeof payload.message === "string" && payload.message.trim()
+                    ? payload.message.trim()
+                    : localizeText("portal.dynamic.resumeDiscardFailed", "Unable to discard the pending resume. Please try again.");
+                var discardError = new Error(errorMessage);
+                discardError.userMessage = errorMessage;
+                throw discardError;
+            }
+
+            syncResumeDraftState(extractData(payload));
+        });
+    }
+
     function formatFileSize(bytes) {
         if (typeof bytes !== "number" || bytes < 0) {
             return "0 B";
@@ -800,6 +883,24 @@
             return (bytes / 1024).toFixed(1) + " KB";
         }
         return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+    }
+
+    function getPositiveNumber(value) {
+        return typeof value === "number" && value > 0 ? value : 0;
+    }
+
+    function hasText(value) {
+        return typeof value === "string" && value.trim().length > 0;
+    }
+
+    function extractFileNameFromPath(path) {
+        if (typeof path !== "string" || !path.trim()) {
+            return "";
+        }
+
+        var normalizedPath = path.replace(/\\/g, "/");
+        var segments = normalizedPath.split("/");
+        return segments[segments.length - 1] || normalizedPath;
     }
 
     function validateForm() {
@@ -1420,16 +1521,6 @@
         messageBox.textContent = "";
         messageBox.classList.remove("error", "success");
         messageBox.classList.add("hidden");
-    }
-
-    function showBanner(message) {
-        bannerBox.textContent = message;
-        bannerBox.classList.remove("hidden");
-    }
-
-    function hideBanner() {
-        bannerBox.textContent = "";
-        bannerBox.classList.add("hidden");
     }
 
     function handleUnauthorized() {

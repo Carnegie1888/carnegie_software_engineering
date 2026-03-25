@@ -57,6 +57,10 @@ public final class StoragePaths {
         return Paths.get(getDataDir(), "resumes").toString();
     }
 
+    public static String getResumeDraftDir() {
+        return Paths.get(getDataDir(), "resume-drafts").toString();
+    }
+
     private static String firstNonBlank(String... values) {
         for (String value : values) {
             if (value != null && !value.trim().isEmpty()) {

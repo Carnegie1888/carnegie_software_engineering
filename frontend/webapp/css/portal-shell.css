@@ -1,4 +1,13 @@
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior-y: none;
+}
+
 .portal-shell {
+    position: fixed;
+    inset: 0;
     width: 100%;
     height: 100dvh;
     min-height: 100vh;
@@ -230,11 +239,20 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    overscroll-behavior-y: contain;
     background: #fff;
 }
 
 @media (max-width: 980px) {
+    html,
+    body {
+        overflow: auto;
+        overscroll-behavior-y: auto;
+    }
+
     .portal-shell {
+        position: static;
+        inset: auto;
         flex-direction: column;
         height: auto;
         min-height: 100vh;
