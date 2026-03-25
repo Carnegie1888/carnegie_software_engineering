@@ -41,19 +41,6 @@
                     </svg>
                     <span data-i18n="portal.nav.ta.status">My Applications</span>
                 </a>
-                <span class="portal-nav-link is-disabled" aria-disabled="true">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M12 3v3"></path>
-                        <path d="M12 18v3"></path>
-                        <path d="M3 12h3"></path>
-                        <path d="M18 12h3"></path>
-                        <path d="m6 6 2 2"></path>
-                        <path d="m16 16 2 2"></path>
-                        <path d="m6 18 2-2"></path>
-                        <path d="m16 8 2-2"></path>
-                    </svg>
-                    <span data-i18n="portal.nav.ta.aiMatch">AI Match</span>
-                </span>
                 <a class="portal-nav-link" href="<%= contextPath %>/jsp/ta/dashboard.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <circle cx="12" cy="8" r="3"></circle>
@@ -112,7 +99,7 @@
 
                         <div id="list-message" class="form-message hidden" role="status" aria-live="polite"></div>
 
-                        <p id="job-list-summary" class="list-summary" data-i18n="portal.taJobList.loadingPositions">Loading positions...</p>
+                        <p id="job-list-summary" class="list-summary" data-i18n="portal.taJobList.loadingPositions" hidden>Loading positions...</p>
 
                         <div id="job-list" class="job-list" aria-live="polite"></div>
                     </section>

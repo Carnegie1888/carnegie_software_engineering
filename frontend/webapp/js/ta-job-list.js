@@ -53,7 +53,7 @@
         state.loadError = false;
         state.approximateOnly = false;
         hideMessage();
-        listSummary.textContent = t("portal.taJobList.loadingPositions", "Loading positions...");
+        setListSummary(t("portal.taJobList.loadingPositions", "Loading positions..."));
         jobList.innerHTML = "";
 
         request(buildJobsUrl(normalizedKeyword), {
@@ -112,23 +112,23 @@
         jobList.innerHTML = "";
 
         if (state.loadError) {
-            listSummary.textContent = t("portal.dynamic.unableLoadJobs", "Unable to load jobs right now.");
+            setListSummary(t("portal.dynamic.unableLoadJobs", "Unable to load jobs right now."));
             jobList.appendChild(createEmptyState("load-error"));
             return;
         }
 
         if (!Array.isArray(jobs) || jobs.length === 0) {
             if (hasKeywordSearch && keyword) {
-                listSummary.textContent = t("portal.dynamic.noJobsForSearch", "No jobs match your keyword.");
+                setListSummary(t("portal.dynamic.noJobsForSearch", "No jobs match your keyword."));
                 jobList.appendChild(createEmptyState("no-match"));
             } else {
-                listSummary.textContent = t("portal.dynamic.noJobsAvailable", "No jobs available right now.");
+                setListSummary(t("portal.dynamic.noJobsAvailable", "No jobs available right now."));
                 jobList.appendChild(createEmptyState("no-jobs"));
             }
             return;
         }
 
-        listSummary.textContent = buildSummaryText(jobs.length, t("portal.dynamic.jobUnit", "job"));
+        setListSummary(buildSummaryText(jobs.length, t("portal.dynamic.jobUnit", "job")));
 
         if (state.approximateOnly && hasKeywordSearch) {
             showMessage(t("portal.dynamic.closestMatchesNotice", "No exact matches. Showing closest results."), "success");
@@ -278,6 +278,16 @@
                 ? t("portal.dynamic.searching", "Searching...")
                 : t("portal.common.search", "Search");
         }
+    }
+
+    function setListSummary(text) {
+        if (!state.lastKeyword) {
+            listSummary.hidden = true;
+            listSummary.textContent = "";
+            return;
+        }
+        listSummary.hidden = false;
+        listSummary.textContent = text;
     }
 
     function buildSummaryText(count, singularUnit) {

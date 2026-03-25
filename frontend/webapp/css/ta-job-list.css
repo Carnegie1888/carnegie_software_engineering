@@ -218,6 +218,14 @@
     line-height: 1.5;
 }
 
+.list-summary,
+.ai-module-list-summary {
+    margin: 16px 0 0;
+    color: #86868b;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
 .job-list {
     margin-top: 12px;
     display: flex;
@@ -266,8 +274,14 @@
     background: #34c759;
 }
 
-.job-card.status-closed .job-accent,
-.job-card.status-filled .job-accent,
+.job-card.status-closed .job-accent {
+    background: #ff453a;
+}
+
+.job-card.status-filled .job-accent {
+    background: #8b5cf6;
+}
+
 .job-card.status-unknown .job-accent {
     background: #8e8e93;
 }
@@ -353,8 +367,16 @@
     background: #edf7ed;
 }
 
-.job-status-chip.status-closed,
-.job-status-chip.status-filled,
+.job-status-chip.status-closed {
+    color: #b42318;
+    background: #fff2f2;
+}
+
+.job-status-chip.status-filled {
+    color: #6d28d9;
+    background: #f3e8ff;
+}
+
 .job-status-chip.status-unknown {
     color: #6e6e73;
     background: #ebebf0;

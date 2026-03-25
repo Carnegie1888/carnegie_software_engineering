@@ -41,19 +41,6 @@
                     </svg>
                     <span data-i18n="portal.nav.ta.status">My Applications</span>
                 </a>
-                <span class="portal-nav-link is-disabled" aria-disabled="true">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M12 3v3"></path>
-                        <path d="M12 18v3"></path>
-                        <path d="M3 12h3"></path>
-                        <path d="M18 12h3"></path>
-                        <path d="m6 6 2 2"></path>
-                        <path d="m16 16 2 2"></path>
-                        <path d="m6 18 2-2"></path>
-                        <path d="m16 8 2-2"></path>
-                    </svg>
-                    <span data-i18n="portal.nav.ta.aiMatch">AI Match</span>
-                </span>
                 <a class="portal-nav-link" href="<%= contextPath %>/jsp/ta/dashboard.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <circle cx="12" cy="8" r="3"></circle>
@@ -90,15 +77,20 @@
             <div class="portal-content">
                 <main class="job-detail-page">
                     <section class="detail-hero" aria-labelledby="job-detail-title">
-                        <h1 id="job-detail-title" class="portal-page-title" data-i18n="portal.taJobDetail.title">Job Detail</h1>
-                        <p class="subtitle">Review role requirements and submit your application.</p>
+                        <div class="detail-hero-copy">
+                            <h1 id="job-detail-title" class="portal-page-title" data-i18n="portal.taJobDetail.title">Job Detail</h1>
+                            <p class="subtitle" data-i18n="portal.taJobDetail.subtitle">Review role requirements and submit your application.</p>
+                        </div>
+                        <div class="detail-back-row">
+                            <a class="detail-back-link" href="<%= contextPath %>/jsp/ta/job-list.jsp" data-i18n="portal.taJobDetail.backToJobs">← Job list</a>
+                        </div>
                     </section>
 
                     <section class="detail-layout">
                         <article class="detail-card" aria-label="职位详细信息">
                             <header class="detail-header">
                                 <div class="detail-heading">
-                                    <h2 id="job-title">Loading job details...</h2>
+                                    <h2 id="job-title" data-i18n="portal.taJobDetail.loadingDetails">Loading job details...</h2>
                                     <p id="job-course">-</p>
                                 </div>
                                 <span id="job-status" class="status-pill status-open">OPEN</span>
@@ -108,63 +100,191 @@
 
                             <dl class="detail-grid">
                                 <div class="detail-item">
-                                    <dt>Module organizer</dt>
-                                    <dd id="job-mo-name">-</dd>
-                                </div>
-                                <div class="detail-item">
-                                    <dt>Positions</dt>
+                                    <dt data-i18n="common.positions">Positions</dt>
                                     <dd id="job-positions">-</dd>
                                 </div>
                                 <div class="detail-item">
-                                    <dt>Workload</dt>
+                                    <dt data-i18n="common.workload">Workload</dt>
                                     <dd id="job-workload">-</dd>
                                 </div>
                                 <div class="detail-item">
-                                    <dt>Salary</dt>
+                                    <dt data-i18n="common.salary">Salary</dt>
                                     <dd id="job-salary">-</dd>
                                 </div>
                                 <div class="detail-item">
-                                    <dt>Deadline</dt>
+                                    <dt data-i18n="common.deadline">Deadline</dt>
                                     <dd id="job-deadline">-</dd>
                                 </div>
                             </dl>
 
                             <section class="detail-block" aria-labelledby="description-title">
-                                <h3 id="description-title">Description</h3>
+                                <h3 id="description-title" data-i18n="common.description">Description</h3>
                                 <p id="job-description">-</p>
                             </section>
 
                             <section class="detail-block" aria-labelledby="skills-title">
-                                <h3 id="skills-title">Required skills</h3>
+                                <h3 id="skills-title" data-i18n="common.requiredSkills">Required skills</h3>
                                 <div id="job-skills" class="skills-wrap"></div>
                             </section>
+
+                            <section class="detail-apply-card" aria-labelledby="apply-action-title">
+                                <div class="detail-apply-copy">
+                                    <p class="eyebrow" data-i18n="common.application">Application</p>
+                                    <h3 id="apply-action-title" data-i18n="portal.taJobDetail.submitApplicationTitle">Submit your application</h3>
+                                    <p class="detail-apply-hint" data-i18n="portal.taJobDetail.applyProfileHint">
+                                        When you submit, your profile and cover letter will be sent to the MO together.
+                                    </p>
+                                </div>
+                                <div class="detail-apply-actions">
+                                    <button
+                                        type="button"
+                                        id="apply-open-btn"
+                                        class="primary-btn detail-apply-trigger"
+                                        aria-haspopup="dialog"
+                                        aria-expanded="false"
+                                        aria-controls="apply-modal-dialog"
+                                        data-i18n="portal.dynamic.applyNow"
+                                    >
+                                        Apply now
+                                    </button>
+                                    <div id="apply-inline-status" class="status-banner hidden" role="status" aria-live="polite"></div>
+                                </div>
+                            </section>
+                            <button
+                                type="button"
+                                id="detail-ai-match-btn"
+                                class="detail-ai-chat-button"
+                                aria-expanded="false"
+                                aria-controls="ai-match-modal-dialog"
+                                data-i18n-aria-label="portal.taJobDetail.aiChat"
+                                aria-label="Ask AI"
+                            >
+                                <span aria-hidden="true">AI</span>
+                            </button>
                         </article>
 
-                        <aside id="apply" class="apply-panel" aria-label="申请职位操作">
-                            <p class="eyebrow">Application</p>
-                            <h3>Submit your application</h3>
-                            <p class="apply-copy">Add a short cover letter to highlight your fit for this role.</p>
-
-                            <div id="apply-status-banner" class="status-banner hidden" role="status" aria-live="polite"></div>
-
-                            <form id="apply-form" class="apply-form" novalidate>
-                                <div class="field-group">
-                                    <label for="cover-letter">Cover letter</label>
-                                    <textarea
-                                        id="cover-letter"
-                                        name="coverLetter"
-                                        rows="7"
-                                        maxlength="2000"
-                                        placeholder="Briefly explain your relevant experience, strengths, and availability."
-                                    ></textarea>
+                        <div id="ai-match-modal" class="detail-card ai-match-inline-card hidden" aria-hidden="true">
+                            <div
+                                class="ai-match-inline-panel"
+                                id="ai-match-modal-dialog"
+                                aria-labelledby="ai-match-modal-title"
+                                aria-describedby="ai-match-modal-copy"
+                                tabindex="-1"
+                            >
+                                <div class="apply-modal-header ai-match-modal-header">
+                                    <div class="apply-modal-heading">
+                                        <p class="eyebrow" data-i18n="portal.nav.ta.aiMatch">AI Match</p>
+                                        <h2 id="ai-match-modal-title" data-i18n="portal.taJobDetail.aiMatchTitle">AI matching analysis</h2>
+                                        <p id="ai-match-modal-copy" class="apply-modal-copy" data-i18n="portal.taJobDetail.aiMatchSubtitle">
+                                            Analyze fit between this job and your profile using non-sensitive information.
+                                        </p>
+                                    </div>
+                                    <button type="button" class="apply-modal-close" id="ai-match-modal-close" data-i18n-aria-label="portal.taApplicationDetail.closeModal" aria-label="Close">
+                                        <span aria-hidden="true">×</span>
+                                    </button>
                                 </div>
-                                <button id="apply-submit-btn" class="primary-btn" type="submit">Apply for this job</button>
-                            </form>
-                        </aside>
+
+                                <div id="ai-match-status-banner" class="status-banner hidden" role="status" aria-live="polite"></div>
+
+                                <section id="ai-match-loading" class="ai-match-loading hidden" aria-live="polite">
+                                    <span class="ai-loading-spinner" aria-hidden="true"></span>
+                                    <p data-i18n="portal.dynamic.loadingAiAnalysis">Analyzing your profile and this job...</p>
+                                </section>
+
+                                <section id="ai-match-result" class="ai-match-result hidden" aria-live="polite">
+                                    <div class="ai-match-overview">
+                                        <article class="ai-match-overview-item">
+                                            <p data-i18n="portal.taJobDetail.aiMatchScoreLabel">Overall score</p>
+                                            <strong id="ai-match-score">-</strong>
+                                        </article>
+                                        <article class="ai-match-overview-item">
+                                            <p data-i18n="portal.taJobDetail.aiMatchLevelLabel">Level</p>
+                                            <strong id="ai-match-level">-</strong>
+                                        </article>
+                                    </div>
+
+                                    <article class="ai-match-block">
+                                        <h3 data-i18n="portal.taJobDetail.aiMatchSummaryLabel">Summary</h3>
+                                        <p id="ai-match-summary">-</p>
+                                    </article>
+
+                                    <article class="ai-match-block">
+                                        <h3 data-i18n="portal.taJobDetail.aiMatchStrengthsLabel">Strengths</h3>
+                                        <ul id="ai-match-strengths" class="ai-match-list"></ul>
+                                    </article>
+
+                                    <article class="ai-match-block">
+                                        <h3 data-i18n="portal.taJobDetail.aiMatchRisksLabel">Risks</h3>
+                                        <ul id="ai-match-risks" class="ai-match-list"></ul>
+                                    </article>
+
+                                    <article class="ai-match-block">
+                                        <h3 data-i18n="portal.taJobDetail.aiMatchSuggestionsLabel">Suggestions</h3>
+                                        <ul id="ai-match-suggestions" class="ai-match-list"></ul>
+                                    </article>
+
+                                    <article class="ai-match-block">
+                                        <h3 data-i18n="portal.taJobDetail.aiMatchJobEvidenceLabel">Job evidence</h3>
+                                        <ul id="ai-match-job-evidence" class="ai-match-list"></ul>
+                                    </article>
+
+                                    <article class="ai-match-block">
+                                        <h3 data-i18n="portal.taJobDetail.aiMatchProfileEvidenceLabel">Profile evidence</h3>
+                                        <ul id="ai-match-profile-evidence" class="ai-match-list"></ul>
+                                    </article>
+                                </section>
+
+                                <div class="ai-match-actions">
+                                    <button id="ai-match-refresh-btn" class="ghost-btn" type="button" data-i18n="portal.taJobDetail.aiMatchRefresh">Re-analyze</button>
+                                </div>
+                            </div>
+                        </div>
                     </section>
                 </main>
             </div>
         </section>
+    </div>
+
+    <div id="apply-modal" class="apply-modal hidden" aria-hidden="true">
+        <div class="apply-modal-backdrop" data-close-modal tabindex="-1" aria-hidden="true"></div>
+        <div
+            class="apply-modal-panel"
+            id="apply-modal-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="apply-modal-title"
+            aria-describedby="apply-modal-copy"
+            tabindex="-1"
+        >
+            <div class="apply-modal-header">
+                <div class="apply-modal-heading">
+                    <p class="eyebrow" data-i18n="common.application">Application</p>
+                    <h2 id="apply-modal-title" data-i18n="portal.taJobDetail.submitApplicationTitle">Submit your application</h2>
+                    <p id="apply-modal-copy" class="apply-modal-copy" data-i18n="portal.taJobDetail.applyProfileHint">
+                        When you submit, your profile and cover letter will be sent to the MO together.
+                    </p>
+                </div>
+                <button type="button" class="apply-modal-close" id="apply-modal-close" data-i18n-aria-label="portal.taApplicationDetail.closeModal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+
+            <div id="apply-status-banner" class="status-banner hidden" role="status" aria-live="polite"></div>
+
+            <form id="apply-form" class="apply-form" novalidate>
+                <div class="field-group">
+                    <label for="cover-letter" data-i18n="portal.taJobDetail.coverLetter">Cover letter</label>
+                    <textarea
+                        id="cover-letter"
+                        name="coverLetter"
+                        rows="7"
+                        maxlength="2000"
+                        placeholder="Briefly explain your relevant experience, strengths, and availability."
+                    ></textarea>
+                </div>
+                <button id="apply-submit-btn" class="primary-btn" type="submit" data-i18n="portal.taJobDetail.applyNow">Apply for this job</button>
+            </form>
+        </div>
     </div>
 
     <script>
