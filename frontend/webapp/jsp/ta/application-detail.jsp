@@ -36,19 +36,6 @@
                     </svg>
                     <span data-i18n="portal.nav.ta.status">My Applications</span>
                 </a>
-                <span class="portal-nav-link is-disabled" aria-disabled="true">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M12 3v3"></path>
-                        <path d="M12 18v3"></path>
-                        <path d="M3 12h3"></path>
-                        <path d="M18 12h3"></path>
-                        <path d="m6 6 2 2"></path>
-                        <path d="m16 16 2 2"></path>
-                        <path d="m6 18 2-2"></path>
-                        <path d="m16 8 2-2"></path>
-                    </svg>
-                    <span data-i18n="portal.nav.ta.aiMatch">AI Match</span>
-                </span>
                 <a class="portal-nav-link" href="<%= contextPath %>/jsp/ta/dashboard.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <circle cx="12" cy="8" r="3"></circle>
@@ -57,17 +44,6 @@
                     <span data-i18n="portal.nav.ta.profile">Profile</span>
                 </a>
             </nav>
-            <div class="portal-sidebar-bottom">
-                <a class="portal-nav-link" href="<%= contextPath %>/login.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M4 7h12"></path>
-                        <path d="m12 4 4 3-4 3"></path>
-                        <path d="M20 17H8"></path>
-                        <path d="m12 20-4-3 4-3"></path>
-                    </svg>
-                    <span data-i18n="portal.action.switchRoles">Switch Roles</span>
-                </a>
-            </div>
         </aside>
 
         <section class="portal-main">
@@ -110,21 +86,22 @@
                         <span class="application-status-chip status-pending" id="app-status-chip"><span class="application-status-text">—</span></span>
                     </section>
 
-                    <button type="button" class="job-teaser-card" id="job-teaser-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="job-modal-dialog">
-                        <div class="job-teaser-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                            </svg>
-                        </div>
-                        <div class="job-teaser-body">
-                            <p class="job-teaser-label" data-i18n="portal.taApplicationDetail.jobTeaserTitle">Applied position details</p>
-                            <div class="job-teaser-meta" id="job-teaser-meta"></div>
-                        </div>
-                        <span class="job-teaser-cta" data-i18n="portal.taApplicationDetail.viewDetailsCta">View details →</span>
-                    </button>
-
                     <div class="app-detail-layout">
+                        <button type="button" class="job-teaser-card" id="job-teaser-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="job-modal-dialog">
+                            <div class="job-teaser-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="job-teaser-body">
+                                <p class="job-teaser-label" data-i18n="portal.taApplicationDetail.jobTeaserTitle">Applied position details</p>
+                                <div class="job-teaser-meta" id="job-teaser-meta"></div>
+                            </div>
+                            <span class="job-teaser-cta" data-i18n="portal.taApplicationDetail.viewDetailsCta">View details →</span>
+                            <span class="job-teaser-arrow" aria-hidden="true">›</span>
+                        </button>
+
                         <article class="app-info-card app-info-card--cover" aria-labelledby="cover-title">
                             <div class="cover-card-head">
                                 <span class="cover-card-icon" aria-hidden="true">

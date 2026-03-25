@@ -266,3 +266,4 @@
 |`member3`|#49|`feat: 新增岗位匹配AI配置模板与调用客户端`|✅|`git commit -m "feat: 新增岗位匹配AI配置模板与调用客户端" --author="member3 <member3@edu.com>"`|
 |`member2`|#50|`feat: 新增TA与MO岗位匹配分析服务接口`|✅|`git commit -m "feat: 新增TA与MO岗位匹配分析服务接口" --author="member2 <member2@edu.com>"`|
 |`member5`|#51|`refactor: 精简TA申请状态页并移除无效AI导航`|✅|`git commit -m "refactor: 精简TA申请状态页并移除无效AI导航" --author="member5 <member5@edu.com>"`|
+|`member5`|#52|`refactor: 调整TA申请详情布局并移除侧栏切换入口`|✅|`git commit -m "refactor: 调整TA申请详情布局并移除侧栏切换入口" --author="member5 <member5@edu.com>"`|

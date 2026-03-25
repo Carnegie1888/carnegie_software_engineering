@@ -107,7 +107,7 @@
     gap: 14px;
     min-height: 104px;
     padding: 20px 22px;
-    margin-bottom: 20px;
+    margin-bottom: 0;
     text-align: left;
     cursor: pointer;
     border: 1px solid rgba(0, 0, 0, 0.06);
@@ -168,6 +168,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    white-space: nowrap;
 }
 
 .job-teaser-meta-icon {
@@ -187,12 +188,23 @@
 }
 
 .job-teaser-cta {
-    font-size: 16px;
-    font-weight: 600;
-    color: #0071e3;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+}
+
+.job-teaser-arrow {
+    font-size: 22px;
+    line-height: 1;
+    color: #b0b0b5;
     flex-shrink: 0;
-    opacity: 1;
-    transform: none;
+    align-self: center;
 }
 
 .app-detail-layout {
@@ -349,8 +361,76 @@
     .job-teaser-card,
     .app-info-card--cover,
     .profile-jump-card {
-        height: 104px;
+        min-height: 104px;
         box-sizing: border-box;
+    }
+}
+
+@media (min-width: 900px) {
+    .app-detail-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+            "teaser cover"
+            "profile cover"
+            "note note";
+        column-gap: 14px;
+        row-gap: 14px;
+        align-items: stretch;
+    }
+
+    .app-detail-layout > .job-teaser-card {
+        grid-area: teaser;
+        align-items: flex-start;
+    }
+
+    .app-detail-layout > .profile-jump-card {
+        grid-area: profile;
+    }
+
+    .app-detail-layout > .job-teaser-card .job-teaser-meta {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 6px;
+        row-gap: 8px;
+        align-items: center;
+    }
+
+    .app-detail-layout > .job-teaser-card .job-teaser-meta > span:nth-child(2) {
+        margin-left: -2px;
+    }
+
+    .app-detail-layout > .job-teaser-card .job-teaser-meta > span:nth-child(3) {
+        flex-basis: 100%;
+    }
+
+    .app-detail-layout > .app-info-card--cover {
+        grid-area: cover;
+        height: auto;
+        min-height: 0;
+        align-self: stretch;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 12px;
+    }
+
+    .app-detail-layout > .app-info-card--cover .cover-card-head {
+        min-width: 0;
+    }
+
+    .app-detail-layout > .app-info-card--cover .cover-body {
+        width: 100%;
+        flex: 1;
+        display: block;
+        -webkit-line-clamp: unset;
+        -webkit-box-orient: initial;
+        overflow: hidden;
+    }
+
+    .app-detail-layout > .profile-sync-note {
+        grid-area: note;
     }
 }
 

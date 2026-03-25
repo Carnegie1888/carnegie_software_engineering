@@ -297,18 +297,7 @@
             "portal.taApplicationDetail.profileSyncNote",
             "Your profile and resume were sent with this application to the MO. You can update your profile after submission, and changes will sync to the MO view."
         );
-        var profileUpdatedAt = detail ? safeText(detail.profileUpdatedAt, "") : "";
-        if (!profileUpdatedAt) {
-            noteText.textContent = baseNote;
-            return;
-        }
-
-        noteText.textContent =
-            baseNote +
-            " " +
-            t("portal.taApplicationDetail.profileSyncUpdatedPrefix", "Latest profile sync:") +
-            " " +
-            formatDisplayDateTime(profileUpdatedAt);
+        noteText.textContent = baseNote;
     }
 
     function renderJobTeaser(job) {
