@@ -150,18 +150,6 @@
                             </form>
                         </section>
 
-                        <aside class="side-card" aria-label="我的职位列表">
-                            <div class="side-header">
-                                <div>
-                                    <p class="side-card-label">My postings</p>
-                                    <h3>Published jobs</h3>
-                                </div>
-                                <button id="refresh-jobs-btn" class="inline-btn" type="button">Refresh</button>
-                            </div>
-
-                            <p id="jobs-summary" class="jobs-summary">Loading your jobs...</p>
-                            <div id="jobs-list" class="jobs-list" aria-live="polite"></div>
-                        </aside>
                     </section>
                 </main>
             </div>

@@ -1,16 +1,12 @@
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
-    var currentUserId = typeof window.APP_CURRENT_USER_ID === "string" ? window.APP_CURRENT_USER_ID.trim() : "";
 
     var form = document.getElementById("job-create-form");
     var publishButton = document.getElementById("publish-btn");
     var resetButton = document.getElementById("reset-btn");
-    var refreshJobsButton = document.getElementById("refresh-jobs-btn");
-    var jobsListNode = document.getElementById("jobs-list");
-    var jobsSummaryNode = document.getElementById("jobs-summary");
     var messageNode = document.getElementById("form-message");
 
-    if (!form || !publishButton || !jobsListNode || !jobsSummaryNode) {
+    if (!form || !publishButton) {
         return;
     }
 
@@ -27,8 +23,7 @@
     };
 
     var state = {
-        submitting: false,
-        loadingJobs: false
+        submitting: false
     };
 
     form.addEventListener("submit", function (event) {
@@ -39,14 +34,6 @@
     form.addEventListener("reset", function () {
         hideMessage();
     });
-
-    if (refreshJobsButton) {
-        refreshJobsButton.addEventListener("click", function () {
-            loadMyJobs();
-        });
-    }
-
-    loadMyJobs();
 
     function submitCreate() {
         if (state.submitting) {
@@ -115,7 +102,6 @@
                 showMessage("Job posted successfully.", "success");
                 form.reset();
                 fields.positions.value = "1";
-                loadMyJobs();
             })
             .catch(function () {
                 showMessage("Network error while posting job.", "error");
@@ -123,107 +109,6 @@
             .finally(function () {
                 setSubmitting(false);
             });
-    }
-
-    function loadMyJobs() {
-        if (state.loadingJobs) {
-            return;
-        }
-
-        setLoadingJobs(true);
-        jobsListNode.innerHTML = "";
-        jobsSummaryNode.textContent = "Loading your jobs...";
-
-        var url = contextPath + "/jobs";
-        if (currentUserId) {
-            url += "?moId=" + encodeURIComponent(currentUserId);
-        }
-
-        request(url, {
-            method: "GET",
-            headers: {
-                "X-Requested-With": "XMLHttpRequest"
-            }
-        })
-            .then(function (result) {
-                var response = result.response;
-                var payload = result.payload;
-
-                if (response.status === 401) {
-                    handleUnauthorized();
-                    return;
-                }
-
-                if (!response.ok || !payload || payload.success !== true) {
-                    jobsSummaryNode.textContent = "Unable to load postings right now.";
-                    return;
-                }
-
-                var jobs = getPayloadDataArray(payload, "jobs");
-                renderJobs(jobs);
-            })
-            .catch(function () {
-                jobsSummaryNode.textContent = "Unable to load postings right now.";
-            })
-            .finally(function () {
-                setLoadingJobs(false);
-            });
-    }
-
-    function renderJobs(jobs) {
-        jobsListNode.innerHTML = "";
-        if (!Array.isArray(jobs) || jobs.length === 0) {
-            jobsSummaryNode.textContent = "No jobs posted yet.";
-            jobsListNode.appendChild(createEmptyState());
-            return;
-        }
-
-        jobsSummaryNode.textContent = "You have posted " + jobs.length + " job" + (jobs.length > 1 ? "s" : "") + ".";
-
-        jobs.forEach(function (job) {
-            jobsListNode.appendChild(createJobItem(job));
-        });
-    }
-
-    function createJobItem(job) {
-        var item = document.createElement("article");
-        item.className = "job-item";
-
-        var jobId = safeText(job.jobId, "");
-        var status = safeText(job.status, "OPEN").toUpperCase();
-        var courseText = safeText(job.courseCode, "-");
-        if (job.courseName) {
-            courseText += " · " + safeText(job.courseName);
-        }
-        var reviewHref = contextPath + "/jsp/mo/applicant-selection.jsp";
-        if (jobId) {
-            reviewHref += "?jobId=" + encodeURIComponent(jobId);
-        }
-
-        item.innerHTML =
-            "<header class=\"job-item-header\">" +
-                "<h4>" + escapeHtml(safeText(job.title, "Untitled position")) + "</h4>" +
-                "<span class=\"status-pill status-" + escapeHtml(status.toLowerCase()) + "\">" + escapeHtml(status) + "</span>" +
-            "</header>" +
-            "<p class=\"job-item-course\">" + escapeHtml(courseText) + "</p>" +
-            "<div class=\"job-item-meta\">" +
-                "<span>Positions: " + escapeHtml(String(job.positions || 0)) + "</span>" +
-                "<span>Deadline: " + escapeHtml(formatDateTime(job.deadline)) + "</span>" +
-            "</div>" +
-            "<div class=\"job-item-actions\">" +
-                "<a class=\"ghost-link\" href=\"" + escapeHtml(reviewHref) + "\">Review applicants</a>" +
-            "</div>";
-
-        return item;
-    }
-
-    function createEmptyState() {
-        var empty = document.createElement("div");
-        empty.className = "empty-state";
-        empty.innerHTML =
-            "<p class=\"empty-title\">No postings yet</p>" +
-            "<p class=\"empty-copy\">Use the form to publish your first TA position.</p>";
-        return empty;
     }
 
     function validateForm() {
@@ -333,13 +218,6 @@
         publishButton.textContent = submitting ? "Publishing..." : "Publish job";
     }
 
-    function setLoadingJobs(loading) {
-        state.loadingJobs = loading;
-        if (refreshJobsButton) {
-            refreshJobsButton.disabled = loading;
-        }
-    }
-
     function showMessage(message, type) {
         if (!messageNode) {
             return;
@@ -378,19 +256,6 @@
 
     function parseJson(text) {
         return JSON.parse(text);
-    }
-
-    function getPayloadDataArray(payload, key) {
-        if (!payload || typeof payload !== "object") {
-            return [];
-        }
-        if (payload.data && Array.isArray(payload.data[key])) {
-            return payload.data[key];
-        }
-        if (Array.isArray(payload[key])) {
-            return payload[key];
-        }
-        return [];
     }
 
     function normalizeSkillsForSubmit(value) {
@@ -448,44 +313,4 @@
         return text;
     }
 
-    function formatDateTime(value) {
-        if (typeof value !== "string" || !value.trim()) {
-            return "-";
-        }
-        var date = new Date(value);
-        if (isNaN(date.getTime())) {
-            return value;
-        }
-        return date.getFullYear() + "-" +
-            pad2(date.getMonth() + 1) + "-" +
-            pad2(date.getDate()) + " " +
-            pad2(date.getHours()) + ":" +
-            pad2(date.getMinutes());
-    }
-
-    function pad2(value) {
-        return value < 10 ? "0" + value : String(value);
-    }
-
-    function safeText(value, fallback) {
-        if (typeof value === "string" && value.trim()) {
-            return value.trim();
-        }
-        if (typeof value === "number") {
-            return String(value);
-        }
-        return typeof fallback === "string" ? fallback : "";
-    }
-
-    function escapeHtml(value) {
-        if (typeof value !== "string") {
-            return "";
-        }
-        return value
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;");
-    }
 })();

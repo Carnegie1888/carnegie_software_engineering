@@ -364,6 +364,35 @@
     gap: 10px;
 }
 
+.review-actions--staged {
+    flex-wrap: wrap;
+}
+
+.stage-btn {
+    min-height: 40px;
+    border: 1px solid rgba(0, 113, 227, 0.35);
+    border-radius: 999px;
+    font-size: 14px;
+    line-height: 1;
+    font-weight: 600;
+    padding: 0 14px;
+    cursor: pointer;
+    background: #eaf4ff;
+    color: #0071e3;
+    transition: transform 0.2s, background-color 0.2s, opacity 0.2s;
+}
+
+.stage-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: #dbeaff;
+}
+
+.stage-btn:disabled {
+    opacity: 0.72;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .accept-btn,
 .reject-btn {
     min-height: 40px;

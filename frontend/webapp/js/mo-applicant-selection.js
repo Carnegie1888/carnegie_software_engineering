@@ -305,6 +305,7 @@
 
         var applicationId = safeText(application.applicationId, "");
         var status = safeText(application.status, "PENDING").toUpperCase();
+        var progressStage = safeText(application.progressStage, "SUBMITTED").toUpperCase();
         var statusClass = getStatusClass(status);
         var reviewingThis = state.reviewingId && state.reviewingId === applicationId;
         var coverLetter = safeText(application.coverLetter, "");
@@ -322,40 +323,107 @@
                 "<p><span>Job</span><strong>" + escapeHtml(safeText(application.jobTitle, "Untitled position")) + "</strong></p>" +
                 "<p><span>Course</span><strong>" + escapeHtml(safeText(application.courseCode, "-")) + "</strong></p>" +
                 "<p><span>Applied at</span><strong>" + escapeHtml(formatDateTime(application.appliedAt)) + "</strong></p>" +
+                "<p><span>Progress</span><strong>" + escapeHtml(progressStage) + "</strong></p>" +
             "</div>" +
             buildDetailBlock(detail, applicationId) +
             "<div class=\"cover-letter-block\">" +
                 "<p class=\"cover-letter-label\">Cover letter</p>" +
                 "<p class=\"cover-letter-content\">" + escapeHtml(coverLetterText) + "</p>" +
             "</div>" +
-            "<div class=\"review-actions\">" +
-                (status === "PENDING"
-                    ? "<button class=\"accept-btn\" type=\"button\"" + (reviewingThis ? " disabled" : "") +
-                        " data-action=\"accept\" data-id=\"" + escapeHtml(applicationId) + "\">" +
-                        (reviewingThis ? "Processing..." : "Accept") + "</button>" +
-                      "<button class=\"reject-btn\" type=\"button\"" + (reviewingThis ? " disabled" : "") +
-                        " data-action=\"reject\" data-id=\"" + escapeHtml(applicationId) + "\">" +
-                        (reviewingThis ? "Processing..." : "Reject") + "</button>"
-                    : "<p class=\"review-note\">This application has already been reviewed.</p>") +
-            "</div>";
+            buildReviewActionsHtml(status, progressStage, applicationId, reviewingThis);
 
         if (status === "PENDING" && applicationId) {
-            var acceptButton = card.querySelector("button[data-action=\"accept\"]");
-            var rejectButton = card.querySelector("button[data-action=\"reject\"]");
-
-            if (acceptButton) {
-                acceptButton.addEventListener("click", function () {
-                    handleReview(applicationId, "accept");
+            card.querySelectorAll("button[data-action]").forEach(function (btn) {
+                var action = btn.getAttribute("data-action");
+                btn.addEventListener("click", function () {
+                    if (action === "start_review" || action === "schedule_interview") {
+                        handleProgressAction(applicationId, action);
+                    } else if (action === "accept" || action === "reject") {
+                        handleReview(applicationId, action);
+                    }
                 });
-            }
-            if (rejectButton) {
-                rejectButton.addEventListener("click", function () {
-                    handleReview(applicationId, "reject");
-                });
-            }
+            });
         }
 
         return card;
+    }
+
+    function buildReviewActionsHtml(status, progressStage, applicationId, reviewingThis) {
+        if (status !== "PENDING") {
+            return "<div class=\"review-actions\"><p class=\"review-note\">This application has already been reviewed.</p></div>";
+        }
+        var dis = reviewingThis ? " disabled" : "";
+        var proc = reviewingThis ? "Processing..." : "";
+        var startLabel = reviewingThis ? proc : "Start review";
+        var schedLabel = reviewingThis ? proc : "Schedule interview";
+        var acceptLabel = reviewingThis ? proc : "Accept";
+        var rejectLabel = reviewingThis ? proc : "Reject";
+
+        var row = "<div class=\"review-actions review-actions--staged\">";
+        if (progressStage === "SUBMITTED") {
+            row += "<button class=\"stage-btn\" type=\"button\" data-action=\"start_review\" data-id=\"" +
+                escapeHtml(applicationId) + "\"" + dis + ">" + escapeHtml(startLabel) + "</button>";
+        } else if (progressStage === "UNDER_REVIEW") {
+            row += "<button class=\"stage-btn\" type=\"button\" data-action=\"schedule_interview\" data-id=\"" +
+                escapeHtml(applicationId) + "\"" + dis + ">" + escapeHtml(schedLabel) + "</button>";
+        }
+        row += "<button class=\"accept-btn\" type=\"button\" data-action=\"accept\" data-id=\"" +
+            escapeHtml(applicationId) + "\"" + dis + ">" + escapeHtml(acceptLabel) + "</button>" +
+            "<button class=\"reject-btn\" type=\"button\" data-action=\"reject\" data-id=\"" +
+            escapeHtml(applicationId) + "\"" + dis + ">" + escapeHtml(rejectLabel) + "</button>" +
+            "</div>";
+        return row;
+    }
+
+    function handleProgressAction(applicationId, action) {
+        if (!applicationId || !action || state.reviewingId) {
+            return;
+        }
+
+        state.reviewingId = applicationId;
+        renderList(state.applications);
+        hideMessage();
+
+        request(contextPath + "/apply?id=" + encodeURIComponent(applicationId) + "&action=" + encodeURIComponent(action), {
+            method: "PUT",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+            .then(function (result) {
+                var response = result.response;
+                var payload = result.payload;
+
+                if (response.status === 401) {
+                    handleUnauthorized();
+                    return false;
+                }
+
+                if (!response.ok || !payload || payload.success !== true) {
+                    var errorMessage = "Unable to update progress.";
+                    if (payload && typeof payload.message === "string" && payload.message.trim()) {
+                        errorMessage = payload.message.trim();
+                    }
+                    showMessage(errorMessage, "error");
+                    return false;
+                }
+
+                showMessage(action === "start_review" ? "Review started." : "Interview scheduled.", "success");
+                return true;
+            })
+            .then(function (shouldReload) {
+                if (shouldReload) {
+                    return loadApplications();
+                }
+                return null;
+            })
+            .catch(function () {
+                showMessage("Network error while updating progress.", "error");
+            })
+            .finally(function () {
+                state.reviewingId = "";
+                renderList(state.applications);
+            });
     }
 
     function buildDetailBlock(detail, applicationId) {
