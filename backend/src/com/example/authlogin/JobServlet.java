@@ -4,6 +4,7 @@ import com.example.authlogin.dao.ApplicationDao;
 import com.example.authlogin.dao.JobDao;
 import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
+import com.example.authlogin.util.FuzzySearchUtil;
 import com.example.authlogin.util.JsonResponseUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,7 +14,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -113,15 +113,8 @@ public class JobServlet extends HttpServlet {
                         .collect(Collectors.toList());
             }
 
-            if (keyword != null && !keyword.trim().isEmpty()) {
-                String normalizedKeyword = keyword.trim().toLowerCase();
-                jobs = jobs.stream()
-                        .filter(j -> j.getTitle().toLowerCase().contains(normalizedKeyword) ||
-                                j.getCourseCode().toLowerCase().contains(normalizedKeyword) ||
-                                (j.getCourseName() != null && j.getCourseName().toLowerCase().contains(normalizedKeyword)) ||
-                                (j.getDescription() != null && j.getDescription().toLowerCase().contains(normalizedKeyword)))
-                        .collect(Collectors.toList());
-            }
+            FuzzySearchUtil.SearchOutcome<Job> searchOutcome = jobDao.searchWithMetadata(keyword, jobs);
+            jobs = searchOutcome.getItems();
 
             // 构建JSON响应
             JsonResponseUtil.writeJsonResponse(
@@ -129,7 +122,7 @@ public class JobServlet extends HttpServlet {
                     200,
                     true,
                     "Jobs retrieved successfully",
-                    JsonResponseUtil.rawObject(buildJobListJson(jobs))
+                    JsonResponseUtil.rawObject(buildJobListJson(jobs, searchOutcome))
             );
 
         } catch (Exception e) {
@@ -640,7 +633,7 @@ public class JobServlet extends HttpServlet {
     /**
      * 构建职位列表JSON
      */
-    private String buildJobListJson(List<Job> jobs) {
+    private String buildJobListJson(List<Job> jobs, FuzzySearchUtil.SearchOutcome<Job> searchOutcome) {
         StringBuilder json = new StringBuilder();
         json.append("\"jobs\": [");
 
@@ -654,7 +647,10 @@ public class JobServlet extends HttpServlet {
         }
 
         json.append("], ");
-        json.append("\"total\": ").append(jobs.size());
+        json.append("\"total\": ").append(jobs.size()).append(", ");
+        json.append("\"keywordApplied\": ").append(searchOutcome != null && searchOutcome.isKeywordApplied()).append(", ");
+        json.append("\"approximateOnly\": ").append(searchOutcome != null && searchOutcome.isApproximateOnly()).append(", ");
+        json.append("\"hasMatches\": ").append(searchOutcome != null && searchOutcome.hasMatches());
         return json.toString();
     }
 

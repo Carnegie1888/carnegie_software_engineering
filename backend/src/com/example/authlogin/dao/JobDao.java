@@ -1,6 +1,7 @@
 package com.example.authlogin.dao;
 
 import com.example.authlogin.model.Job;
+import com.example.authlogin.util.FuzzySearchUtil;
 import com.example.authlogin.util.StoragePaths;
 
 import java.io.*;
@@ -284,16 +285,30 @@ public class JobDao {
      * 根据关键词搜索职位
      */
     public List<Job> search(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return findAll();
-        }
+        return searchWithMetadata(keyword, readAllJobs()).getItems();
+    }
 
-        String lowerKeyword = keyword.toLowerCase();
-        return readAllJobs().stream()
-                .filter(j -> j.getTitle().toLowerCase().contains(lowerKeyword) ||
-                        j.getCourseCode().toLowerCase().contains(lowerKeyword) ||
-                        (j.getCourseName() != null && j.getCourseName().toLowerCase().contains(lowerKeyword)) ||
-                        (j.getDescription() != null && j.getDescription().toLowerCase().contains(lowerKeyword)))
-                .collect(Collectors.toList());
+    /**
+     * 在给定候选集合中执行统一 fuzzy 搜索，并返回匹配元信息。
+     */
+    public FuzzySearchUtil.SearchOutcome<Job> searchWithMetadata(String keyword, List<Job> baseJobs) {
+        List<Job> safeBase = baseJobs == null ? readAllJobs() : new ArrayList<>(baseJobs);
+        return FuzzySearchUtil.search(safeBase, keyword, this::buildSearchFields);
+    }
+
+    private List<String> buildSearchFields(Job job) {
+        List<String> fields = new ArrayList<>();
+        if (job == null) {
+            return fields;
+        }
+        fields.add(job.getTitle());
+        fields.add(job.getCourseCode());
+        fields.add(job.getCourseName());
+        fields.add(job.getDescription());
+        fields.add(job.getMoName());
+        if (job.getRequiredSkills() != null && !job.getRequiredSkills().isEmpty()) {
+            fields.add(String.join(" ", job.getRequiredSkills()));
+        }
+        return fields;
     }
 }

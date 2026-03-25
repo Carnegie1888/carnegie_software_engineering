@@ -7,6 +7,7 @@ import com.example.authlogin.model.Applicant;
 import com.example.authlogin.model.Application;
 import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
+import com.example.authlogin.util.FuzzySearchUtil;
 import com.example.authlogin.util.JsonResponseUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -16,8 +17,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -76,6 +77,7 @@ public class ApplyServlet extends HttpServlet {
             String jobId = request.getParameter("jobId");
             String moId = request.getParameter("moId");
             String status = request.getParameter("status");
+            String keyword = request.getParameter("keyword");
 
             // 如果指定了applicationId，返回单个申请
             if (applicationId != null && !applicationId.trim().isEmpty()) {
@@ -140,12 +142,19 @@ public class ApplyServlet extends HttpServlet {
                 }
             }
 
+            FuzzySearchUtil.SearchOutcome<Application> searchOutcome = FuzzySearchUtil.search(
+                    applications,
+                    keyword,
+                    application -> buildSearchFieldsForRole(application, currentUser.getRole())
+            );
+            applications = searchOutcome.getItems();
+
             JsonResponseUtil.writeJsonResponse(
                     response,
                     200,
                     true,
                     "Applications retrieved successfully",
-                    buildApplicationListPayload(applications)
+                    buildApplicationListPayload(applications, searchOutcome)
             );
 
         } catch (Exception e) {
@@ -612,43 +621,50 @@ public class ApplyServlet extends HttpServlet {
     }
 
     /**
-     * 构建单个申请JSON
-     */
-    private String buildApplicationJson(Application app) {
-        StringBuilder json = new StringBuilder();
-        json.append("\"applicationId\": \"").append(escapeJson(app.getApplicationId())).append("\", ");
-        json.append("\"jobId\": \"").append(escapeJson(app.getJobId())).append("\", ");
-        json.append("\"applicantId\": \"").append(escapeJson(app.getApplicantId())).append("\", ");
-        json.append("\"applicantName\": \"").append(escapeJson(app.getApplicantName())).append("\", ");
-        json.append("\"applicantEmail\": \"").append(escapeJson(app.getApplicantEmail())).append("\", ");
-        json.append("\"jobTitle\": \"").append(escapeJson(app.getJobTitle() != null ? app.getJobTitle() : "")).append("\", ");
-        json.append("\"courseCode\": \"").append(escapeJson(app.getCourseCode() != null ? app.getCourseCode() : "")).append("\", ");
-        json.append("\"moId\": \"").append(escapeJson(app.getMoId() != null ? app.getMoId() : "")).append("\", ");
-        json.append("\"moName\": \"").append(escapeJson(app.getMoName() != null ? app.getMoName() : "")).append("\", ");
-        json.append("\"status\": \"").append(app.getStatus() != null ? app.getStatus().name() : "PENDING").append("\", ");
-        json.append("\"coverLetter\": \"").append(escapeJson(app.getCoverLetter() != null ? app.getCoverLetter() : "")).append("\", ");
-        json.append("\"appliedAt\": \"").append(app.getAppliedAt() != null ? app.getAppliedAt().toString() : "").append("\", ");
-        json.append("\"updatedAt\": \"").append(app.getUpdatedAt() != null ? app.getUpdatedAt().toString() : "").append("\", ");
-        json.append("\"reviewedAt\": \"").append(app.getReviewedAt() != null ? app.getReviewedAt().toString() : "").append("\", ");
-        json.append("\"progressStage\": \"").append(app.getProgressStage() != null ? app.getProgressStage().name() : "SUBMITTED").append("\", ");
-        json.append("\"reviewStartedAt\": \"").append(app.getReviewStartedAt() != null ? app.getReviewStartedAt().toString() : "").append("\", ");
-        json.append("\"interviewScheduledAt\": \"").append(app.getInterviewScheduledAt() != null ? app.getInterviewScheduledAt().toString() : "").append("\", ");
-        json.append("\"finalDecisionAt\": \"").append(app.getFinalDecisionAt() != null ? app.getFinalDecisionAt().toString() : "").append("\"");
-        return json.toString();
-    }
-
-    /**
      * 构建申请列表JSON
      */
-    private java.util.Map<String, Object> buildApplicationListPayload(List<Application> applications) {
+    private java.util.Map<String, Object> buildApplicationListPayload(List<Application> applications,
+                                                                      FuzzySearchUtil.SearchOutcome<Application> searchOutcome) {
         java.util.List<java.util.Map<String, Object>> items = new java.util.ArrayList<>();
         for (Application application : applications) {
             items.add(buildApplicationPayload(application));
         }
         return JsonResponseUtil.objectMap(
                 "applications", items,
-                "total", applications.size()
+                "total", applications.size(),
+                "keywordApplied", searchOutcome != null && searchOutcome.isKeywordApplied(),
+                "approximateOnly", searchOutcome != null && searchOutcome.isApproximateOnly(),
+                "hasMatches", searchOutcome != null && searchOutcome.hasMatches()
         );
+    }
+
+    private List<String> buildSearchFieldsForRole(Application application, User.Role role) {
+        List<String> fields = new ArrayList<>();
+        if (application == null || role == null) {
+            return fields;
+        }
+
+        if (role == User.Role.TA) {
+            fields.add(application.getJobTitle());
+            fields.add(application.getCourseCode());
+            fields.add(application.getMoName());
+            return fields;
+        }
+
+        if (role == User.Role.MO) {
+            fields.add(application.getApplicantName());
+            fields.add(application.getApplicantEmail());
+            fields.add(application.getJobTitle());
+            fields.add(application.getCourseCode());
+            return fields;
+        }
+
+        fields.add(application.getApplicantName());
+        fields.add(application.getApplicantEmail());
+        fields.add(application.getJobTitle());
+        fields.add(application.getCourseCode());
+        fields.add(application.getMoName());
+        return fields;
     }
 
     private java.util.Map<String, Object> buildApplicationPayload(Application app) {
@@ -676,17 +692,5 @@ public class ApplyServlet extends HttpServlet {
 
     private String safeText(String value) {
         return value != null ? value : "";
-    }
-
-    /**
-     * JSON字符串转义
-     */
-    private String escapeJson(String str) {
-        if (str == null) return "";
-        return str.replace("\\", "\\\\")
-                  .replace("\"", "\\\"")
-                  .replace("\n", "\\n")
-                  .replace("\r", "\\r")
-                  .replace("\t", "\\t");
     }
 }
