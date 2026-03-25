@@ -236,13 +236,6 @@
     background: #b42332;
 }
 
-.list-summary {
-    margin: 16px 0 0;
-    color: #3a3a3c;
-    font-size: 14px;
-    line-height: 1.5;
-}
-
 .match-list {
     margin-top: 12px;
     display: flex;

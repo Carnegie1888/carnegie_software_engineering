@@ -1,6 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     String contextPath = request.getContextPath();
+    if (!response.isCommitted()) {
+        response.sendRedirect(contextPath + "/jsp/mo/dashboard.jsp");
+        return;
+    }
+
     String userId = "";
     Object userIdObj = session.getAttribute("userId");
     if (userIdObj != null) {

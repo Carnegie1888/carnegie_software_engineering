@@ -41,15 +41,6 @@
                     </svg>
                     <span data-i18n="portal.nav.mo.postJob">Post Job</span>
                 </a>
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/ai-skill-match.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M4 19h16"></path>
-                        <path d="M7 16V8"></path>
-                        <path d="M12 16V5"></path>
-                        <path d="M17 16v-6"></path>
-                    </svg>
-                    <span data-i18n="portal.nav.mo.aiMatch">AI Match</span>
-                </a>
             </nav>
         </aside>
 
@@ -100,25 +91,6 @@
                         </form>
 
                         <div id="selection-message" class="form-message hidden" role="status" aria-live="polite"></div>
-
-                        <section class="summary-grid" aria-label="申请统计">
-                            <article class="summary-card">
-                                <p>Total</p>
-                                <strong id="summary-total">0</strong>
-                            </article>
-                            <article class="summary-card pending">
-                                <p>Pending</p>
-                                <strong id="summary-pending">0</strong>
-                            </article>
-                            <article class="summary-card accepted">
-                                <p>Accepted</p>
-                                <strong id="summary-accepted">0</strong>
-                            </article>
-                            <article class="summary-card rejected">
-                                <p>Rejected</p>
-                                <strong id="summary-rejected">0</strong>
-                            </article>
-                        </section>
 
                         <section id="applicant-detail-panel" class="selection-detail-panel hidden" aria-label="申请人详细信息">
                             <header class="selection-detail-header">
@@ -174,7 +146,7 @@
                             </article>
                         </section>
 
-                        <p id="selection-list-summary" class="list-summary" data-i18n="portal.moApplicantSelection.loadingApplications">Loading applications...</p>
+                        <p id="selection-list-summary" class="list-summary" data-i18n="portal.moApplicantSelection.loadingApplications" hidden>Loading applications...</p>
                         <div id="applications-list" class="applications-list" aria-live="polite"></div>
                     </section>
                 </main>

@@ -21,10 +21,27 @@
         workload: document.getElementById("workload"),
         salary: document.getElementById("salary")
     };
+    var orderedFieldKeys = [
+        "title",
+        "courseCode",
+        "courseName",
+        "description",
+        "requiredSkills",
+        "positions",
+        "deadline",
+        "workload",
+        "salary"
+    ];
 
     var state = {
         submitting: false
     };
+    var fieldValidationState = {
+        touchedByKey: {},
+        feedbackByKey: {}
+    };
+
+    initializeRealtimeValidation();
 
     form.addEventListener("submit", function (event) {
         event.preventDefault();
@@ -33,6 +50,8 @@
 
     form.addEventListener("reset", function () {
         hideMessage();
+        clearAllFieldValidation();
+        resetFieldTouchedState();
     });
 
     function submitCreate() {
@@ -99,9 +118,9 @@
                     return;
                 }
 
-                showMessage("Job posted successfully.", "success");
                 form.reset();
                 fields.positions.value = "1";
+                showMessage("Job posted successfully.", "success");
             })
             .catch(function () {
                 showMessage("Network error while posting job.", "error");
@@ -112,101 +131,323 @@
     }
 
     function validateForm() {
-        var title = fields.title.value.trim();
-        var courseCode = fields.courseCode.value.trim();
-        var courseName = fields.courseName.value.trim();
-        var description = fields.description.value.trim();
-        var requiredSkills = fields.requiredSkills.value.trim();
-        var positionsText = fields.positions.value.trim();
-        var workload = fields.workload.value.trim();
-        var salary = fields.salary.value.trim();
-        var deadlineText = fields.deadline.value.trim();
+        var firstError = null;
 
-        if (!title) {
-            return buildValidationError("Job title is required.", fields.title);
-        }
-        if (title.length > 200) {
-            return buildValidationError("Job title must be 200 characters or fewer.", fields.title);
-        }
-        if (containsControlChars(title) || containsDangerousMarkup(title)) {
-            return buildValidationError("Job title contains unsupported characters.", fields.title);
-        }
-
-        if (!courseCode) {
-            return buildValidationError("Course code is required.", fields.courseCode);
-        }
-        if (courseCode.length > 50) {
-            return buildValidationError("Course code must be 50 characters or fewer.", fields.courseCode);
-        }
-        if (!/^[A-Za-z0-9][A-Za-z0-9 _\-/.]{0,49}$/.test(courseCode)) {
-            return buildValidationError("Course code contains unsupported characters.", fields.courseCode);
-        }
-
-        if (courseName.length > 120) {
-            return buildValidationError("Course name must be 120 characters or fewer.", fields.courseName);
-        }
-        if (courseName && (containsControlChars(courseName) || containsDangerousMarkup(courseName))) {
-            return buildValidationError("Course name contains unsupported characters.", fields.courseName);
-        }
-
-        if (description.length > 4000) {
-            return buildValidationError("Description must be 4000 characters or fewer.", fields.description);
-        }
-        if (description && (containsControlChars(description) || containsDangerousMarkup(description))) {
-            return buildValidationError("Description contains unsupported characters.", fields.description);
-        }
-
-        if (requiredSkills.length > 500) {
-            return buildValidationError("Required skills must be 500 characters or fewer.", fields.requiredSkills);
-        }
-        if (requiredSkills && (containsControlChars(requiredSkills) || containsDangerousMarkup(requiredSkills))) {
-            return buildValidationError("Required skills contain unsupported characters.", fields.requiredSkills);
-        }
-
-        if (requiredSkills) {
-            var normalizedSkills = normalizeSkillsForSubmit(requiredSkills);
-            if (!normalizedSkills) {
-                return buildValidationError("Please remove empty skill items.", fields.requiredSkills);
+        orderedFieldKeys.forEach(function (key) {
+            var field = fields[key];
+            if (!field) {
+                return;
             }
-            if (normalizedSkills.split(",").length > 20) {
-                return buildValidationError("Please list up to 20 skills.", fields.requiredSkills);
+            fieldValidationState.touchedByKey[key] = true;
+            var result = validateSingleField(key, { forceRequired: true });
+            if (!firstError && result && result.message) {
+                firstError = result;
+            }
+        });
+
+        if (!firstError) {
+            return null;
+        }
+        return buildValidationError(firstError.message, firstError.field);
+    }
+
+    function initializeRealtimeValidation() {
+        orderedFieldKeys.forEach(function (key) {
+            var field = fields[key];
+            if (!field) {
+                return;
+            }
+
+            fieldValidationState.feedbackByKey[key] = ensureFieldFeedbackNode(key, field);
+            fieldValidationState.touchedByKey[key] = false;
+
+            field.addEventListener("blur", function () {
+                fieldValidationState.touchedByKey[key] = true;
+                validateSingleField(key, { forceRequired: true });
+            });
+
+            field.addEventListener("input", function () {
+                validateSingleField(key, {
+                    forceRequired: fieldValidationState.touchedByKey[key] === true
+                });
+            });
+
+            field.addEventListener("change", function () {
+                validateSingleField(key, {
+                    forceRequired: fieldValidationState.touchedByKey[key] === true
+                });
+            });
+        });
+    }
+
+    function validateSingleField(key, options) {
+        var field = fields[key];
+        if (!field) {
+            return null;
+        }
+
+        var settings = options || {};
+        var value = typeof field.value === "string" ? field.value.trim() : "";
+        var message = getFieldValidationMessage(key, value, settings.forceRequired === true);
+        setFieldValidationResult(key, message);
+
+        return {
+            field: field,
+            message: message
+        };
+    }
+
+    function getFieldValidationMessage(key, value, forceRequired) {
+        if (key === "title") {
+            return validateTitle(value, forceRequired);
+        }
+        if (key === "courseCode") {
+            return validateCourseCode(value, forceRequired);
+        }
+        if (key === "courseName") {
+            return validateCourseName(value, forceRequired);
+        }
+        if (key === "description") {
+            return validateDescription(value, forceRequired);
+        }
+        if (key === "requiredSkills") {
+            return validateRequiredSkills(value, forceRequired);
+        }
+        if (key === "positions") {
+            return validatePositions(value, forceRequired);
+        }
+        if (key === "workload") {
+            return validateWorkload(value, forceRequired);
+        }
+        if (key === "salary") {
+            return validateSalary(value, forceRequired);
+        }
+        if (key === "deadline") {
+            return validateDeadline(value, forceRequired);
+        }
+        return "";
+    }
+
+    function setFieldValidationResult(key, message) {
+        var field = fields[key];
+        var feedback = fieldValidationState.feedbackByKey[key];
+        if (!field) {
+            return;
+        }
+
+        if (feedback) {
+            if (message) {
+                feedback.textContent = message;
+                feedback.classList.add("is-visible");
+            } else {
+                feedback.textContent = "";
+                feedback.classList.remove("is-visible");
             }
         }
 
-        if (!/^\d+$/.test(positionsText)) {
-            return buildValidationError("Positions must be a whole number.", fields.positions);
+        if (message) {
+            field.classList.add("is-invalid");
+            field.setAttribute("aria-invalid", "true");
+            return;
         }
 
-        var positions = Number(positionsText);
+        field.classList.remove("is-invalid");
+        field.removeAttribute("aria-invalid");
+    }
+
+    function clearAllFieldValidation() {
+        orderedFieldKeys.forEach(function (key) {
+            setFieldValidationResult(key, "");
+        });
+    }
+
+    function resetFieldTouchedState() {
+        orderedFieldKeys.forEach(function (key) {
+            fieldValidationState.touchedByKey[key] = false;
+        });
+    }
+
+    function ensureFieldFeedbackNode(key, field) {
+        var container = field.closest(".field");
+        if (!container) {
+            return null;
+        }
+
+        var selector = ".field-feedback[data-for=\"" + key + "\"]";
+        var feedback = container.querySelector(selector);
+        if (!feedback) {
+            feedback = document.createElement("p");
+            feedback.className = "field-feedback";
+            feedback.setAttribute("data-for", key);
+            feedback.setAttribute("role", "status");
+            feedback.setAttribute("aria-live", "polite");
+            feedback.id = field.id ? field.id + "-feedback" : key + "-feedback";
+            container.appendChild(feedback);
+        }
+
+        var describedBy = field.getAttribute("aria-describedby");
+        if (!describedBy) {
+            field.setAttribute("aria-describedby", feedback.id);
+        } else if ((" " + describedBy + " ").indexOf(" " + feedback.id + " ") === -1) {
+            field.setAttribute("aria-describedby", describedBy + " " + feedback.id);
+        }
+
+        return feedback;
+    }
+
+    function validateTitle(value, forceRequired) {
+        if (forceRequired && !value) {
+            return "Job title is required.";
+        }
+        if (!value) {
+            return "";
+        }
+        if (value.length > 200) {
+            return "Job title must be 200 characters or fewer.";
+        }
+        if (containsControlChars(value) || containsDangerousMarkup(value)) {
+            return "Job title contains unsupported characters.";
+        }
+        return "";
+    }
+
+    function validateCourseCode(value, forceRequired) {
+        if (forceRequired && !value) {
+            return "Course code is required.";
+        }
+        if (!value) {
+            return "";
+        }
+        if (value.length > 50) {
+            return "Course code must be 50 characters or fewer.";
+        }
+        if (!/^[A-Za-z0-9][A-Za-z0-9 _\-/.]{0,49}$/.test(value)) {
+            return "Course code contains unsupported characters.";
+        }
+        return "";
+    }
+
+    function validateCourseName(value, forceRequired) {
+        if (forceRequired && !value) {
+            return "Course name is required.";
+        }
+        if (!value) {
+            return "";
+        }
+        if (value.length > 120) {
+            return "Course name must be 120 characters or fewer.";
+        }
+        if (containsControlChars(value) || containsDangerousMarkup(value)) {
+            return "Course name contains unsupported characters.";
+        }
+        return "";
+    }
+
+    function validateDescription(value, forceRequired) {
+        if (forceRequired && !value) {
+            return "Description is required.";
+        }
+        if (!value) {
+            return "";
+        }
+        if (value.length > 4000) {
+            return "Description must be 4000 characters or fewer.";
+        }
+        if (containsControlChars(value) || containsDangerousMarkup(value)) {
+            return "Description contains unsupported characters.";
+        }
+        return "";
+    }
+
+    function validateRequiredSkills(value, forceRequired) {
+        if (forceRequired && !value) {
+            return "Required skills are required.";
+        }
+        if (!value) {
+            return "";
+        }
+        if (value.length > 500) {
+            return "Required skills must be 500 characters or fewer.";
+        }
+        if (containsControlChars(value) || containsDangerousMarkup(value)) {
+            return "Required skills contain unsupported characters.";
+        }
+
+        var normalizedSkills = normalizeSkillsForSubmit(value);
+        if (!normalizedSkills) {
+            return "Please remove empty skill items.";
+        }
+        if (normalizedSkills.split(",").length > 20) {
+            return "Please list up to 20 skills.";
+        }
+
+        return "";
+    }
+
+    function validatePositions(value, forceRequired) {
+        if (forceRequired && !value) {
+            return "Positions must be a whole number.";
+        }
+        if (!value) {
+            return "";
+        }
+        if (!/^\d+$/.test(value)) {
+            return "Positions must be a whole number.";
+        }
+        var positions = Number(value);
         if (!isFinite(positions) || positions < 1 || positions > 200) {
-            return buildValidationError("Positions must be between 1 and 200.", fields.positions);
+            return "Positions must be between 1 and 200.";
         }
+        return "";
+    }
 
-        if (workload.length > 120) {
-            return buildValidationError("Workload must be 120 characters or fewer.", fields.workload);
+    function validateWorkload(value, forceRequired) {
+        if (forceRequired && !value) {
+            return "Workload is required.";
         }
-        if (workload && (containsControlChars(workload) || containsDangerousMarkup(workload))) {
-            return buildValidationError("Workload contains unsupported characters.", fields.workload);
+        if (!value) {
+            return "";
         }
+        if (value.length > 120) {
+            return "Workload must be 120 characters or fewer.";
+        }
+        if (containsControlChars(value) || containsDangerousMarkup(value)) {
+            return "Workload contains unsupported characters.";
+        }
+        return "";
+    }
 
-        if (salary.length > 120) {
-            return buildValidationError("Salary must be 120 characters or fewer.", fields.salary);
+    function validateSalary(value, forceRequired) {
+        if (forceRequired && !value) {
+            return "Salary is required.";
         }
-        if (salary && (containsControlChars(salary) || containsDangerousMarkup(salary))) {
-            return buildValidationError("Salary contains unsupported characters.", fields.salary);
+        if (!value) {
+            return "";
         }
+        if (value.length > 120) {
+            return "Salary must be 120 characters or fewer.";
+        }
+        if (containsControlChars(value) || containsDangerousMarkup(value)) {
+            return "Salary contains unsupported characters.";
+        }
+        return "";
+    }
 
-        if (deadlineText) {
-            var parsedDeadline = parseLocalDateTime(deadlineText);
-            if (!parsedDeadline) {
-                return buildValidationError("Invalid deadline format.", fields.deadline);
-            }
-            if (parsedDeadline.getTime() < Date.now() - 60000) {
-                return buildValidationError("Deadline cannot be in the past.", fields.deadline);
-            }
+    function validateDeadline(value, forceRequired) {
+        if (forceRequired && !value) {
+            return "Application deadline is required.";
         }
-
-        return null;
+        if (!value) {
+            return "";
+        }
+        var parsedDeadline = parseLocalDateTime(value);
+        if (!parsedDeadline) {
+            return "Invalid deadline format.";
+        }
+        if (parsedDeadline.getTime() < Date.now() - 60000) {
+            return "Deadline cannot be in the past.";
+        }
+        return "";
     }
 
     function setSubmitting(submitting) {

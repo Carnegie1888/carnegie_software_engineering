@@ -41,15 +41,6 @@
                     </svg>
                     <span data-i18n="portal.nav.mo.postJob">Post Job</span>
                 </a>
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/ai-skill-match.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M4 19h16"></path>
-                        <path d="M7 16V8"></path>
-                        <path d="M12 16V5"></path>
-                        <path d="M17 16v-6"></path>
-                    </svg>
-                    <span data-i18n="portal.nav.mo.aiMatch">AI Match</span>
-                </a>
             </nav>
         </aside>
 
@@ -114,18 +105,27 @@
                                     </div>
 
                                     <div class="field">
-                                        <label for="course-name">Course name</label>
-                                        <input id="course-name" name="courseName" type="text" maxlength="120" placeholder="e.g. Software Engineering">
+                                        <div class="field-label-row">
+                                            <label for="course-name">Course name</label>
+                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                        </div>
+                                        <input id="course-name" name="courseName" type="text" maxlength="120" placeholder="e.g. Software Engineering" required>
                                     </div>
 
                                     <div class="field field-full">
-                                        <label for="description">Description</label>
-                                        <textarea id="description" name="description" rows="5" maxlength="4000" placeholder="Describe responsibilities, expectations, and any course-specific requirements."></textarea>
+                                        <div class="field-label-row">
+                                            <label for="description">Description</label>
+                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                        </div>
+                                        <textarea id="description" name="description" rows="5" maxlength="4000" placeholder="Describe responsibilities, expectations, and any course-specific requirements." required></textarea>
                                     </div>
 
                                     <div class="field field-full">
-                                        <label for="required-skills">Required skills</label>
-                                        <input id="required-skills" name="requiredSkills" type="text" maxlength="500" placeholder="Separate skills with commas, e.g. Java, SQL, communication">
+                                        <div class="field-label-row">
+                                            <label for="required-skills">Required skills</label>
+                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                        </div>
+                                        <input id="required-skills" name="requiredSkills" type="text" maxlength="500" placeholder="Separate skills with commas, e.g. Java, SQL, communication" required>
                                     </div>
 
                                     <div class="field">
@@ -137,18 +137,27 @@
                                     </div>
 
                                     <div class="field">
-                                        <label for="deadline">Application deadline</label>
-                                        <input id="deadline" name="deadline" type="datetime-local">
+                                        <div class="field-label-row">
+                                            <label for="deadline">Application deadline</label>
+                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                        </div>
+                                        <input id="deadline" name="deadline" type="datetime-local" required>
                                     </div>
 
                                     <div class="field">
-                                        <label for="workload">Workload</label>
-                                        <input id="workload" name="workload" type="text" maxlength="120" placeholder="e.g. 8 hours / week">
+                                        <div class="field-label-row">
+                                            <label for="workload">Workload</label>
+                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                        </div>
+                                        <input id="workload" name="workload" type="text" maxlength="120" placeholder="e.g. 8 hours / week" required>
                                     </div>
 
                                     <div class="field">
-                                        <label for="salary">Salary</label>
-                                        <input id="salary" name="salary" type="text" maxlength="120" placeholder="e.g. 25 SGD / hour">
+                                        <div class="field-label-row">
+                                            <label for="salary">Salary</label>
+                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                        </div>
+                                        <input id="salary" name="salary" type="text" maxlength="120" placeholder="e.g. 25 SGD / hour" required>
                                     </div>
                                 </div>
 
