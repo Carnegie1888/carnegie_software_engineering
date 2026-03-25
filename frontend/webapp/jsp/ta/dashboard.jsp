@@ -14,7 +14,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="portal.page.taDashboard.title">TA Profile Setup - TA Hiring System</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/ta-dashboard.css?v=20260325c">
+    <link rel="stylesheet" href="<%= contextPath %>/css/ta-dashboard.css?v=20260326a">
 </head>
 <body>
     <div class="portal-shell portal-shell-ta">
@@ -27,14 +27,14 @@
                         <path d="M9 7.5V6A1.5 1.5 0 0 1 10.5 4.5h3A1.5 1.5 0 0 1 15 6v1.5" />
                         <path d="M3 12h18" />
                     </svg>
-                    <span data-i18n="portal.nav.ta.jobs">Jobs</span>
+                    <span data-i18n="portal.nav.ta.jobs">Job List</span>
                 </a>
                 <a class="portal-nav-link" href="<%= contextPath %>/jsp/ta/application-status.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <circle cx="12" cy="12" r="8"></circle>
                         <path d="m8.5 12.5 2.2 2.2L15.5 10"></path>
                     </svg>
-                    <span data-i18n="portal.nav.ta.status">Status</span>
+                    <span data-i18n="portal.nav.ta.status">My Applications</span>
                 </a>
                 <span class="portal-nav-link is-disabled" aria-disabled="true">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -252,6 +252,68 @@
 
                             <div class="profile-card-divider" aria-hidden="true"></div>
 
+                            <section class="upload-card" aria-labelledby="photo-upload-title">
+                                <div class="form-section-header">
+                                    <div class="section-header-row">
+                                        <h3 id="photo-upload-title" data-i18n="portal.taDashboard.photoUploadTitle">Photo upload</h3>
+                                    </div>
+                                </div>
+
+                                <div class="upload-file-panel">
+                                    <label class="sr-only" for="photo-file-input" data-i18n="portal.taDashboard.chooseFile">Choose file</label>
+                                    <input
+                                        id="photo-file-input"
+                                        class="upload-file-input"
+                                        type="file"
+                                        name="photo"
+                                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                                    >
+                                    <div id="photo-upload-shell" class="photo-upload-shell is-empty">
+                                        <button
+                                            id="photo-file-trigger"
+                                            class="photo-upload-card"
+                                            type="button"
+                                        >
+                                            <span id="photo-empty-state" class="photo-card-empty">
+                                                <span class="photo-card-icon" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" focusable="false">
+                                                        <path d="M4.75 7.75h3.15l1.2-1.8h5.8l1.2 1.8h3.15a1.5 1.5 0 0 1 1.5 1.5v8.5a1.5 1.5 0 0 1-1.5 1.5H4.75a1.5 1.5 0 0 1-1.5-1.5v-8.5a1.5 1.5 0 0 1 1.5-1.5Z"></path>
+                                                        <circle cx="12" cy="13" r="3.2"></circle>
+                                                    </svg>
+                                                </span>
+                                                <span class="photo-card-title" data-i18n="portal.taDashboard.photoCardEmptyTitle">Upload your photo</span>
+                                                <span class="photo-card-subtitle" data-i18n="portal.taDashboard.photoCardEmptyHint">JPG, PNG, or WEBP. Maximum size is 5MB.</span>
+                                            </span>
+                                            <span id="photo-filled-state" class="photo-card-filled hidden" hidden>
+                                                <span class="photo-preview-frame">
+                                                    <img id="photo-preview-image" class="photo-preview-image" alt="Profile photo preview">
+                                                </span>
+                                                <span class="photo-card-file-meta">
+                                                    <span id="photo-file-display-name" class="photo-card-file-name">photo.jpg</span>
+                                                    <span id="photo-file-display-detail" class="photo-card-file-detail">0 KB</span>
+                                                </span>
+                                            </span>
+                                        </button>
+                                        <button
+                                            id="photo-remove-btn"
+                                            class="resume-remove-btn hidden"
+                                            type="button"
+                                            data-i18n-aria-label="portal.taDashboard.photoRemoveAria"
+                                            aria-label="Remove photo"
+                                            hidden
+                                        >
+                                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                                <path d="m7 7 10 10"></path>
+                                                <path d="M17 7 7 17"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="photo-upload-message" class="upload-message hidden" role="status" aria-live="polite"></div>
+                            </section>
+
+                            <div class="profile-card-divider" aria-hidden="true"></div>
+
                             <section class="upload-card" aria-labelledby="resume-upload-title">
                                 <div class="form-section-header">
                                     <div class="section-header-row">
@@ -342,8 +404,8 @@
     <script>
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
-    <script src="<%= contextPath %>/js/i18n.js?v=20260325d" defer></script>
-    <script src="<%= contextPath %>/js/portal-i18n.js?v=20260325c" defer></script>
-    <script src="<%= contextPath %>/js/ta-dashboard.js?v=20260325c" defer></script>
+    <script src="<%= contextPath %>/js/i18n.js?v=20260326a" defer></script>
+    <script src="<%= contextPath %>/js/portal-i18n.js?v=20260326a" defer></script>
+    <script src="<%= contextPath %>/js/ta-dashboard.js?v=20260326a" defer></script>
 </body>
 </html>

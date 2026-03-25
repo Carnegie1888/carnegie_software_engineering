@@ -19,9 +19,21 @@
     var resumeFileDisplayDetail = document.getElementById("resume-file-display-detail");
     var resumeRemoveButton = document.getElementById("resume-remove-btn");
     var resumeUploadMessage = document.getElementById("resume-upload-message");
+    var photoFileTrigger = document.getElementById("photo-file-trigger");
+    var photoFileInput = document.getElementById("photo-file-input");
+    var photoUploadShell = document.getElementById("photo-upload-shell");
+    var photoEmptyState = document.getElementById("photo-empty-state");
+    var photoFilledState = document.getElementById("photo-filled-state");
+    var photoPreviewImage = document.getElementById("photo-preview-image");
+    var photoFileDisplayName = document.getElementById("photo-file-display-name");
+    var photoFileDisplayDetail = document.getElementById("photo-file-display-detail");
+    var photoRemoveButton = document.getElementById("photo-remove-btn");
+    var photoUploadMessage = document.getElementById("photo-upload-message");
 
     var ALLOWED_RESUME_EXTENSIONS = [".pdf", ".doc", ".docx"];
     var MAX_RESUME_SIZE = 10 * 1024 * 1024;
+    var ALLOWED_PHOTO_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
+    var MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 
     function localizeText(key, fallback) {
         if (window.AppI18n && typeof window.AppI18n.t === "function") {
@@ -55,7 +67,14 @@
         removedSavedResume: false,
         pendingResumePath: "",
         pendingResumeName: "",
-        pendingResumeSize: 0
+        pendingResumeSize: 0,
+        selectedPhotoFile: null,
+        photoPath: "",
+        photoName: "",
+        photoSize: 0,
+        removedSavedPhoto: false,
+        photoObjectUrl: "",
+        photoPreviewVersion: Date.now()
     };
 
     var fieldValidationState = {
@@ -135,12 +154,35 @@
         });
     }
 
+    if (photoFileInput) {
+        photoFileInput.addEventListener("change", handlePhotoFileChange);
+    }
+
+    if (photoFileTrigger && photoFileInput) {
+        photoFileTrigger.addEventListener("click", function () {
+            if (photoFileTrigger.disabled) {
+                return;
+            }
+            photoFileInput.click();
+        });
+    }
+
+    if (photoRemoveButton) {
+        photoRemoveButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            handlePhotoRemove();
+        });
+    }
+
     refreshResumeArea();
+    refreshPhotoArea();
     loadExistingProfile({ silentWhenMissing: true });
 
     document.addEventListener("app:locale-changed", function () {
         refreshSubmitButton();
         refreshResumeArea();
+        refreshPhotoArea();
     });
 
     function handleCreate() {
@@ -156,6 +198,12 @@
         }
 
         validationError = validateResumeRequirement();
+        if (validationError) {
+            showMessage(validationError.message, "error");
+            return;
+        }
+
+        validationError = validatePhotoSelection();
         if (validationError) {
             showMessage(validationError.message, "error");
             return;
@@ -202,6 +250,7 @@
 
         state.isLoading = true;
         refreshResumeArea();
+        refreshPhotoArea();
         if (!state.isSubmitting) {
             submitButton.disabled = true;
             submitButton.textContent = localizeText("portal.dynamic.checkingProfile", "Checking profile...");
@@ -251,6 +300,7 @@
                 state.isLoading = false;
                 refreshSubmitButton();
                 refreshResumeArea();
+                refreshPhotoArea();
             });
     }
 
@@ -267,6 +317,12 @@
         }
 
         validationError = validateResumeRequirement();
+        if (validationError) {
+            showMessage(validationError.message, "error");
+            return;
+        }
+
+        validationError = validatePhotoSelection();
         if (validationError) {
             showMessage(validationError.message, "error");
             return;
@@ -325,6 +381,10 @@
             updateData.append("address", "");
             updateData.append("experience", inputs.experience.value.trim());
             updateData.append("motivation", inputs.motivation.value.trim());
+            updateData.append("removePhoto", state.removedSavedPhoto ? "true" : "false");
+            if (state.selectedPhotoFile) {
+                updateData.append("photo", state.selectedPhotoFile, state.selectedPhotoFile.name);
+            }
 
             return request(contextPath + "/applicant", {
                 method: "POST",
@@ -346,6 +406,31 @@
         createData.set("address", "");
         createData.set("experience", inputs.experience.value.trim());
         createData.set("motivation", inputs.motivation.value.trim());
+        createData.set("removePhoto", "false");
+
+        if (state.selectedPhotoFile) {
+            var createMultipartData = new FormData();
+            createMultipartData.append("fullName", inputs.fullName.value.trim());
+            createMultipartData.append("studentId", inputs.studentId.value.trim());
+            createMultipartData.append("department", inputs.department.value.trim());
+            createMultipartData.append("program", inputs.program.value.trim());
+            createMultipartData.append("gpa", inputs.gpa.value.trim());
+            createMultipartData.append("skills", normalizeSkillsForSubmit(inputs.skills.value));
+            createMultipartData.append("phone", inputs.phone.value.trim());
+            createMultipartData.append("address", "");
+            createMultipartData.append("experience", inputs.experience.value.trim());
+            createMultipartData.append("motivation", inputs.motivation.value.trim());
+            createMultipartData.append("removePhoto", "false");
+            createMultipartData.append("photo", state.selectedPhotoFile, state.selectedPhotoFile.name);
+
+            return request(contextPath + "/applicant", {
+                method: "POST",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: createMultipartData
+            });
+        }
 
         return request(contextPath + "/applicant", {
             method: "POST",
@@ -361,7 +446,10 @@
         state.hasExistingProfile = true;
         state.isEditing = false;
         state.removedSavedResume = false;
+        state.removedSavedPhoto = false;
+        setSelectedPhotoFile(null);
         syncSavedResumeState(payload);
+        syncSavedPhotoState(payload);
         syncResumeDraftState(payload);
 
         setFieldValue(inputs.fullName, payload.fullName);
@@ -378,9 +466,11 @@
         resetFieldTouchedState();
         setFormDisabled(true);
         form.classList.add("is-readonly");
+        hidePhotoMessage();
 
         updateProfileActionState();
         refreshResumeArea();
+        refreshPhotoArea();
 
         if (createdNow) {
             showMessage(localizeText("portal.dynamic.profileCreatedSuccess", "Profile created successfully. Your saved information is now displayed below."), "success");
@@ -396,13 +486,20 @@
         state.resumeName = "";
         state.resumeSize = 0;
         state.removedSavedResume = false;
+        state.photoPath = "";
+        state.photoName = "";
+        state.photoSize = 0;
+        state.removedSavedPhoto = false;
+        setSelectedPhotoFile(null);
         syncResumeDraftState(payload);
         setFormDisabled(false);
         form.classList.remove("is-readonly");
         clearAllFieldValidation();
         resetFieldTouchedState();
+        hidePhotoMessage();
         refreshSubmitButton();
         refreshResumeArea();
+        refreshPhotoArea();
     }
 
     function updateProfileActionState() {
@@ -454,13 +551,17 @@
             cancelEditButton.disabled = false;
         }
         refreshResumeArea();
+        refreshPhotoArea();
     }
 
     function handleCancelEdit() {
         var reloadProfile = function () {
             state.isEditing = false;
             setSelectedResumeFile(null);
+            setSelectedPhotoFile(null);
+            state.removedSavedPhoto = false;
             hideResumeMessage();
+            hidePhotoMessage();
             return loadExistingProfile({ afterCreate: false, silentWhenMissing: false });
         };
 
@@ -517,6 +618,7 @@
         }
         refreshSubmitButton();
         refreshResumeArea();
+        refreshPhotoArea();
     }
 
     function setFormDisabled(disabled) {
@@ -544,7 +646,31 @@
         return buildValidationError(errorMessage, resumeFileTrigger || submitButton);
     }
 
+    function validatePhotoSelection() {
+        if (!state.selectedPhotoFile) {
+            return null;
+        }
+
+        var photoError = validatePhotoFile(state.selectedPhotoFile);
+        if (!photoError) {
+            return null;
+        }
+
+        showPhotoMessage(photoError, "error");
+        if (photoFileTrigger && typeof photoFileTrigger.focus === "function") {
+            photoFileTrigger.focus();
+        }
+        return buildValidationError(photoError, photoFileTrigger || submitButton);
+    }
+
     function canEditResumeSection() {
+        if (state.isLoading || state.isSubmitting || state.isUploadingResume) {
+            return false;
+        }
+        return !state.hasExistingProfile || state.isEditing;
+    }
+
+    function canEditPhotoSection() {
         if (state.isLoading || state.isSubmitting || state.isUploadingResume) {
             return false;
         }
@@ -699,6 +825,7 @@
         state.isUploadingResume = uploading;
         refreshSubmitButton();
         refreshResumeArea();
+        refreshPhotoArea();
     }
 
     function handleResumeRemove() {
@@ -822,6 +949,211 @@
         state.resumePath = payload && typeof payload.resumePath === "string" ? payload.resumePath : "";
         state.resumeName = payload && typeof payload.resumeName === "string" ? payload.resumeName : "";
         state.resumeSize = getPositiveNumber(payload && payload.resumeSize);
+    }
+
+    function syncSavedPhotoState(payload) {
+        var nextPhotoPath = payload && typeof payload.photoPath === "string" ? payload.photoPath : "";
+        if (state.photoPath !== nextPhotoPath) {
+            state.photoPreviewVersion = Date.now();
+        }
+        state.photoPath = nextPhotoPath;
+        state.photoName = payload && typeof payload.photoName === "string" ? payload.photoName : "";
+        state.photoSize = getPositiveNumber(payload && payload.photoSize);
+    }
+
+    function handlePhotoFileChange(event) {
+        hidePhotoMessage();
+
+        var file = event && event.target && event.target.files ? event.target.files[0] : null;
+        if (!file) {
+            setSelectedPhotoFile(null);
+            return;
+        }
+
+        if (!canEditPhotoSection()) {
+            setSelectedPhotoFile(null);
+            return;
+        }
+
+        var fileError = validatePhotoFile(file);
+        if (fileError) {
+            setSelectedPhotoFile(null);
+            showPhotoMessage(fileError, "error");
+            return;
+        }
+
+        setSelectedPhotoFile(file);
+        showPhotoMessage(
+            localizeText("portal.dynamic.photoReadyToSave", "Photo selected. Save changes to apply it."),
+            "success"
+        );
+    }
+
+    function validatePhotoFile(file) {
+        if (!file) {
+            return localizeText("portal.dynamic.choosePhotoFirst", "Please choose a photo file first.");
+        }
+
+        var lowerName = typeof file.name === "string" ? file.name.toLowerCase() : "";
+        var extensionAllowed = ALLOWED_PHOTO_EXTENSIONS.some(function (extension) {
+            return lowerName.endsWith(extension);
+        });
+        if (!extensionAllowed) {
+            return localizeText("portal.dynamic.invalidPhotoFormat", "Invalid photo format. Please upload JPG, PNG, or WEBP.");
+        }
+
+        if (typeof file.size === "number" && file.size > MAX_PHOTO_SIZE) {
+            return localizeText("portal.dynamic.photoTooLarge", "Photo size exceeds 5MB. Please choose a smaller file.");
+        }
+
+        return null;
+    }
+
+    function setSelectedPhotoFile(file) {
+        if (state.photoObjectUrl && typeof URL !== "undefined" && typeof URL.revokeObjectURL === "function") {
+            URL.revokeObjectURL(state.photoObjectUrl);
+        }
+        state.photoObjectUrl = "";
+        state.selectedPhotoFile = file || null;
+
+        if (state.selectedPhotoFile && typeof URL !== "undefined" && typeof URL.createObjectURL === "function") {
+            state.photoObjectUrl = URL.createObjectURL(state.selectedPhotoFile);
+            state.removedSavedPhoto = false;
+        }
+
+        if (photoFileInput && !file) {
+            photoFileInput.value = "";
+        }
+
+        refreshPhotoArea();
+    }
+
+    function handlePhotoRemove() {
+        if (!canEditPhotoSection()) {
+            return;
+        }
+
+        hidePhotoMessage();
+
+        if (state.selectedPhotoFile) {
+            setSelectedPhotoFile(null);
+            return;
+        }
+
+        if (hasSavedPhoto()) {
+            state.removedSavedPhoto = true;
+            refreshPhotoArea();
+            showPhotoMessage(
+                localizeText("portal.dynamic.savedPhotoRemoved", "Current photo removed. Save changes to apply it."),
+                "success"
+            );
+        }
+    }
+
+    function refreshPhotoArea() {
+        var photoSectionEditable = canEditPhotoSection();
+        var activePhotoCard = buildActivePhotoCard();
+
+        if (photoFileTrigger) {
+            photoFileTrigger.disabled = !photoSectionEditable;
+        }
+        if (photoFileInput) {
+            photoFileInput.disabled = !photoSectionEditable;
+        }
+
+        if (photoUploadShell) {
+            photoUploadShell.classList.toggle("is-empty", !activePhotoCard);
+            photoUploadShell.classList.toggle("is-filled", !!activePhotoCard);
+            photoUploadShell.classList.toggle("is-disabled", !photoSectionEditable);
+        }
+
+        if (photoEmptyState) {
+            photoEmptyState.hidden = !!activePhotoCard;
+            photoEmptyState.classList.toggle("hidden", !!activePhotoCard);
+        }
+        if (photoFilledState) {
+            photoFilledState.hidden = !activePhotoCard;
+            photoFilledState.classList.toggle("hidden", !activePhotoCard);
+        }
+
+        if (photoPreviewImage) {
+            if (activePhotoCard && activePhotoCard.previewUrl) {
+                if (photoPreviewImage.getAttribute("src") !== activePhotoCard.previewUrl) {
+                    photoPreviewImage.src = activePhotoCard.previewUrl;
+                }
+                photoPreviewImage.alt = activePhotoCard.name || "Profile photo";
+            } else {
+                photoPreviewImage.removeAttribute("src");
+                photoPreviewImage.alt = "";
+            }
+        }
+
+        if (photoFileDisplayName && activePhotoCard) {
+            photoFileDisplayName.textContent = activePhotoCard.name;
+        }
+        if (photoFileDisplayDetail && activePhotoCard) {
+            photoFileDisplayDetail.textContent = activePhotoCard.detail;
+        }
+
+        if (photoRemoveButton) {
+            var canRemoveCurrentPhoto = !!activePhotoCard && photoSectionEditable;
+            photoRemoveButton.hidden = !canRemoveCurrentPhoto;
+            photoRemoveButton.classList.toggle("hidden", !canRemoveCurrentPhoto);
+            photoRemoveButton.disabled = !canRemoveCurrentPhoto;
+        }
+    }
+
+    function buildActivePhotoCard() {
+        if (state.selectedPhotoFile && state.photoObjectUrl) {
+            return {
+                name: state.selectedPhotoFile.name,
+                detail: buildPhotoCardDetail(state.selectedPhotoFile.size),
+                previewUrl: state.photoObjectUrl
+            };
+        }
+
+        if (hasSavedPhoto()) {
+            return {
+                name: state.photoName || extractFileNameFromPath(state.photoPath),
+                detail: buildPhotoCardDetail(state.photoSize),
+                previewUrl: buildSavedPhotoPreviewUrl()
+            };
+        }
+
+        return null;
+    }
+
+    function buildPhotoCardDetail(fileSize) {
+        if (typeof fileSize === "number" && fileSize > 0) {
+            return formatFileSize(fileSize);
+        }
+        return localizeText("portal.dynamic.photoReady", "Photo ready");
+    }
+
+    function hasSavedPhoto() {
+        return hasText(state.photoPath) && !state.removedSavedPhoto;
+    }
+
+    function buildSavedPhotoPreviewUrl() {
+        return contextPath + "/applicant?asset=photo&v=" + encodeURIComponent(String(state.photoPreviewVersion));
+    }
+
+    function showPhotoMessage(message, type) {
+        if (!photoUploadMessage) {
+            return;
+        }
+        photoUploadMessage.textContent = message;
+        photoUploadMessage.classList.remove("hidden", "error", "success");
+        photoUploadMessage.classList.add(type === "success" ? "success" : "error");
+    }
+
+    function hidePhotoMessage() {
+        if (!photoUploadMessage) {
+            return;
+        }
+        photoUploadMessage.textContent = "";
+        photoUploadMessage.classList.remove("error", "success");
+        photoUploadMessage.classList.add("hidden");
     }
 
     function showResumeMessage(message, type) {
