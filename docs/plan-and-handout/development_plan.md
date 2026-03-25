@@ -253,3 +253,4 @@
 |`member3`|#36|`feat: 补充演示申请进度数据并扩展流程回归测试`|✅|`git commit -m "feat: 补充演示申请进度数据并扩展流程回归测试" --author="member3 <member3@edu.com>"`|
 |`member6`|#37|`feat: 新增 TA 申请详情页并优化申请状态展示`|✅|`git commit -m "feat: 新增 TA 申请详情页并优化申请状态展示" --author="member6 <member6@edu.com>"`|
 |`member5`|#38|`feat: 支持 MO 分阶段审核申请并精简发岗页布局`|✅|`git commit -m "feat: 支持 MO 分阶段审核申请并精简发岗页布局" --author="member5 <member5@edu.com>"`|
+|`member6`|#39|`chore: 整理 gitignore 并补充 Maven 本地目录`|✅|`git commit -m "chore: 整理 gitignore 并补充 Maven 本地目录" --author="member6 <member6@edu.com>"`|
