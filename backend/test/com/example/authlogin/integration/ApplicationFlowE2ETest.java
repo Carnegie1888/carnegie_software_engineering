@@ -9,9 +9,11 @@ import com.example.authlogin.model.Application;
 import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
 import com.example.authlogin.service.SkillMatchService;
+import com.example.authlogin.util.FuzzySearchUtil;
 
 import java.util.Arrays;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 申请流程端到端测试
@@ -246,6 +248,36 @@ public class ApplicationFlowE2ETest {
                 assert result.getMatchedSkills().contains("java") : "matched skills should include java";
                 assert result.getMatchedSkills().contains("sql") : "matched skills should include sql";
                 assert result.getScore() >= 100.0 : "profile skills should fully match required skills";
+            });
+
+            test("End-to-end: application keyword search should follow TA/MO field scopes", () -> {
+                User mo = userDao.findByUsername("e2e_mo").orElseThrow();
+                User ta = userDao.findByUsername("e2e_ta").orElseThrow();
+
+                List<Application> taView = applicationDao.findByApplicantId(ta.getUserId());
+                FuzzySearchUtil.SearchOutcome<Application> taSearchByMo = FuzzySearchUtil.search(
+                        taView,
+                        "dr e2e",
+                        app -> Arrays.asList(app.getJobTitle(), app.getCourseCode(), app.getMoName())
+                );
+                assert taSearchByMo.hasMatches() : "TA field scope should support MO name matching";
+
+                FuzzySearchUtil.SearchOutcome<Application> taSearchByApplicantEmail = FuzzySearchUtil.search(
+                        taView,
+                        "e2e_ta@example.com",
+                        app -> Arrays.asList(app.getJobTitle(), app.getCourseCode(), app.getMoName())
+                );
+                assert !taSearchByApplicantEmail.hasMatches() : "TA field scope should exclude applicant email";
+
+                List<Application> moView = applicationDao.findByMoId(mo.getUserId());
+                FuzzySearchUtil.SearchOutcome<Application> moSearchByApplicant = FuzzySearchUtil.search(
+                        moView,
+                        "e2e_ta@example.com",
+                        app -> Arrays.asList(app.getApplicantName(), app.getApplicantEmail(), app.getJobTitle(), app.getCourseCode())
+                );
+                assert moSearchByApplicant.hasMatches() : "MO field scope should include applicant email";
+                assert moView.stream().allMatch(app -> mo.getUserId().equals(app.getMoId()))
+                        : "MO view should stay inside role-based visibility";
             });
         } finally {
             applicationDao.deleteAll();

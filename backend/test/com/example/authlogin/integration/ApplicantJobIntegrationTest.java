@@ -56,16 +56,19 @@ public class ApplicantJobIntegrationTest {
                 Job job = new Job();
                 job.setMoId(mo.getUserId());
                 job.setMoName("Dr. Work");
-                job.setTitle("TA for Database");
+                job.setTitle("TA for 数据库 Database");
                 job.setCourseCode("CS502");
-                job.setCourseName("Advanced Database");
-                job.setRequiredSkills(Arrays.asList("SQL", "Database Design"));
+                job.setCourseName("Advanced Database Systems 数据库系统");
+                job.setRequiredSkills(Arrays.asList("SQL", "Database Design", "数据库"));
                 job.setStatus(Job.Status.OPEN);
                 jobDao.create(job);
 
                 assert jobDao.findByMoId(mo.getUserId()).size() == 1 : "MO should have 1 job";
                 assert jobDao.findOpenJobs().size() == 1 : "open jobs should be 1";
                 assert jobDao.search("database").size() >= 1 : "keyword search should return created job";
+                assert jobDao.search("databse").size() >= 1 : "typo keyword should still hit created job";
+                assert jobDao.search("数据库").size() >= 1 : "Chinese keyword should hit created job";
+                assert jobDao.search("sjk").size() >= 1 : "Pinyin initials should hit Chinese keyword";
             });
         } finally {
             jobDao.deleteAll();
