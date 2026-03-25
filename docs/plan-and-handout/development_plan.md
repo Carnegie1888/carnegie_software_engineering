@@ -264,3 +264,4 @@
 |`member1`|#47|`test: 补充职位有效状态回归测试`|✅|`git commit -m "test: 补充职位有效状态回归测试" --author="member1 <member1@edu.com>"`|
 |`member4`|#48|`refactor: 下线面试安排阶段并收敛申请流程`|✅|`git commit -m "refactor: 下线面试安排阶段并收敛申请流程" --author="member4 <member4@edu.com>"`|
 |`member3`|#49|`feat: 新增岗位匹配AI配置模板与调用客户端`|✅|`git commit -m "feat: 新增岗位匹配AI配置模板与调用客户端" --author="member3 <member3@edu.com>"`|
+|`member2`|#50|`feat: 新增TA与MO岗位匹配分析服务接口`|✅|`git commit -m "feat: 新增TA与MO岗位匹配分析服务接口" --author="member2 <member2@edu.com>"`|
