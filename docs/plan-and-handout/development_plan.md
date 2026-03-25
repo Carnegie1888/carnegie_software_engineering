@@ -269,3 +269,4 @@
 |`member5`|#52|`refactor: 调整TA申请详情布局并移除侧栏切换入口`|✅|`git commit -m "refactor: 调整TA申请详情布局并移除侧栏切换入口" --author="member5 <member5@edu.com>"`|
 |`member5`|#53|`feat: 新增TA职位详情AI匹配面板并优化职位列表`|✅|`git commit -m "feat: 新增TA职位详情AI匹配面板并优化职位列表" --author="member5 <member5@edu.com>"`|
 |`member6`|#54|`feat: 重构MO候选人筛选并接入AI分析面板`|✅|`git commit -m "feat: 重构MO候选人筛选并接入AI分析面板" --author="member6 <member6@edu.com>"`|
+|`member6`|#55|`refactor: 将管理员邀请从仪表盘拆分为独立页面`|✅|`git commit -m "refactor: 将管理员邀请从仪表盘拆分为独立页面" --author="member6 <member6@edu.com>"`|

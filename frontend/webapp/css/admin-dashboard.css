@@ -93,6 +93,10 @@
     padding: 14px;
 }
 
+#admin-invite-panel {
+    scroll-margin-top: 16px;
+}
+
 .invite-panel-header h2 {
     margin: 0;
     color: #1d1d1f;
@@ -514,6 +518,10 @@
 }
 
 @media (max-width: 760px) {
+    #admin-invite-panel {
+        scroll-margin-top: 12px;
+    }
+
     .portal-topbar {
         padding: 0 16px;
         min-height: 52px;

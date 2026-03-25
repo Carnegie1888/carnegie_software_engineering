@@ -34,6 +34,18 @@
                     </svg>
                     <span data-i18n="portal.nav.admin.dashboard">Dashboard</span>
                 </a>
+                <a
+                    id="admin-invite-nav-link"
+                    class="portal-nav-link"
+                    href="<%= contextPath %>/jsp/admin/invite.jsp"
+                >
+                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M12 5v14"></path>
+                        <path d="M5 12h14"></path>
+                        <path d="M4 4h16v16H4z"></path>
+                    </svg>
+                    <span data-i18n="portal.adminDashboard.inviteTitle">Invite new admin</span>
+                </a>
             </nav>
         </aside>
 
@@ -84,28 +96,6 @@
                                 <button id="export-btn" class="inline-btn" type="button">Export CSV</button>
                             </div>
                         </form>
-
-                        <section class="invite-panel" aria-label="管理员邀请创建" data-i18n-aria-label="portal.adminDashboard.invitePanelAria">
-                            <header class="invite-panel-header">
-                                <h2 data-i18n="portal.adminDashboard.inviteTitle">Invite new admin</h2>
-                                <p data-i18n="portal.adminDashboard.inviteLead">Create one-time invitation link/code and send via email.</p>
-                            </header>
-                            <form id="admin-invite-form" class="invite-form" novalidate>
-                                <div class="field-group">
-                                    <label for="invite-email" data-i18n="portal.adminDashboard.inviteeEmail">Invitee email</label>
-                                    <input id="invite-email" name="email" type="email" maxlength="100" placeholder="new_admin@university.edu" data-i18n-placeholder="portal.adminDashboard.inviteeEmailPlaceholder" required>
-                                </div>
-                                <div class="field-group">
-                                    <label for="invite-expire-hours" data-i18n="portal.adminDashboard.expiresInHours">Expires in (hours)</label>
-                                    <input id="invite-expire-hours" name="expireHours" type="number" min="1" max="168" value="48">
-                                </div>
-                                <div class="invite-actions">
-                                    <button id="send-invite-btn" class="primary-btn" type="submit" data-i18n="portal.adminDashboard.sendInvitation">Send invitation</button>
-                                </div>
-                            </form>
-                            <div id="invite-message" class="form-message hidden" role="status" aria-live="polite"></div>
-                            <div id="invite-result" class="invite-result hidden" aria-live="polite"></div>
-                        </section>
 
                         <div id="dashboard-message" class="form-message hidden" role="status" aria-live="polite"></div>
 
