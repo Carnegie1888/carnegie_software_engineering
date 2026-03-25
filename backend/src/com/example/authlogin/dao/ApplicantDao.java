@@ -20,7 +20,7 @@ public class ApplicantDao {
 
     private static final String APPLICANT_DIR = StoragePaths.getApplicantsDir();
     private static final String APPLICANT_FILE = APPLICANT_DIR + File.separator + "applicants.csv";
-    private static final String CSV_HEADER = "applicantId,userId,fullName,studentId,department,program,gpa,skills,resumePath,phone,address,experience,motivation,createdAt,updatedAt";
+    private static final String CSV_HEADER = "applicantId,userId,fullName,studentId,department,program,gpa,skills,resumePath,photoPath,phone,address,experience,motivation,createdAt,updatedAt";
 
     private static ApplicantDao instance;
 

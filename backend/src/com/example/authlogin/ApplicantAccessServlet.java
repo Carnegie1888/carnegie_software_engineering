@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -109,11 +110,16 @@ public class ApplicantAccessServlet extends HttpServlet {
         data.put("gpa", applicant.getGpa());
         data.put("skills", applicant.getSkills());
         data.put("resumePath", applicant.getResumePath());
+        data.put("resumeName", extractResumeName(applicant.getResumePath()));
+        data.put("photoPath", applicant.getPhotoPath());
         data.put("phone", applicant.getPhone());
         data.put("address", applicant.getAddress());
         data.put("experience", applicant.getExperience());
         data.put("motivation", applicant.getMotivation());
         data.put("hasResume", applicant.getResumePath() != null && !applicant.getResumePath().trim().isEmpty());
+        data.put("hasPhoto", applicant.getPhotoPath() != null && !applicant.getPhotoPath().trim().isEmpty());
+        data.put("profileCreatedAt", formatDateTime(applicant.getCreatedAt()));
+        data.put("profileUpdatedAt", formatDateTime(applicant.getUpdatedAt()));
         data.put("applicationStatus", application.getStatus() != null ? application.getStatus().name() : "PENDING");
         data.put("coverLetter", application.getCoverLetter());
         return data;
@@ -155,5 +161,18 @@ public class ApplicantAccessServlet extends HttpServlet {
 
     private String safeText(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private String formatDateTime(LocalDateTime value) {
+        return value == null ? "" : value.toString();
+    }
+
+    private String extractResumeName(String resumePath) {
+        String path = safeText(resumePath);
+        if (path.isEmpty()) {
+            return "";
+        }
+        int slash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+        return slash >= 0 ? path.substring(slash + 1) : path;
     }
 }

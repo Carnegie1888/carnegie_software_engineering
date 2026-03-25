@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 @MultipartConfig(
     fileSizeThreshold = 1024 * 1024,       // 1 MB - 当文件超过此大小时写入磁盘
     maxFileSize = 1024 * 1024 * 10,       // 10 MB - 单个文件最大大小
-    maxRequestSize = 1024 * 1024 * 15     // 15 MB - 整个请求最大大小
+    maxRequestSize = 1024 * 1024 * 20     // 20 MB - 整个请求最大大小
 )
 public class ApplicantServlet extends HttpServlet {
 
@@ -50,9 +50,12 @@ public class ApplicantServlet extends HttpServlet {
     // 上传目录
     private static final String UPLOAD_DIR = StoragePaths.getResumeDir();
     private static final String DRAFT_UPLOAD_DIR = StoragePaths.getResumeDraftDir();
+    private static final String PHOTO_UPLOAD_DIR = StoragePaths.getPhotoDir();
     private static final String DRAFT_RESUME_FLAG = "draftResume";
     private static final String SESSION_DRAFT_RESUME_PATH = "applicantDraftResumePath";
     private static final String SESSION_DRAFT_RESUME_NAME = "applicantDraftResumeName";
+    private static final String PHOTO_ASSET_PARAM = "asset";
+    private static final String PHOTO_ASSET_VALUE = "photo";
 
     // 允许的文件类型
     private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
@@ -61,9 +64,19 @@ public class ApplicantServlet extends HttpServlet {
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     );
 
+    private static final List<String> ALLOWED_PHOTO_CONTENT_TYPES = Arrays.asList(
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+    );
+
     // 允许的扩展名
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(
         ".pdf", ".doc", ".docx"
+    );
+
+    private static final List<String> ALLOWED_PHOTO_EXTENSIONS = Arrays.asList(
+        ".jpg", ".jpeg", ".png", ".webp"
     );
 
     private static final List<String> ALLOWED_PROGRAMS = Arrays.asList(
@@ -72,6 +85,7 @@ public class ApplicantServlet extends HttpServlet {
 
     // 文件大小限制 (10 MB)
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
+    private static final long MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 
     // 简单的日志方法
     private void logInfo(String message) {
@@ -96,6 +110,7 @@ public class ApplicantServlet extends HttpServlet {
     private void createUploadDirectory() {
         ensureDirectoryExists(UPLOAD_DIR);
         ensureDirectoryExists(DRAFT_UPLOAD_DIR);
+        ensureDirectoryExists(PHOTO_UPLOAD_DIR);
     }
 
     private void ensureDirectoryExists(String dirPath) {
@@ -108,6 +123,11 @@ public class ApplicantServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (isPhotoAssetRequest(request)) {
+            streamProfilePhoto(request, response);
+            return;
+        }
+
         response.setContentType("application/json;charset=UTF-8");
 
         try {
@@ -175,6 +195,7 @@ public class ApplicantServlet extends HttpServlet {
         String newResumePath = null;
         boolean clearDraftAfterSave = false;
         String draftResumeName = "";
+        String previousPhotoPath = "";
         try {
             // 获取当前登录用户
             User currentUser = getCurrentUser(request);
@@ -240,6 +261,8 @@ public class ApplicantServlet extends HttpServlet {
                 applicant.setUserId(currentUser.getUserId());
             }
             String previousResumePath = applicant.getResumePath();
+            previousPhotoPath = applicant.getPhotoPath();
+            boolean removePhoto = isTruthyFlag(request.getParameter("removePhoto"));
 
             applicant.setFullName(fullName);
             applicant.setStudentId(studentId);
@@ -259,6 +282,10 @@ public class ApplicantServlet extends HttpServlet {
                 newResumePath = copyDraftResumeToFinal(draftResumePath, currentUser.getUserId(), draftResumeName);
                 applicant.setResumePath(newResumePath);
                 clearDraftAfterSave = true;
+            }
+
+            if (removePhoto) {
+                applicant.setPhotoPath("");
             }
 
             if (!isNotEmpty(applicant.getResumePath())) {
@@ -281,10 +308,12 @@ public class ApplicantServlet extends HttpServlet {
                 clearDraftResumeState(session, true);
             }
             cleanupReplacedResume(previousResumePath, savedApplicant.getResumePath());
+            cleanupReplacedPhoto(previousPhotoPath, savedApplicant.getPhotoPath());
 
             java.util.Map<String, Object> data = new java.util.LinkedHashMap<>();
             data.put("applicantId", savedApplicant.getApplicantId());
             appendStoredResumePayload(data, savedApplicant.getResumePath(), draftResumeName);
+            appendStoredPhotoPayload(data, savedApplicant.getPhotoPath(), "");
             int status = isUpdate ? 200 : 201;
             String message = isUpdate ? "Applicant profile updated successfully!" : "Applicant profile created successfully!";
             JsonResponseUtil.writeJsonResponse(response, status, true, message, data);
@@ -310,8 +339,10 @@ public class ApplicantServlet extends HttpServlet {
     private void handleMultipartRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String newResumePath = null;
+        String newPhotoPath = null;
         boolean clearDraftAfterSave = false;
         String currentResumeName = "";
+        String currentPhotoName = "";
         try {
             // 获取当前登录用户
             User currentUser = getCurrentUser(request);
@@ -322,13 +353,13 @@ public class ApplicantServlet extends HttpServlet {
 
             // 查询现有档案
             Optional<Applicant> applicantOpt = applicantDao.findByUserId(currentUser.getUserId());
-            if (applicantOpt.isEmpty()) {
-                JsonResponseUtil.writeResponse(response, 404, false, "Applicant profile not found. Please create one first.", null);
-                return;
+            boolean isUpdate = applicantOpt.isPresent();
+            Applicant applicant = isUpdate ? applicantOpt.get() : new Applicant();
+            if (!isUpdate) {
+                applicant.setUserId(currentUser.getUserId());
             }
-
-            Applicant applicant = applicantOpt.get();
             String previousResumePath = applicant.getResumePath();
+            String previousPhotoPath = applicant.getPhotoPath();
             HttpSession session = request.getSession(false);
             currentResumeName = getDraftResumeName(session);
 
@@ -343,29 +374,68 @@ public class ApplicantServlet extends HttpServlet {
             String address = request.getParameter("address");
             String experience = request.getParameter("experience");
             String motivation = request.getParameter("motivation");
+            boolean removePhoto = isTruthyFlag(request.getParameter("removePhoto"));
 
-            String updateValidationError = validatePartialInput(
-                    fullName, studentId, department, program,
-                    gpa, skills, phone, address, experience, motivation
-            );
-            if (updateValidationError != null) {
-                logInfo("Partial update validation failed: " + updateValidationError);
-                JsonResponseUtil.writeResponse(response, 400, false, updateValidationError, null);
-                return;
+            String normalizedFullName = normalizeInput(fullName);
+            String normalizedStudentId = normalizeInput(studentId);
+            String normalizedDepartment = normalizeInput(department);
+            String normalizedProgram = normalizeInput(program);
+            String normalizedGpa = normalizeInput(gpa);
+            String normalizedSkills = normalizeInput(skills);
+            String normalizedPhone = normalizeInput(phone);
+            String normalizedAddress = normalizeInput(address);
+            String normalizedExperience = normalizeInput(experience);
+            String normalizedMotivation = normalizeInput(motivation);
+
+            if (isUpdate) {
+                String updateValidationError = validatePartialInput(
+                        fullName, studentId, department, program,
+                        gpa, skills, phone, address, experience, motivation
+                );
+                if (updateValidationError != null) {
+                    logInfo("Partial update validation failed: " + updateValidationError);
+                    JsonResponseUtil.writeResponse(response, 400, false, updateValidationError, null);
+                    return;
+                }
+            } else {
+                String createValidationError = validateInput(
+                        normalizedFullName,
+                        normalizedStudentId,
+                        normalizedDepartment,
+                        normalizedProgram,
+                        normalizedGpa,
+                        normalizedSkills,
+                        normalizedPhone,
+                        normalizedAddress,
+                        normalizedExperience,
+                        normalizedMotivation,
+                        true
+                );
+                if (createValidationError != null) {
+                    logInfo("Create validation failed: " + createValidationError);
+                    JsonResponseUtil.writeResponse(response, 400, false, createValidationError, null);
+                    return;
+                }
+
+                Optional<Applicant> existingWithStudentId = applicantDao.findByStudentId(normalizedStudentId);
+                if (existingWithStudentId.isPresent()) {
+                    JsonResponseUtil.writeResponse(response, 400, false, "Student ID already exists", null);
+                    return;
+                }
             }
 
             // 处理文件上传
             Part filePart = request.getPart("resume");
             if (filePart != null && filePart.getSize() > 0) {
                 // 验证文件
-                String fileError = validateFile(filePart);
+                String fileError = validateResumeFile(filePart);
                 if (fileError != null) {
                     JsonResponseUtil.writeResponse(response, 400, false, fileError, null);
                     return;
                 }
 
                 // 保存文件
-                newResumePath = saveFile(filePart, currentUser.getUserId());
+                newResumePath = saveResumeFile(filePart, currentUser.getUserId());
                 applicant.setResumePath(newResumePath);
                 currentResumeName = extractFileName(filePart);
                 clearDraftAfterSave = hasDraftResume(session);
@@ -382,72 +452,113 @@ public class ApplicantServlet extends HttpServlet {
                 return;
             }
 
-            // 更新文本字段（如果有提供）
-            if (fullName != null) {
-                applicant.setFullName(normalizeInput(fullName));
+            if (removePhoto) {
+                applicant.setPhotoPath("");
             }
-            if (studentId != null) {
-                String normalizedStudentId = normalizeInput(studentId);
-                Optional<Applicant> existingWithStudentId = applicantDao.findByStudentId(normalizedStudentId);
-                if (existingWithStudentId.isPresent() && !existingWithStudentId.get().getApplicantId().equals(applicant.getApplicantId())) {
-                    JsonResponseUtil.writeResponse(response, 400, false, "Student ID already exists", null);
+
+            Part photoPart = request.getPart("photo");
+            if (photoPart != null && photoPart.getSize() > 0) {
+                String photoError = validatePhotoFile(photoPart);
+                if (photoError != null) {
+                    JsonResponseUtil.writeResponse(response, 400, false, photoError, null);
                     return;
                 }
+                newPhotoPath = savePhotoFile(photoPart, currentUser.getUserId());
+                applicant.setPhotoPath(newPhotoPath);
+                currentPhotoName = extractFileName(photoPart);
+                logInfo("Photo prepared for profile save: " + newPhotoPath);
+            }
+
+            // 更新文本字段（如果有提供）
+            if (isUpdate) {
+                if (fullName != null) {
+                    applicant.setFullName(normalizedFullName);
+                }
+                if (studentId != null) {
+                    Optional<Applicant> existingWithStudentId = applicantDao.findByStudentId(normalizedStudentId);
+                    if (existingWithStudentId.isPresent() && !existingWithStudentId.get().getApplicantId().equals(applicant.getApplicantId())) {
+                        JsonResponseUtil.writeResponse(response, 400, false, "Student ID already exists", null);
+                        return;
+                    }
+                    applicant.setStudentId(normalizedStudentId);
+                }
+                if (department != null) {
+                    applicant.setDepartment(normalizedDepartment);
+                }
+                if (program != null) {
+                    applicant.setProgram(normalizedProgram);
+                }
+                if (gpa != null) {
+                    applicant.setGpa(normalizedGpa);
+                }
+                if (phone != null) {
+                    applicant.setPhone(normalizedPhone);
+                }
+                if (address != null) {
+                    applicant.setAddress(normalizedAddress);
+                }
+                if (experience != null) {
+                    applicant.setExperience(normalizedExperience);
+                }
+                if (motivation != null) {
+                    applicant.setMotivation(normalizedMotivation);
+                }
+                if (skills != null) {
+                    applicant.setSkills(parseSkills(normalizedSkills));
+                }
+            } else {
+                applicant.setFullName(normalizedFullName);
                 applicant.setStudentId(normalizedStudentId);
-            }
-            if (department != null) {
-                applicant.setDepartment(normalizeInput(department));
-            }
-            if (program != null) {
-                applicant.setProgram(normalizeInput(program));
-            }
-            if (gpa != null) {
-                applicant.setGpa(normalizeInput(gpa));
-            }
-            if (phone != null) {
-                applicant.setPhone(normalizeInput(phone));
-            }
-            if (address != null) {
-                applicant.setAddress(normalizeInput(address));
-            }
-            if (experience != null) {
-                applicant.setExperience(normalizeInput(experience));
-            }
-            if (motivation != null) {
-                applicant.setMotivation(normalizeInput(motivation));
-            }
-            if (skills != null) {
-                applicant.setSkills(parseSkills(normalizeInput(skills)));
+                applicant.setDepartment(normalizedDepartment);
+                applicant.setProgram(normalizedProgram);
+                applicant.setGpa(normalizedGpa);
+                applicant.setPhone(normalizedPhone);
+                applicant.setAddress(normalizedAddress);
+                applicant.setExperience(normalizedExperience);
+                applicant.setMotivation(normalizedMotivation);
+                applicant.setSkills(parseSkills(normalizedSkills));
             }
 
-            // 更新时间
-            applicant.setUpdatedAt(LocalDateTime.now());
-
-            // 保存更新
-            Applicant updatedApplicant = applicantDao.update(applicant);
+            Applicant savedApplicant;
+            if (isUpdate) {
+                applicant.setUpdatedAt(LocalDateTime.now());
+                savedApplicant = applicantDao.update(applicant);
+            } else {
+                savedApplicant = applicantDao.create(applicant);
+            }
 
             if (clearDraftAfterSave) {
                 clearDraftResumeState(session, true);
             }
-            cleanupReplacedResume(previousResumePath, updatedApplicant.getResumePath());
+            cleanupReplacedResume(previousResumePath, savedApplicant.getResumePath());
+            cleanupReplacedPhoto(previousPhotoPath, savedApplicant.getPhotoPath());
 
             logInfo("Applicant profile saved successfully for user: " + currentUser.getUsername());
 
             java.util.Map<String, Object> data = new java.util.LinkedHashMap<>();
-            data.put("applicantId", updatedApplicant.getApplicantId());
-            appendStoredResumePayload(data, updatedApplicant.getResumePath(), currentResumeName);
+            data.put("applicantId", savedApplicant.getApplicantId());
+            appendStoredResumePayload(data, savedApplicant.getResumePath(), currentResumeName);
+            appendStoredPhotoPayload(data, savedApplicant.getPhotoPath(), currentPhotoName);
 
-            JsonResponseUtil.writeJsonResponse(response, 200, true, "Applicant profile updated successfully!", data);
+            int status = isUpdate ? 200 : 201;
+            String message = isUpdate ? "Applicant profile updated successfully!" : "Applicant profile created successfully!";
+            JsonResponseUtil.writeJsonResponse(response, status, true, message, data);
 
         } catch (IllegalArgumentException e) {
             if (isNotEmpty(newResumePath)) {
                 deleteStoredFile(newResumePath);
+            }
+            if (isNotEmpty(newPhotoPath)) {
+                deleteStoredFile(newPhotoPath);
             }
             logInfo("Resume save failed: " + e.getMessage());
             JsonResponseUtil.writeResponse(response, 400, false, e.getMessage(), null);
         } catch (ServletException e) {
             if (isNotEmpty(newResumePath)) {
                 deleteStoredFile(newResumePath);
+            }
+            if (isNotEmpty(newPhotoPath)) {
+                deleteStoredFile(newPhotoPath);
             }
             // 处理文件大小超限异常
             String message = e.getMessage();
@@ -461,6 +572,9 @@ public class ApplicantServlet extends HttpServlet {
         } catch (Exception e) {
             if (isNotEmpty(newResumePath)) {
                 deleteStoredFile(newResumePath);
+            }
+            if (isNotEmpty(newPhotoPath)) {
+                deleteStoredFile(newPhotoPath);
             }
             logError("Unexpected error during profile save", e);
             JsonResponseUtil.writeResponse(response, 500, false, "An error occurred. Please try again later.", null);
@@ -482,7 +596,7 @@ public class ApplicantServlet extends HttpServlet {
                 return;
             }
 
-            String fileError = validateFile(filePart);
+            String fileError = validateResumeFile(filePart);
             if (fileError != null) {
                 JsonResponseUtil.writeResponse(response, 400, false, fileError, null);
                 return;
@@ -521,56 +635,95 @@ public class ApplicantServlet extends HttpServlet {
     }
 
     /**
-     * 验证上传的文件
+     * 验证上传的简历文件
      */
-    private String validateFile(Part filePart) {
+    private String validateResumeFile(Part filePart) {
+        return validateFile(
+                filePart,
+                ALLOWED_CONTENT_TYPES,
+                ALLOWED_EXTENSIONS,
+                MAX_FILE_SIZE,
+                "PDF, DOC, and DOCX",
+                10
+        );
+    }
+
+    /**
+     * 验证上传的照片文件
+     */
+    private String validatePhotoFile(Part filePart) {
+        return validateFile(
+                filePart,
+                ALLOWED_PHOTO_CONTENT_TYPES,
+                ALLOWED_PHOTO_EXTENSIONS,
+                MAX_PHOTO_SIZE,
+                "JPG, JPEG, PNG, and WEBP",
+                5
+        );
+    }
+
+    private String validateFile(
+            Part filePart,
+            List<String> allowedContentTypes,
+            List<String> allowedExtensions,
+            long maxSize,
+            String allowedDescription,
+            int maxSizeMb
+    ) {
         String contentType = filePart.getContentType();
         String fileName = extractFileName(filePart);
 
-        // 检查文件类型
-        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
-            return "Invalid file type. Only PDF, DOC, and DOCX files are allowed.";
+        if (contentType == null || !allowedContentTypes.contains(contentType.toLowerCase())) {
+            return "Invalid file type. Only " + allowedDescription + " files are allowed.";
         }
 
-        // 检查文件扩展名
         String lowerFileName = fileName.toLowerCase();
-        boolean hasValidExtension = ALLOWED_EXTENSIONS.stream()
+        boolean hasValidExtension = allowedExtensions.stream()
                 .anyMatch(lowerFileName::endsWith);
         if (!hasValidExtension) {
-            return "Invalid file extension. Only PDF, DOC, and DOCX files are allowed.";
+            return "Invalid file extension. Only " + allowedDescription + " files are allowed.";
         }
 
-        // 检查文件大小（已经在@MultipartConfig中配置，但额外检查一下）
-        if (filePart.getSize() > MAX_FILE_SIZE) {
-            return "File size exceeds 10MB limit.";
+        if (filePart.getSize() > maxSize) {
+            return "File size exceeds " + maxSizeMb + "MB limit.";
         }
 
         return null;
     }
 
     /**
-     * 保存上传的文件
+     * 保存上传的简历文件
      */
-    private String saveFile(Part filePart, String userId) throws IOException {
+    private String saveResumeFile(Part filePart, String userId) throws IOException {
         String fileName = extractFileName(filePart);
+        String newFileName = buildStoredFileName(fileName, userId, "", ".pdf", "resume");
 
-        // 生成唯一文件名
-        String newFileName = buildStoredFileName(fileName, userId, "");
-
-        // 确保目录存在
         ensureDirectoryExists(UPLOAD_DIR);
 
-        // 保存文件
         File file = new File(UPLOAD_DIR, newFileName);
         filePart.write(file.getAbsolutePath());
 
-        // 返回相对路径
         return "resumes/" + newFileName;
+    }
+
+    /**
+     * 保存上传的头像文件
+     */
+    private String savePhotoFile(Part filePart, String userId) throws IOException {
+        String fileName = extractFileName(filePart);
+        String newFileName = buildStoredFileName(fileName, userId, "", ".jpg", "photo");
+
+        ensureDirectoryExists(PHOTO_UPLOAD_DIR);
+
+        File file = new File(PHOTO_UPLOAD_DIR, newFileName);
+        filePart.write(file.getAbsolutePath());
+
+        return "photos/" + newFileName;
     }
 
     private String saveDraftFile(Part filePart, String userId) throws IOException {
         String fileName = extractFileName(filePart);
-        String newFileName = buildStoredFileName(fileName, userId, "draft_");
+        String newFileName = buildStoredFileName(fileName, userId, "draft_", ".pdf", "resume");
 
         ensureDirectoryExists(DRAFT_UPLOAD_DIR);
 
@@ -587,7 +740,7 @@ public class ApplicantServlet extends HttpServlet {
         }
 
         String sourceFileName = isNotEmpty(originalFileName) ? originalFileName : buildDisplayFileName(draftRelativePath, draftFile.getName());
-        String newFileName = buildStoredFileName(sourceFileName, userId, "");
+        String newFileName = buildStoredFileName(sourceFileName, userId, "", ".pdf", "resume");
         ensureDirectoryExists(UPLOAD_DIR);
 
         File finalFile = new File(UPLOAD_DIR, newFileName);
@@ -595,24 +748,25 @@ public class ApplicantServlet extends HttpServlet {
         return "resumes/" + newFileName;
     }
 
-    private String buildStoredFileName(String originalFileName, String userId, String prefix) {
-        String extension = extractExtension(originalFileName);
-        String safeBaseName = sanitizeBaseName(originalFileName);
+    private String buildStoredFileName(String originalFileName, String userId, String prefix, String defaultExtension, String fallbackBaseName) {
+        String extension = extractExtension(originalFileName, defaultExtension);
+        String safeBaseName = sanitizeBaseName(originalFileName, fallbackBaseName);
         return prefix + userId + "_" + System.currentTimeMillis() + "_" + safeBaseName + extension;
     }
 
-    private String extractExtension(String fileName) {
+    private String extractExtension(String fileName, String defaultExtension) {
+        String safeDefaultExtension = isNotEmpty(defaultExtension) ? defaultExtension.toLowerCase() : ".bin";
         if (fileName == null) {
-            return ".pdf";
+            return safeDefaultExtension;
         }
         int dotIndex = fileName.lastIndexOf(".");
         if (dotIndex < 0 || dotIndex == fileName.length() - 1) {
-            return ".pdf";
+            return safeDefaultExtension;
         }
-        return fileName.substring(dotIndex);
+        return fileName.substring(dotIndex).toLowerCase();
     }
 
-    private String sanitizeBaseName(String fileName) {
+    private String sanitizeBaseName(String fileName, String fallbackBaseName) {
         String safeFileName = fileName != null ? fileName.trim() : "";
         int slashIndex = Math.max(safeFileName.lastIndexOf('/'), safeFileName.lastIndexOf('\\'));
         if (slashIndex >= 0 && slashIndex < safeFileName.length() - 1) {
@@ -627,7 +781,7 @@ public class ApplicantServlet extends HttpServlet {
         baseName = baseName.replaceAll("[._-]+$", "");
 
         if (!isNotEmpty(baseName)) {
-            return "resume";
+            return isNotEmpty(fallbackBaseName) ? fallbackBaseName : "file";
         }
         if (baseName.length() > 60) {
             return baseName.substring(0, 60);
@@ -678,6 +832,13 @@ public class ApplicantServlet extends HttpServlet {
         data.put("resumeSize", getStoredFileSize(safeResumePath));
     }
 
+    private void appendStoredPhotoPayload(java.util.Map<String, Object> data, String photoPath, String fallbackName) {
+        String safePhotoPath = photoPath != null ? photoPath : "";
+        data.put("photoPath", safePhotoPath);
+        data.put("photoName", buildDisplayFileName(safePhotoPath, fallbackName));
+        data.put("photoSize", getStoredFileSize(safePhotoPath));
+    }
+
     private void deleteStoredFile(String relativePath) {
         File file = resolveStoredFile(relativePath);
         if (file != null && file.exists() && !file.delete()) {
@@ -694,6 +855,72 @@ public class ApplicantServlet extends HttpServlet {
             return;
         }
         deleteStoredFile(previousResumePath);
+    }
+
+    private void cleanupReplacedPhoto(String previousPhotoPath, String currentPhotoPath) {
+        if (!isNotEmpty(previousPhotoPath)) {
+            return;
+        }
+        String safeCurrentPhotoPath = currentPhotoPath != null ? currentPhotoPath.trim() : "";
+        if (previousPhotoPath.equals(safeCurrentPhotoPath)) {
+            return;
+        }
+        deleteStoredFile(previousPhotoPath);
+    }
+
+    private boolean isPhotoAssetRequest(HttpServletRequest request) {
+        String asset = request.getParameter(PHOTO_ASSET_PARAM);
+        return PHOTO_ASSET_VALUE.equalsIgnoreCase(asset);
+    }
+
+    private void streamProfilePhoto(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        User currentUser = getCurrentUser(request);
+        if (currentUser == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        Optional<Applicant> applicantOpt = applicantDao.findByUserId(currentUser.getUserId());
+        if (applicantOpt.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        Applicant applicant = applicantOpt.get();
+        String photoPath = applicant.getPhotoPath();
+        if (!isNotEmpty(photoPath)) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        File file = resolveStoredFile(photoPath);
+        if (file == null || !file.exists() || !file.isFile()) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        String contentType = Files.probeContentType(file.toPath());
+        if (!isNotEmpty(contentType) || !contentType.startsWith("image/")) {
+            contentType = detectPhotoContentType(file.getName());
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType(contentType);
+        response.setHeader("Cache-Control", "no-store");
+        response.setContentLengthLong(file.length());
+        Files.copy(file.toPath(), response.getOutputStream());
+        response.getOutputStream().flush();
+    }
+
+    private String detectPhotoContentType(String fileName) {
+        String safeName = fileName != null ? fileName.toLowerCase() : "";
+        if (safeName.endsWith(".png")) {
+            return "image/png";
+        }
+        if (safeName.endsWith(".webp")) {
+            return "image/webp";
+        }
+        return "image/jpeg";
     }
 
     private boolean isDraftResumeRequest(HttpServletRequest request) {
@@ -1419,6 +1646,14 @@ public class ApplicantServlet extends HttpServlet {
         return new CompletenessResult(completeness, missingFields);
     }
 
+    private boolean isTruthyFlag(String value) {
+        if (value == null) {
+            return false;
+        }
+        String normalized = value.trim();
+        return "true".equalsIgnoreCase(normalized) || "1".equals(normalized);
+    }
+
     /**
      * 检查字符串是否不为空
      */
@@ -1443,6 +1678,7 @@ public class ApplicantServlet extends HttpServlet {
         json.append("\"gpa\": \"").append(escapeJson(applicant.getGpa() != null ? applicant.getGpa() : "")).append("\", ");
         json.append("\"skills\": \"").append(escapeJson(applicant.getSkillsAsString())).append("\", ");
         json.append("\"resumePath\": \"").append(escapeJson(applicant.getResumePath() != null ? applicant.getResumePath() : "")).append("\", ");
+        json.append("\"photoPath\": \"").append(escapeJson(applicant.getPhotoPath() != null ? applicant.getPhotoPath() : "")).append("\", ");
         json.append("\"phone\": \"").append(escapeJson(applicant.getPhone() != null ? applicant.getPhone() : "")).append("\", ");
         json.append("\"address\": \"").append(escapeJson(applicant.getAddress() != null ? applicant.getAddress() : "")).append("\", ");
         json.append("\"experience\": \"").append(escapeJson(applicant.getExperience() != null ? applicant.getExperience() : "")).append("\", ");
@@ -1473,6 +1709,7 @@ public class ApplicantServlet extends HttpServlet {
         data.put("gpa", applicant.getGpa() != null ? applicant.getGpa() : "");
         data.put("skills", applicant.getSkillsAsString());
         appendStoredResumePayload(data, applicant.getResumePath(), "");
+        appendStoredPhotoPayload(data, applicant.getPhotoPath(), "");
         data.put("phone", applicant.getPhone() != null ? applicant.getPhone() : "");
         data.put("address", applicant.getAddress() != null ? applicant.getAddress() : "");
         data.put("experience", applicant.getExperience() != null ? applicant.getExperience() : "");

@@ -22,6 +22,7 @@ public class Applicant {
     private String gpa;              // GPA
     private List<String> skills;     // 技能列表（逗号分隔）
     private String resumePath;       // 简历文件路径
+    private String photoPath;        // 头像文件路径
     private String phone;            // 电话
     private String address;          // 地址
     private String experience;       // 相关经验
@@ -128,6 +129,14 @@ public class Applicant {
         this.resumePath = resumePath;
     }
 
+    public String getPhotoPath() {
+        return photoPath;
+    }
+
+    public void setPhotoPath(String photoPath) {
+        this.photoPath = photoPath;
+    }
+
     public String getPhone() {
         return phone;
     }
@@ -191,6 +200,7 @@ public class Applicant {
             escapeCsv(gpa),
             escapeCsv(getSkillsAsString()),
             escapeCsv(resumePath != null ? resumePath : ""),
+            escapeCsv(photoPath != null ? photoPath : ""),
             escapeCsv(phone != null ? phone : ""),
             escapeCsv(address != null ? address : ""),
             escapeCsv(experience != null ? experience : ""),
@@ -219,17 +229,24 @@ public class Applicant {
         applicant.setGpa(unescapeCsv(parts[6]));
         applicant.setSkillsFromString(parts.length > 7 ? unescapeCsv(parts[7]) : "");
 
+        // Backward compatibility:
+        // old format: ... resumePath,phone,address,experience,motivation,createdAt,updatedAt
+        // new format: ... resumePath,photoPath,phone,address,experience,motivation,createdAt,updatedAt
+        boolean hasPhotoColumn = parts.length >= 16;
         if (parts.length > 8) applicant.setResumePath(unescapeCsv(parts[8]));
-        if (parts.length > 9) applicant.setPhone(unescapeCsv(parts[9]));
-        if (parts.length > 10) applicant.setAddress(unescapeCsv(parts[10]));
-        if (parts.length > 11) applicant.setExperience(unescapeCsv(parts[11]));
-        if (parts.length > 12) applicant.setMotivation(unescapeCsv(parts[12]));
+        if (hasPhotoColumn && parts.length > 9) applicant.setPhotoPath(unescapeCsv(parts[9]));
+        if (parts.length > (hasPhotoColumn ? 10 : 9)) applicant.setPhone(unescapeCsv(parts[hasPhotoColumn ? 10 : 9]));
+        if (parts.length > (hasPhotoColumn ? 11 : 10)) applicant.setAddress(unescapeCsv(parts[hasPhotoColumn ? 11 : 10]));
+        if (parts.length > (hasPhotoColumn ? 12 : 11)) applicant.setExperience(unescapeCsv(parts[hasPhotoColumn ? 12 : 11]));
+        if (parts.length > (hasPhotoColumn ? 13 : 12)) applicant.setMotivation(unescapeCsv(parts[hasPhotoColumn ? 13 : 12]));
 
-        if (parts.length > 13 && !parts[13].isEmpty()) {
-            applicant.setCreatedAt(LocalDateTime.parse(parts[13], DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        int createdAtIndex = hasPhotoColumn ? 14 : 13;
+        int updatedAtIndex = hasPhotoColumn ? 15 : 14;
+        if (parts.length > createdAtIndex && !parts[createdAtIndex].isEmpty()) {
+            applicant.setCreatedAt(LocalDateTime.parse(parts[createdAtIndex], DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         }
-        if (parts.length > 14 && !parts[14].isEmpty()) {
-            applicant.setUpdatedAt(LocalDateTime.parse(parts[14], DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        if (parts.length > updatedAtIndex && !parts[updatedAtIndex].isEmpty()) {
+            applicant.setUpdatedAt(LocalDateTime.parse(parts[updatedAtIndex], DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         }
 
         return applicant;

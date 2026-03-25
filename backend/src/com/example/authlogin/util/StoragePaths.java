@@ -61,6 +61,14 @@ public final class StoragePaths {
         return Paths.get(getDataDir(), "resume-drafts").toString();
     }
 
+    public static String getPhotoDir() {
+        return Paths.get(getDataDir(), "photos").toString();
+    }
+
+    public static String getPhotoDraftDir() {
+        return Paths.get(getDataDir(), "photo-drafts").toString();
+    }
+
     private static String firstNonBlank(String... values) {
         for (String value : values) {
             if (value != null && !value.trim().isEmpty()) {
