@@ -247,7 +247,7 @@ public final class DemoDataSeeder {
                     "demo-job-ai603",
                     Application.Status.PENDING,
                     "I can guide project teams through data prep and model evaluation tasks.",
-                    Application.ProgressStage.INTERVIEW_SCHEDULED
+                    Application.ProgressStage.UNDER_REVIEW
             ),
             new ApplicationSpec(
                     "demo-application-ta-mia-alg605",

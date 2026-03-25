@@ -305,29 +305,8 @@ public class ApplicationDao {
         if (app.getProgressStage() != Application.ProgressStage.SUBMITTED) {
             return false;
         }
-        app.setProgressStage(Application.ProgressStage.UNDER_REVIEW);
+                app.setProgressStage(Application.ProgressStage.UNDER_REVIEW);
         app.setReviewStartedAt(LocalDateTime.now());
-        save(app);
-        return true;
-    }
-
-    /**
-     * MO：标记已安排面试（仅待处理且阶段为审核中）
-     */
-    public boolean scheduleInterview(String applicationId) {
-        Optional<Application> appOpt = findById(applicationId);
-        if (appOpt.isEmpty()) {
-            return false;
-        }
-        Application app = appOpt.get();
-        if (app.getStatus() != Application.Status.PENDING) {
-            return false;
-        }
-        if (app.getProgressStage() != Application.ProgressStage.UNDER_REVIEW) {
-            return false;
-        }
-        app.setProgressStage(Application.ProgressStage.INTERVIEW_SCHEDULED);
-        app.setInterviewScheduledAt(LocalDateTime.now());
         save(app);
         return true;
     }

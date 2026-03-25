@@ -361,12 +361,9 @@ public class ApplyServlet extends HttpServlet {
                 case "start_review":
                     handleStartReview(response, application, currentUser);
                     break;
-                case "schedule_interview":
-                    handleScheduleInterview(response, application, currentUser);
-                    break;
                 default:
                     JsonResponseUtil.writeJsonResponse(response, 400, false,
-                            "Invalid action. Use 'accept', 'reject', 'withdraw', 'start_review', or 'schedule_interview'", null);
+                            "Invalid action. Use 'accept', 'reject', 'withdraw', or 'start_review'", null);
             }
 
         } catch (Exception e) {
@@ -514,33 +511,6 @@ public class ApplyServlet extends HttpServlet {
         Optional<Application> updated = applicationDao.findById(application.getApplicationId());
         if (updated.isPresent()) {
             JsonResponseUtil.writeJsonResponse(response, 200, true, "Review started", buildApplicationPayload(updated.get()));
-        } else {
-            JsonResponseUtil.writeJsonResponse(response, 500, false, "Failed to retrieve updated application", null);
-        }
-    }
-
-    /**
-     * MO：标记已安排面试
-     */
-    private void handleScheduleInterview(HttpServletResponse response, Application application, User currentUser)
-            throws IOException {
-        if (currentUser.getRole() != User.Role.MO) {
-            JsonResponseUtil.writeJsonResponse(response, 403, false, "Only MO can schedule interviews", null);
-            return;
-        }
-        if (application.getMoId() == null || !application.getMoId().equals(currentUser.getUserId())) {
-            JsonResponseUtil.writeJsonResponse(response, 403, false, "You can only review applications for your own jobs", null);
-            return;
-        }
-        boolean ok = applicationDao.scheduleInterview(application.getApplicationId());
-        if (!ok) {
-            JsonResponseUtil.writeJsonResponse(response, 400, false,
-                    "Cannot schedule interview (application must be pending and in under review stage)", null);
-            return;
-        }
-        Optional<Application> updated = applicationDao.findById(application.getApplicationId());
-        if (updated.isPresent()) {
-            JsonResponseUtil.writeJsonResponse(response, 200, true, "Interview scheduled", buildApplicationPayload(updated.get()));
         } else {
             JsonResponseUtil.writeJsonResponse(response, 500, false, "Failed to retrieve updated application", null);
         }

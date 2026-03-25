@@ -133,11 +133,6 @@ public class ApplicationFlowE2ETest {
                 Application a1 = applicationDao.findById(aid).orElseThrow();
                 assert a1.getProgressStage() == Application.ProgressStage.UNDER_REVIEW : "stage should be UNDER_REVIEW";
                 assert a1.getReviewStartedAt() != null : "review start time should be set";
-
-                assert applicationDao.scheduleInterview(aid) : "scheduleInterview should succeed";
-                Application a2 = applicationDao.findById(aid).orElseThrow();
-                assert a2.getProgressStage() == Application.ProgressStage.INTERVIEW_SCHEDULED : "stage should be INTERVIEW_SCHEDULED";
-                assert a2.getInterviewScheduledAt() != null : "interview time should be set";
             });
 
             test("End-to-end: accepted count should not exceed positions", () -> {
