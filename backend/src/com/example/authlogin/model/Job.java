@@ -166,6 +166,32 @@ public class Job {
         this.status = status;
     }
 
+    /**
+     * 返回对外展示/筛选时应采用的生效状态。
+     * 规则：
+     * 1. FILLED 优先保留；
+     * 2. 手动 CLOSED 优先保留；
+     * 3. 截止时间已过的 OPEN 视为 CLOSED；
+     * 4. 其他情况视为 OPEN。
+     */
+    public Status getEffectiveStatus() {
+        return getEffectiveStatus(LocalDateTime.now());
+    }
+
+    public Status getEffectiveStatus(LocalDateTime referenceTime) {
+        if (status == Status.FILLED) {
+            return Status.FILLED;
+        }
+        if (status == Status.CLOSED) {
+            return Status.CLOSED;
+        }
+        LocalDateTime now = referenceTime != null ? referenceTime : LocalDateTime.now();
+        if (deadline != null && deadline.isBefore(now)) {
+            return Status.CLOSED;
+        }
+        return Status.OPEN;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }

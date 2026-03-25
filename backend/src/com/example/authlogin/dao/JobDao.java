@@ -157,8 +157,9 @@ public class JobDao {
      * 根据状态查找职位
      */
     public List<Job> findByStatus(Job.Status status) {
+        LocalDateTime now = LocalDateTime.now();
         return readAllJobs().stream()
-                .filter(j -> j.getStatus() == status)
+                .filter(j -> j.getEffectiveStatus(now) == status)
                 .collect(Collectors.toList());
     }
 
@@ -260,8 +261,9 @@ public class JobDao {
      * 获取开放职位数量
      */
     public long countOpenJobs() {
+        LocalDateTime now = LocalDateTime.now();
         return readAllJobs().stream()
-                .filter(j -> j.getStatus() == Job.Status.OPEN)
+                .filter(j -> j.getEffectiveStatus(now) == Job.Status.OPEN)
                 .count();
     }
 
