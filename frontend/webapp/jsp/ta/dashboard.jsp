@@ -166,15 +166,12 @@
                                     </div>
                                 </section>
 
-                                <section class="form-section" aria-labelledby="section-additional-info">
-                                    <div class="form-section-header">
-                                        <h3 id="section-additional-info" data-i18n="portal.taDashboard.additionalInfo">Additional information</h3>
-                                    </div>
-
+                                <section class="form-section">
                                     <div class="field-grid">
                                         <div class="field">
                                             <div class="field-label-row">
                                                 <label for="gpa" data-i18n="portal.taDashboard.gpa">GPA</label>
+                                                <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
                                             </div>
                                             <input
                                                 id="gpa"
@@ -183,12 +180,14 @@
                                                 placeholder="e.g. 3.85 / 4.00"
                                                 inputmode="decimal"
                                                 maxlength="20"
+                                                required
                                             >
                                         </div>
 
                                         <div class="field">
                                             <div class="field-label-row">
                                                 <label for="phone" data-i18n="portal.taDashboard.phone">Phone number</label>
+                                                <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
                                             </div>
                                             <input
                                                 id="phone"
@@ -197,12 +196,14 @@
                                                 placeholder="+86 138 0000 0000"
                                                 autocomplete="tel"
                                                 maxlength="30"
+                                                required
                                             >
                                         </div>
 
                                         <div class="field field-full">
                                             <div class="field-label-row">
                                                 <label for="skills" data-i18n="portal.taDashboard.skills">Skills</label>
+                                                <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
                                             </div>
                                             <input
                                                 id="skills"
@@ -210,6 +211,7 @@
                                                 type="text"
                                                 placeholder="Separate skills with commas, for example Java, JSP, SQL"
                                                 maxlength="300"
+                                                required
                                             >
                                             <p class="field-hint" data-i18n="portal.taDashboard.skillsHint">Use commas to separate each skill. The current backend stores your skills as a list.</p>
                                         </div>
@@ -217,6 +219,7 @@
                                         <div class="field field-full">
                                             <div class="field-label-row">
                                                 <label for="experience" data-i18n="portal.taDashboard.experience">Related experience</label>
+                                                <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
                                             </div>
                                             <textarea
                                                 id="experience"
@@ -224,12 +227,14 @@
                                                 rows="5"
                                                 maxlength="1200"
                                                 placeholder="Describe tutoring, teaching, grading, or project experience relevant to a TA role."
+                                                required
                                             ></textarea>
                                         </div>
 
                                         <div class="field field-full">
                                             <div class="field-label-row">
                                                 <label for="motivation" data-i18n="portal.taDashboard.motivation">Motivation</label>
+                                                <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
                                             </div>
                                             <textarea
                                                 id="motivation"
@@ -237,6 +242,7 @@
                                                 rows="5"
                                                 maxlength="1200"
                                                 placeholder="Explain why you want this TA opportunity and what value you can bring."
+                                                required
                                             ></textarea>
                                         </div>
                                     </div>

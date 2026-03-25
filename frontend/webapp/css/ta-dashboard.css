@@ -260,6 +260,20 @@
     grid-column: 1 / -1;
 }
 
+.field-label-row {
+    min-height: 20px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.field-label-row .field-tag {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
 .field-tag {
     color: #0071e3;
     font-size: 12px;

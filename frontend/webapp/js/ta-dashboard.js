@@ -1146,7 +1146,15 @@
     }
 
     function getFieldValidationMessage(key, value, forceRequired) {
-        var isRequired = key === "fullName" || key === "studentId" || key === "department" || key === "program";
+        var isRequired = key === "fullName"
+            || key === "studentId"
+            || key === "department"
+            || key === "program"
+            || key === "gpa"
+            || key === "phone"
+            || key === "skills"
+            || key === "experience"
+            || key === "motivation";
         if (isRequired && forceRequired && !value) {
             if (key === "fullName") {
                 return "Please enter your full name.";
@@ -1157,7 +1165,22 @@
             if (key === "department") {
                 return "Please enter your department.";
             }
-            return "Please select your program.";
+            if (key === "program") {
+                return "Please select your program.";
+            }
+            if (key === "gpa") {
+                return "Please enter your GPA.";
+            }
+            if (key === "phone") {
+                return "Please enter your phone number.";
+            }
+            if (key === "skills") {
+                return "Please enter at least one skill.";
+            }
+            if (key === "experience") {
+                return "Please describe your related experience.";
+            }
+            return "Please explain your motivation.";
         }
 
         if (!value) {
