@@ -245,3 +245,4 @@
 |`member5`|#28|`fix: 修复TA简历上传按钮中英文切换`|✅|`git commit -m "fix: 修复TA简历上传按钮中英文切换" --author="member5 <member5@edu.com>"`|
 |`member5`|#29|`feat: 重构TA档案与简历草稿保存流程`|✅|`git commit -m "feat: 重构TA档案与简历草稿保存流程" --author="member5 <member5@edu.com>"`|
 |`member6`|#30|`refactor: 下线MO概览与技能缺口页面入口`|✅|`git commit -m "refactor: 下线MO概览与技能缺口页面入口" --author="member6 <member6@edu.com>"`|
+|`member1`|#31|`refactor: 移除缺失技能接口并收紧MO技能匹配权限`|✅|`git commit -m "refactor: 移除缺失技能接口并收紧MO技能匹配权限" --author="member1 <member1@edu.com>"`|

@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * SkillMatchServlet - 为 MO/Admin 提供真实技能匹配结果。
+ * SkillMatchServlet - 为 MO 提供真实技能匹配结果。
  * 访问路径: /api/mo/skill-match
  */
 @WebServlet("/api/mo/skill-match")
@@ -50,8 +50,8 @@ public class SkillMatchServlet extends HttpServlet {
             JsonResponseUtil.writeJsonResponse(response, 401, false, "Please login first", null);
             return;
         }
-        if (currentUser.getRole() != User.Role.MO && currentUser.getRole() != User.Role.ADMIN) {
-            JsonResponseUtil.writeJsonResponse(response, 403, false, "Only MO or ADMIN can access skill match data", null);
+        if (currentUser.getRole() != User.Role.MO) {
+            JsonResponseUtil.writeJsonResponse(response, 403, false, "Only MO can access skill match data", null);
             return;
         }
 

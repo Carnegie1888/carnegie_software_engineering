@@ -70,6 +70,11 @@ public class AuthFilter implements Filter {
         "/job/view"
     ));
 
+    private static final Set<String> ADMIN_BLOCKED_PATHS = new HashSet<>(Arrays.asList(
+        "/jsp/mo/ai-skill-match.jsp",
+        "/api/mo/skill-match"
+    ));
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         System.out.println("[AuthFilter] Initialized");
@@ -170,9 +175,9 @@ public class AuthFilter implements Filter {
      * 验证用户角色权限
      */
     private boolean hasPermission(String path, User.Role role) {
-        // ADMIN可以访问所有路径
+        // ADMIN可以访问除指定 MO AI 匹配功能外的所有路径
         if (role == User.Role.ADMIN) {
-            return true;
+            return !ADMIN_BLOCKED_PATHS.contains(path);
         }
 
         // MO可以访问MO路径和TA路径
