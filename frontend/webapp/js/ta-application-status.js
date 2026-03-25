@@ -11,14 +11,6 @@
     var listSummaryNode = document.getElementById("list-summary");
     var listNode = document.getElementById("applications-list");
 
-    var summaryNodes = {
-        total: document.getElementById("summary-total"),
-        pending: document.getElementById("summary-pending"),
-        accepted: document.getElementById("summary-accepted"),
-        rejected: document.getElementById("summary-rejected"),
-        withdrawn: document.getElementById("summary-withdrawn")
-    };
-
     if (!filterForm || !listNode || !listSummaryNode) {
         return;
     }
@@ -26,7 +18,6 @@
     var state = {
         loading: false,
         applications: [],
-        withdrawingId: "",
         loadError: false
     };
 
@@ -114,7 +105,6 @@
 
     function render() {
         var filtered = getFilteredApplications();
-        renderSummary(state.applications);
         renderList(filtered);
     }
 
@@ -141,38 +131,6 @@
 
             return searchable.indexOf(keyword) >= 0;
         });
-    }
-
-    function renderSummary(applications) {
-        var counts = {
-            total: 0,
-            pending: 0,
-            accepted: 0,
-            rejected: 0,
-            withdrawn: 0
-        };
-
-        if (Array.isArray(applications)) {
-            counts.total = applications.length;
-            applications.forEach(function (app) {
-                var status = safeText(app.status, "PENDING").toUpperCase();
-                if (status === "PENDING") {
-                    counts.pending += 1;
-                } else if (status === "ACCEPTED") {
-                    counts.accepted += 1;
-                } else if (status === "REJECTED") {
-                    counts.rejected += 1;
-                } else if (status === "WITHDRAWN") {
-                    counts.withdrawn += 1;
-                }
-            });
-        }
-
-        summaryNodes.total.textContent = String(counts.total);
-        summaryNodes.pending.textContent = String(counts.pending);
-        summaryNodes.accepted.textContent = String(counts.accepted);
-        summaryNodes.rejected.textContent = String(counts.rejected);
-        summaryNodes.withdrawn.textContent = String(counts.withdrawn);
     }
 
     function renderList(applications) {
@@ -205,39 +163,140 @@
 
     function createApplicationCard(app) {
         var card = document.createElement("article");
-        card.className = "application-card";
-
+        var applicationId = safeText(app.applicationId, "");
         var status = safeText(app.status, "PENDING").toUpperCase();
-        var canWithdraw = status === "PENDING";
-        var buttonDisabled = !canWithdraw || state.withdrawingId === safeText(app.applicationId, "");
-        var buttonLabel = canWithdraw ? (buttonDisabled && state.withdrawingId === safeText(app.applicationId, "") ? "Withdrawing..." : "Withdraw") : "Cannot withdraw";
-        var detailLink = contextPath + "/jsp/ta/job-detail.jsp?id=" + encodeURIComponent(safeText(app.jobId, ""));
+        var statusClass = getApplicationStatusClass(status);
+        var detailLink =
+            contextPath + "/jsp/ta/application-detail.jsp?id=" + encodeURIComponent(applicationId);
+        var title = safeText(app.jobTitle, "Untitled position");
+        var subtitle = buildApplicationSubtitle(safeText(app.courseCode, ""), app.appliedAt);
+
+        card.className = "application-card status-" + statusClass;
+        card.setAttribute("role", "link");
+        card.setAttribute("tabindex", "0");
+        card.setAttribute("aria-label", "View details of " + title);
+        card.setAttribute("data-application-id", applicationId);
 
         card.innerHTML =
-            "<header class=\"application-header\">" +
-                "<div>" +
-                    "<h3>" + escapeHtml(safeText(app.jobTitle, "Untitled job")) + "</h3>" +
-                    "<p>" + escapeHtml(safeText(app.courseCode, "-")) + " · MO: " + escapeHtml(safeText(app.moName, "-")) + "</p>" +
+            "<span class=\"application-accent\" aria-hidden=\"true\"></span>" +
+            "<div class=\"application-main\">" +
+                "<div class=\"application-heading\">" +
+                    "<h3>" + escapeHtml(title) + "</h3>" +
+                    "<p class=\"application-subtitle\">" + subtitle + "</p>" +
                 "</div>" +
-                "<span class=\"status-pill status-" + escapeHtml(status.toLowerCase()) + "\">" + escapeHtml(status) + "</span>" +
-            "</header>" +
-            "<div class=\"application-meta\">" +
-                "<p><span>Applied at:</span><strong>" + escapeHtml(formatDateTime(app.appliedAt)) + "</strong></p>" +
-                "<p><span>Cover letter:</span><strong>" + escapeHtml(shortenText(safeText(app.coverLetter, "-"), 160)) + "</strong></p>" +
             "</div>" +
-            "<div class=\"application-actions\">" +
-                "<a class=\"ghost-link\" href=\"" + detailLink + "\">View job</a>" +
-                "<button class=\"danger-btn\" type=\"button\"" + (buttonDisabled ? " disabled" : "") + " data-action=\"withdraw\" data-id=\"" + escapeHtml(safeText(app.applicationId, "")) + "\">" + escapeHtml(buttonLabel) + "</button>" +
+            "<div class=\"application-side\">" +
+                "<span class=\"application-status-chip status-" + statusClass + "\">" +
+                    getStatusIconMarkup(statusClass) +
+                    "<span class=\"application-status-text\">" + escapeHtml(getApplicationStatusLabel(status)) + "</span>" +
+                "</span>" +
             "</div>";
 
-        var withdrawButton = card.querySelector("button[data-action=\"withdraw\"]");
-        if (withdrawButton && canWithdraw) {
-            withdrawButton.addEventListener("click", function () {
-                handleWithdraw(safeText(app.applicationId, ""));
-            });
-        }
+        card.addEventListener("click", function () {
+            window.location.href = detailLink;
+        });
+        card.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                window.location.href = detailLink;
+            }
+        });
 
         return card;
+    }
+
+    function buildApplicationSubtitle(courseCode, appliedAt) {
+        var parts = [];
+        if (courseCode) {
+            parts.push("<span class=\"application-course-code\">" + escapeHtml(courseCode) + "</span>");
+        }
+
+        parts.push("<span class=\"application-date-label\">Applied at</span>");
+        parts.push(
+            "<time class=\"application-date-value\" datetime=\"" + escapeHtml(safeText(appliedAt, "")) + "\">" +
+                escapeHtml(formatDateTime(appliedAt)) +
+            "</time>"
+        );
+
+        return parts.join("<span class=\"application-subtitle-separator\" aria-hidden=\"true\">·</span>");
+    }
+
+    function getApplicationStatusClass(status) {
+        if (status === "PENDING") {
+            return "pending";
+        }
+        if (status === "ACCEPTED") {
+            return "accepted";
+        }
+        if (status === "REJECTED") {
+            return "rejected";
+        }
+        if (status === "WITHDRAWN") {
+            return "withdrawn";
+        }
+        return "unknown";
+    }
+
+    function getApplicationStatusLabel(status) {
+        if (status === "PENDING") {
+            return "Pending";
+        }
+        if (status === "ACCEPTED") {
+            return "Accepted";
+        }
+        if (status === "REJECTED") {
+            return "Rejected";
+        }
+        if (status === "WITHDRAWN") {
+            return "Withdrawn";
+        }
+        return safeText(status, "-");
+    }
+
+    function getStatusIconMarkup(statusClass) {
+        if (statusClass === "pending") {
+            return "<span class=\"application-status-icon\" aria-hidden=\"true\">" +
+                "<svg viewBox=\"0 0 20 20\" focusable=\"false\" aria-hidden=\"true\">" +
+                    "<circle cx=\"10\" cy=\"10\" r=\"7.25\"></circle>" +
+                    "<path d=\"M10 6.25v4.1l2.7 1.7\"></path>" +
+                "</svg>" +
+            "</span>";
+        }
+
+        if (statusClass === "accepted") {
+            return "<span class=\"application-status-icon\" aria-hidden=\"true\">" +
+                "<svg viewBox=\"0 0 20 20\" focusable=\"false\" aria-hidden=\"true\">" +
+                    "<circle cx=\"10\" cy=\"10\" r=\"7.25\"></circle>" +
+                    "<path d=\"M6.7 10.2l2.2 2.2 4.4-4.5\"></path>" +
+                "</svg>" +
+            "</span>";
+        }
+
+        if (statusClass === "rejected") {
+            return "<span class=\"application-status-icon\" aria-hidden=\"true\">" +
+                "<svg viewBox=\"0 0 20 20\" focusable=\"false\" aria-hidden=\"true\">" +
+                    "<circle cx=\"10\" cy=\"10\" r=\"7.25\"></circle>" +
+                    "<path d=\"M7.2 7.2l5.6 5.6\"></path>" +
+                    "<path d=\"M12.8 7.2l-5.6 5.6\"></path>" +
+                "</svg>" +
+            "</span>";
+        }
+
+        if (statusClass === "withdrawn") {
+            return "<span class=\"application-status-icon\" aria-hidden=\"true\">" +
+                "<svg viewBox=\"0 0 20 20\" focusable=\"false\" aria-hidden=\"true\">" +
+                    "<circle cx=\"10\" cy=\"10\" r=\"7.25\"></circle>" +
+                    "<path d=\"M6.6 10h6.8\"></path>" +
+                "</svg>" +
+            "</span>";
+        }
+
+        return "<span class=\"application-status-icon\" aria-hidden=\"true\">" +
+            "<svg viewBox=\"0 0 20 20\" focusable=\"false\" aria-hidden=\"true\">" +
+                "<circle cx=\"10\" cy=\"10\" r=\"7.25\"></circle>" +
+                "<path d=\"M10 10h0\"></path>" +
+            "</svg>" +
+        "</span>";
     }
 
     function createEmptyState(mode) {
@@ -262,51 +321,6 @@
             "<p class=\"empty-title\">No applications yet</p>" +
             "<p class=\"empty-copy\">After you apply for a job, the status will appear here.</p>";
         return empty;
-    }
-
-    function handleWithdraw(applicationId) {
-        if (!applicationId || state.withdrawingId) {
-            return;
-        }
-
-        state.withdrawingId = applicationId;
-        render();
-        hideMessage();
-
-        request(contextPath + "/apply?id=" + encodeURIComponent(applicationId) + "&action=withdraw", {
-            method: "PUT",
-            headers: {
-                "X-Requested-With": "XMLHttpRequest"
-            }
-        })
-            .then(function (result) {
-                var response = result.response;
-                var payload = result.payload;
-
-                if (response.status === 401) {
-                    handleUnauthorized();
-                    return;
-                }
-
-                if (!response.ok || !payload || payload.success !== true) {
-                    var errorMessage = "Unable to withdraw this application.";
-                    if (payload && typeof payload.message === "string" && payload.message.trim()) {
-                        errorMessage = payload.message.trim();
-                    }
-                    showMessage(errorMessage, "error");
-                    return;
-                }
-
-                showMessage("Application withdrawn successfully.", "success");
-                loadApplications();
-            })
-            .catch(function () {
-                showMessage("Network error while withdrawing application.", "error");
-            })
-            .finally(function () {
-                state.withdrawingId = "";
-                render();
-            });
     }
 
     function setLoading(loading) {
@@ -393,17 +407,6 @@
             pad2(date.getDate()) + " " +
             pad2(date.getHours()) + ":" +
             pad2(date.getMinutes());
-    }
-
-    function shortenText(value, maxLength) {
-        var text = safeText(value, "");
-        if (!text) {
-            return "-";
-        }
-        if (text.length <= maxLength) {
-            return text;
-        }
-        return text.substring(0, maxLength - 1) + "…";
     }
 
     function pad2(value) {

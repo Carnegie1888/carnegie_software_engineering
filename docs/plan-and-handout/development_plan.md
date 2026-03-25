@@ -251,3 +251,4 @@
 |`member5`|#34|`fix: 完善 TA 档案页必填项提示与前端校验`|✅|`git commit -m "fix: 完善 TA 档案页必填项提示与前端校验" --author="member5 <member5@edu.com>"`|
 |`member1`|#35|`feat: 新增申请流程阶段推进与详情字段`|✅|`git commit -m "feat: 新增申请流程阶段推进与详情字段" --author="member1 <member1@edu.com>"`|
 |`member3`|#36|`feat: 补充演示申请进度数据并扩展流程回归测试`|✅|`git commit -m "feat: 补充演示申请进度数据并扩展流程回归测试" --author="member3 <member3@edu.com>"`|
+|`member6`|#37|`feat: 新增 TA 申请详情页并优化申请状态展示`|✅|`git commit -m "feat: 新增 TA 申请详情页并优化申请状态展示" --author="member6 <member6@edu.com>"`|

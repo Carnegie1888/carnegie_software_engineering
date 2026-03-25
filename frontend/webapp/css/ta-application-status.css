@@ -146,52 +146,6 @@
     min-width: 0;
 }
 
-.summary-grid {
-    margin-top: 16px;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 10px;
-}
-
-.summary-card {
-    border: 1px solid #e8e8ec;
-    border-radius: 14px;
-    background: #f5f5f7;
-    padding: 12px;
-}
-
-.summary-card p {
-    margin: 0;
-    color: #86868b;
-    font-size: 12px;
-    line-height: 1.4;
-}
-
-.summary-card strong {
-    display: inline-block;
-    margin-top: 4px;
-    color: #1d1d1f;
-    font-size: 20px;
-    line-height: 1.2;
-    font-weight: 700;
-}
-
-.summary-card.pending strong {
-    color: #0d4d8c;
-}
-
-.summary-card.accepted strong {
-    color: #1f7a34;
-}
-
-.summary-card.rejected strong {
-    color: #b42332;
-}
-
-.summary-card.withdrawn strong {
-    color: #6e6e73;
-}
-
 .list-summary {
     margin: 16px 0 0;
     color: #3a3a3c;
@@ -207,112 +161,173 @@
 }
 
 .application-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 18px;
     border: none;
-    border-radius: 18px;
-    padding: 16px;
+    border-radius: 24px;
+    padding: 20px 24px;
     background: #f5f5f7;
     box-shadow: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.application-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
+.application-card:hover {
+    transform: translateY(-1px);
+    background: #f0f0f3;
 }
 
-.application-header h3 {
-    margin: 0;
-    font-size: 18px;
-    line-height: 1.45;
-    font-weight: 600;
+.application-card:hover h3,
+.application-card:focus-visible h3 {
+    color: #0071e3;
 }
 
-.application-header p {
-    margin: 6px 0 0;
-    color: #6e6e73;
-    font-size: 13px;
-    line-height: 1.5;
+.application-card:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.16);
 }
 
-.application-meta {
-    margin-top: 10px;
+.application-accent {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #c7c7cc;
+    flex-shrink: 0;
+}
+
+.application-card.status-pending .application-accent {
+    background: #ff9f0a;
+}
+
+.application-card.status-accepted .application-accent {
+    background: #0a84ff;
+}
+
+.application-card.status-rejected .application-accent {
+    background: #ff453a;
+}
+
+.application-card.status-withdrawn .application-accent,
+.application-card.status-unknown .application-accent {
+    background: #8e8e93;
+}
+
+.application-main {
+    display: block;
+    min-width: 0;
+    border-radius: 18px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.application-heading {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    min-width: 0;
 }
 
-.application-meta p {
+.application-heading h3 {
+    margin: 0;
+    color: #1d1d1f;
+    font-size: 20px;
+    line-height: 1.35;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+}
+
+.application-subtitle {
     margin: 0;
     display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.application-meta span {
-    color: #86868b;
-    font-size: 12px;
-    line-height: 1.4;
-}
-
-.application-meta strong {
-    color: #1d1d1f;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    color: #6e6e73;
     font-size: 14px;
-    line-height: 1.6;
-    font-weight: 500;
-    word-break: break-word;
+    line-height: 1.55;
 }
 
-.application-actions {
-    margin-top: 12px;
+.application-subtitle-separator {
+    color: #c7c7cc;
+}
+
+.application-course-code {
+    color: #515154;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.application-date-label,
+.application-date-value {
+    color: #6e6e73;
+}
+
+.application-side {
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.application-status-chip {
+    display: inline-flex;
     align-items: center;
     gap: 8px;
-}
-
-.danger-btn {
     min-height: 40px;
-    border: 1px solid transparent;
     border-radius: 999px;
-    background: #b42332;
-    color: #fff;
+    padding: 0 16px;
     font-size: 14px;
     line-height: 1;
     font-weight: 600;
-    padding: 0 14px;
-    cursor: pointer;
-    transition: transform 0.2s, background-color 0.2s, opacity 0.2s;
+    white-space: nowrap;
 }
 
-.danger-btn:hover {
-    transform: translateY(-1px);
-    background: #9f1d2b;
+.application-status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
 }
 
-.danger-btn:disabled {
-    opacity: 0.72;
-    cursor: not-allowed;
-    transform: none;
+.application-status-icon svg {
+    width: 20px;
+    height: 20px;
 }
 
-.status-pill.status-pending {
-    color: #0d4d8c;
-    background: #e8f3ff;
+.application-status-icon circle,
+.application-status-icon path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
-.status-pill.status-accepted {
-    color: #1f7a34;
-    background: #edf7ed;
+.application-status-chip.status-pending {
+    color: #ff9f0a;
+    background: #fff4dd;
 }
 
-.status-pill.status-rejected {
-    color: #b42332;
-    background: #fff1f3;
+.application-status-chip.status-accepted {
+    color: #0a84ff;
+    background: #eaf3ff;
 }
 
-.status-pill.status-withdrawn {
+.application-status-chip.status-rejected {
+    color: #ff453a;
+    background: #fff1ef;
+}
+
+.application-status-chip.status-withdrawn,
+.application-status-chip.status-unknown {
     color: #6e6e73;
-    background: #f5f5f7;
+    background: #ebebf0;
 }
 
 .empty-state {
@@ -345,12 +360,6 @@
     display: none;
 }
 
-@media (max-width: 1024px) {
-    .summary-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-}
-
 @media (max-width: 840px) {
     .filter-form {
         grid-template-columns: 1fr;
@@ -361,8 +370,13 @@
         flex-wrap: wrap;
     }
 
-    .summary-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .application-card {
+        gap: 16px;
+        padding: 18px 20px;
+    }
+
+    .application-heading h3 {
+        font-size: 18px;
     }
 }
 
@@ -376,17 +390,24 @@
         padding: 20px 16px;
     }
 
-    .summary-grid {
-        grid-template-columns: 1fr;
+    .application-card {
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: flex-start;
+        gap: 14px 16px;
+        padding: 18px;
     }
 
-    .application-actions {
-        flex-direction: column;
-        align-items: stretch;
+    .application-side {
+        grid-column: 2;
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
     }
 
-    .application-actions .ghost-link,
-    .application-actions .danger-btn {
-        justify-content: center;
+    .application-status-chip {
+        max-width: 100%;
     }
+
 }

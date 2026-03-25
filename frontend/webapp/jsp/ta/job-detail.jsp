@@ -62,17 +62,6 @@
                     <span data-i18n="portal.nav.ta.profile">Profile</span>
                 </a>
             </nav>
-            <div class="portal-sidebar-bottom">
-                <a class="portal-nav-link" href="<%= contextPath %>/login.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M4 7h12"></path>
-                        <path d="m12 4 4 3-4 3"></path>
-                        <path d="M20 17H8"></path>
-                        <path d="m12 20-4-3 4-3"></path>
-                    </svg>
-                    <span data-i18n="portal.action.switchRoles">Switch Roles</span>
-                </a>
-            </div>
         </aside>
 
         <section class="portal-main">
@@ -171,8 +160,6 @@
                                 </div>
                                 <button id="apply-submit-btn" class="primary-btn" type="submit">Apply for this job</button>
                             </form>
-
-                            <p class="side-hint">Only TA accounts can submit applications. If you have already applied, this panel will show your latest status.</p>
                         </aside>
                     </section>
                 </main>

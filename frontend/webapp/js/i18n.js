@@ -327,6 +327,9 @@
                     taApplicationStatus: {
                         title: "Application status - TA Hiring System"
                     },
+                    taApplicationDetail: {
+                        title: "Application detail - TA Hiring System"
+                    },
                     moDashboard: {
                         title: "MO Dashboard - Post TA Jobs"
                     },
@@ -432,6 +435,36 @@
                     title: "My Applications",
                     subtitle: "Track the status of your submitted applications.",
                     loadingApplications: "Loading applications..."
+                },
+                taApplicationDetail: {
+                    title: "Application detail",
+                    backToList: "← My applications",
+                    jobTeaserTitle: "Applied position details",
+                    viewDetailsCta: "View details →",
+                    gpaScale: "Out of 4.0",
+                    progressTitle: "Application progress",
+                    mySkills: "My skills",
+                    responsibilities: "Responsibilities",
+                    viewResumeFile: "View file",
+                    resumeShort: "Resume",
+                    closeModal: "Close",
+                    missingId: "Missing application ID. Return to the list and try again.",
+                    loadAppFailed: "Unable to load application.",
+                    networkError: "Network error. Please try again.",
+                    untitled: "Untitled position",
+                    submittedPrefix: "Submitted on",
+                    noSkills: "No skills listed",
+                    noCoverLetter: "No cover letter provided.",
+                    jobUnavailable: "Job details unavailable.",
+                    workload: "Workload",
+                    applicants: "Applicants",
+                    deadline: "Deadline",
+                    noDescription: "No description.",
+                    sessionExpired: "Your session has expired. Redirecting to login...",
+                    progressSubmit: "Submit application",
+                    progressReview: "Materials in review",
+                    progressInterview: "Interview arrangement",
+                    progressFinal: "Final decision"
                 },
                 moDashboard: {
                     title: "Post New Job",
@@ -1026,6 +1059,9 @@
                     taApplicationStatus: {
                         title: "申请状态 - TA 招聘系统"
                     },
+                    taApplicationDetail: {
+                        title: "申请详情 - TA 招聘系统"
+                    },
                     moDashboard: {
                         title: "MO 仪表盘 - 发布 TA 职位"
                     },
@@ -1131,6 +1167,36 @@
                     title: "我的申请",
                     subtitle: "跟踪你已提交申请的状态变化。",
                     loadingApplications: "正在加载申请..."
+                },
+                taApplicationDetail: {
+                    title: "申请详情",
+                    backToList: "← 我的申请",
+                    jobTeaserTitle: "申请职位详情",
+                    viewDetailsCta: "查看详情 →",
+                    gpaScale: "满分 4.0",
+                    progressTitle: "申请进度",
+                    mySkills: "我的技能",
+                    responsibilities: "职责描述",
+                    viewResumeFile: "查看文件",
+                    resumeShort: "简历",
+                    closeModal: "关闭",
+                    missingId: "缺少申请编号，请返回列表重试。",
+                    loadAppFailed: "无法加载申请信息。",
+                    networkError: "网络异常，请稍后重试。",
+                    untitled: "未命名职位",
+                    submittedPrefix: "提交于",
+                    noSkills: "暂无技能信息",
+                    noCoverLetter: "未提供求职信。",
+                    jobUnavailable: "暂时无法加载职位详情。",
+                    workload: "工作时长",
+                    applicants: "申请人数",
+                    deadline: "申请截止",
+                    noDescription: "暂无职位描述。",
+                    sessionExpired: "登录已过期，正在跳转登录页...",
+                    progressSubmit: "提交申请",
+                    progressReview: "材料审核中",
+                    progressInterview: "面试安排",
+                    progressFinal: "最终决定"
                 },
                 moDashboard: {
                     title: "发布新职位",

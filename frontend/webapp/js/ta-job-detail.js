@@ -93,8 +93,15 @@
                     return;
                 }
 
-                state.loadedJob = payload;
-                renderJob(payload);
+                var job = getPayloadDataObject(payload);
+                if (!job) {
+                    showDetailMessage("Unable to load job details right now.", "error");
+                    setApplyDisabled(true, "Please retry later.");
+                    return;
+                }
+
+                state.loadedJob = job;
+                renderJob(job);
                 return refreshMyApplicationStatus();
             })
             .catch(function () {
@@ -368,6 +375,16 @@
             return payload[key];
         }
         return [];
+    }
+
+    function getPayloadDataObject(payload) {
+        if (!payload || typeof payload !== "object") {
+            return null;
+        }
+        if (payload.data && typeof payload.data === "object" && !Array.isArray(payload.data)) {
+            return payload.data;
+        }
+        return null;
     }
 
     function normalizeSkills(rawSkills) {

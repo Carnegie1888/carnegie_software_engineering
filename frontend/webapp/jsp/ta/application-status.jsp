@@ -57,17 +57,6 @@
                     <span data-i18n="portal.nav.ta.profile">Profile</span>
                 </a>
             </nav>
-            <div class="portal-sidebar-bottom">
-                <a class="portal-nav-link" href="<%= contextPath %>/login.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M4 7h12"></path>
-                        <path d="m12 4 4 3-4 3"></path>
-                        <path d="M20 17H8"></path>
-                        <path d="m12 20-4-3 4-3"></path>
-                    </svg>
-                    <span data-i18n="portal.action.switchRoles">Switch Roles</span>
-                </a>
-            </div>
         </aside>
 
         <section class="portal-main">
@@ -130,29 +119,6 @@
                         </form>
 
                         <div id="status-message" class="form-message hidden" role="status" aria-live="polite"></div>
-
-                        <section class="summary-grid" aria-label="申请统计">
-                            <article class="summary-card">
-                                <p>Total</p>
-                                <strong id="summary-total">0</strong>
-                            </article>
-                            <article class="summary-card pending">
-                                <p>Pending</p>
-                                <strong id="summary-pending">0</strong>
-                            </article>
-                            <article class="summary-card accepted">
-                                <p>Accepted</p>
-                                <strong id="summary-accepted">0</strong>
-                            </article>
-                            <article class="summary-card rejected">
-                                <p>Rejected</p>
-                                <strong id="summary-rejected">0</strong>
-                            </article>
-                            <article class="summary-card withdrawn">
-                                <p>Withdrawn</p>
-                                <strong id="summary-withdrawn">0</strong>
-                            </article>
-                        </section>
 
                         <p id="list-summary" class="list-summary">Loading applications...</p>
                         <div id="applications-list" class="applications-list" aria-live="polite"></div>
