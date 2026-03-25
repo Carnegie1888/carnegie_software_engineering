@@ -53,7 +53,7 @@
         state.loadError = false;
         state.approximateOnly = false;
         hideMessage();
-        listSummaryNode.textContent = t("portal.taApplicationStatus.loadingApplications", "Loading applications...");
+        setListSummary(t("portal.taApplicationStatus.loadingApplications", "Loading applications..."));
         listNode.innerHTML = "";
 
         request(buildApplyUrl(normalizedKeyword), {
@@ -116,23 +116,23 @@
         var hasKeywordSearch = state.keywordSearchTriggered;
 
         if (state.loadError) {
-            listSummaryNode.textContent = t("portal.dynamic.unableLoadApplicationsNow", "Unable to load applications right now.");
+            setListSummary(t("portal.dynamic.unableLoadApplicationsNow", "Unable to load applications right now."));
             listNode.appendChild(createEmptyState("load-error"));
             return;
         }
 
         if (!Array.isArray(applications) || applications.length === 0) {
             if (hasKeywordSearch && keyword) {
-                listSummaryNode.textContent = t("portal.dynamic.noApplicationsForSearch", "No applications match your keyword.");
+                setListSummary(t("portal.dynamic.noApplicationsForSearch", "No applications match your keyword."));
                 listNode.appendChild(createEmptyState("no-match"));
             } else {
-                listSummaryNode.textContent = t("portal.dynamic.noApplicationsSubmitted", "No applications submitted yet.");
+                setListSummary(t("portal.dynamic.noApplicationsSubmitted", "No applications submitted yet."));
                 listNode.appendChild(createEmptyState("no-applications"));
             }
             return;
         }
 
-        listSummaryNode.textContent = buildSummaryText(applications.length, t("portal.dynamic.applicationUnit", "application"));
+        setListSummary(buildSummaryText(applications.length, t("portal.dynamic.applicationUnit", "application")));
 
         if (state.approximateOnly && hasKeywordSearch) {
             showMessage(t("portal.dynamic.closestMatchesNotice", "No exact matches. Showing closest results."), "success");
@@ -315,6 +315,16 @@
                 ? t("portal.dynamic.searching", "Searching...")
                 : t("portal.common.search", "Search");
         }
+    }
+
+    function setListSummary(text) {
+        if (!state.lastKeyword) {
+            listSummaryNode.hidden = true;
+            listSummaryNode.textContent = "";
+            return;
+        }
+        listSummaryNode.hidden = false;
+        listSummaryNode.textContent = text;
     }
 
     function showMessage(message, type) {

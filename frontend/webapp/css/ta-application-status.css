@@ -125,13 +125,6 @@
     flex-shrink: 0;
 }
 
-.list-summary {
-    margin: 16px 0 0;
-    color: #3a3a3c;
-    font-size: 14px;
-    line-height: 1.5;
-}
-
 .applications-list {
     margin-top: 12px;
     display: flex;
