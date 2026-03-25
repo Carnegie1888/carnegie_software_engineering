@@ -34,43 +34,7 @@
                     </svg>
                     <span data-i18n="portal.nav.admin.dashboard">Dashboard</span>
                 </a>
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/overview.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M12 5v14"></path>
-                        <path d="M5 12h14"></path>
-                    </svg>
-                    <span data-i18n="portal.nav.admin.moView">MO View</span>
-                </a>
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/ai-skill-match.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M4 19h16"></path>
-                        <path d="M7 16V8"></path>
-                        <path d="M12 16V5"></path>
-                        <path d="M17 16v-6"></path>
-                    </svg>
-                    <span data-i18n="portal.nav.admin.aiMatch">AI Match</span>
-                </a>
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/ai-missing-skills.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M4 18h16"></path>
-                        <path d="M6 14h4"></path>
-                        <path d="M6 10h8"></path>
-                        <path d="M6 6h12"></path>
-                    </svg>
-                    <span data-i18n="portal.nav.admin.skillGaps">Skill Gaps</span>
-                </a>
             </nav>
-            <div class="portal-sidebar-bottom">
-                <a class="portal-nav-link" href="<%= contextPath %>/login.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M4 7h12"></path>
-                        <path d="m12 4 4 3-4 3"></path>
-                        <path d="M20 17H8"></path>
-                        <path d="m12 20-4-3 4-3"></path>
-                    </svg>
-                    <span data-i18n="portal.action.switchRoles">Switch Roles</span>
-                </a>
-            </div>
         </aside>
 
         <section class="portal-main">

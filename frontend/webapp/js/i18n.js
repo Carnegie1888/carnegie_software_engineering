@@ -305,19 +305,13 @@
                     },
                     mo: {
                         aria: "MO portal navigation",
-                        overview: "Overview",
                         applicants: "Applicants",
                         postJob: "Post Job",
-                        aiMatch: "AI Match",
-                        skillGaps: "Skill Gaps",
-                        settings: "Settings"
+                        aiMatch: "AI Match"
                     },
                     admin: {
                         aria: "Admin portal navigation",
-                        dashboard: "Dashboard",
-                        moView: "MO View",
-                        aiMatch: "AI Match",
-                        skillGaps: "Skill Gaps"
+                        dashboard: "Dashboard"
                     }
                 },
                 page: {
@@ -1010,19 +1004,13 @@
                     },
                     mo: {
                         aria: "MO 门户导航",
-                        overview: "概览",
                         applicants: "申请人",
                         postJob: "发布职位",
-                        aiMatch: "AI 匹配",
-                        skillGaps: "技能缺口",
-                        settings: "设置"
+                        aiMatch: "AI 匹配"
                     },
                     admin: {
                         aria: "管理员门户导航",
-                        dashboard: "仪表盘",
-                        moView: "MO 视图",
-                        aiMatch: "AI 匹配",
-                        skillGaps: "技能缺口"
+                        dashboard: "仪表盘"
                     }
                 },
                 page: {

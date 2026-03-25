@@ -244,3 +244,4 @@
 |`member6`|#27|`style: 统一 TA 页面主内容宽度与居中布局`|✅|`git commit -m "style: 统一 TA 页面主内容宽度与居中布局" --author="member6 <member6@edu.com>"`|
 |`member5`|#28|`fix: 修复TA简历上传按钮中英文切换`|✅|`git commit -m "fix: 修复TA简历上传按钮中英文切换" --author="member5 <member5@edu.com>"`|
 |`member5`|#29|`feat: 重构TA档案与简历草稿保存流程`|✅|`git commit -m "feat: 重构TA档案与简历草稿保存流程" --author="member5 <member5@edu.com>"`|
+|`member6`|#30|`refactor: 下线MO概览与技能缺口页面入口`|✅|`git commit -m "refactor: 下线MO概览与技能缺口页面入口" --author="member6 <member6@edu.com>"`|
