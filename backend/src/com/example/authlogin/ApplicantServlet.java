@@ -910,6 +910,9 @@ public class ApplicantServlet extends HttpServlet {
         }
 
         String gpa = normalizeInput(gpaRaw);
+        if (gpaRaw != null && gpa == null) {
+            return "GPA cannot be empty.";
+        }
         if (gpaRaw != null && gpa != null) {
             String gpaError = validateGpa(gpa);
             if (gpaError != null) {
@@ -918,6 +921,9 @@ public class ApplicantServlet extends HttpServlet {
         }
 
         String skills = normalizeInput(skillsRaw);
+        if (skillsRaw != null && skills == null) {
+            return "Skills cannot be empty.";
+        }
         if (skillsRaw != null && skills != null) {
             String skillsError = validateSkills(skills);
             if (skillsError != null) {
@@ -926,6 +932,9 @@ public class ApplicantServlet extends HttpServlet {
         }
 
         String phone = normalizeInput(phoneRaw);
+        if (phoneRaw != null && phone == null) {
+            return "Phone number cannot be empty.";
+        }
         if (phoneRaw != null && phone != null) {
             String phoneError = validatePhone(phone);
             if (phoneError != null) {
@@ -942,6 +951,9 @@ public class ApplicantServlet extends HttpServlet {
         }
 
         String experience = normalizeInput(experienceRaw);
+        if (experienceRaw != null && experience == null) {
+            return "Related experience cannot be empty.";
+        }
         if (experienceRaw != null && experience != null) {
             String experienceError = validateLongTextField(experience, "Related experience");
             if (experienceError != null) {
@@ -950,6 +962,9 @@ public class ApplicantServlet extends HttpServlet {
         }
 
         String motivation = normalizeInput(motivationRaw);
+        if (motivationRaw != null && motivation == null) {
+            return "Motivation cannot be empty.";
+        }
         if (motivationRaw != null && motivation != null) {
             String motivationError = validateLongTextField(motivation, "Motivation");
             if (motivationError != null) {
@@ -1013,17 +1028,26 @@ public class ApplicantServlet extends HttpServlet {
             }
         }
 
+        if (requireRequiredFields && gpa == null) {
+            return "GPA is required.";
+        }
         if (gpa != null) {
             String gpaError = validateGpa(gpa);
             if (gpaError != null) {
                 return gpaError;
             }
         }
+        if (requireRequiredFields && skills == null) {
+            return "Skills are required.";
+        }
         if (skills != null) {
             String skillsError = validateSkills(skills);
             if (skillsError != null) {
                 return skillsError;
             }
+        }
+        if (requireRequiredFields && phone == null) {
+            return "Phone number is required.";
         }
         if (phone != null) {
             String phoneError = validatePhone(phone);
@@ -1037,11 +1061,17 @@ public class ApplicantServlet extends HttpServlet {
                 return addressError;
             }
         }
+        if (requireRequiredFields && experience == null) {
+            return "Related experience is required.";
+        }
         if (experience != null) {
             String experienceError = validateLongTextField(experience, "Related experience");
             if (experienceError != null) {
                 return experienceError;
             }
+        }
+        if (requireRequiredFields && motivation == null) {
+            return "Motivation is required.";
         }
         if (motivation != null) {
             String motivationError = validateLongTextField(motivation, "Motivation");

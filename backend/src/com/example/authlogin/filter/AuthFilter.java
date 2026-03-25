@@ -62,6 +62,7 @@ public class AuthFilter implements Filter {
     private static final Set<String> TA_PATHS = new HashSet<>(Arrays.asList(
         "/jsp/ta/",
         "/api/ta/",
+        "/api/applicants/",
         "/profile/",
         "/applicant",
         "/apply",

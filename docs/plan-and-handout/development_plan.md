@@ -247,3 +247,4 @@
 |`member6`|#30|`refactor: 下线MO概览与技能缺口页面入口`|✅|`git commit -m "refactor: 下线MO概览与技能缺口页面入口" --author="member6 <member6@edu.com>"`|
 |`member1`|#31|`refactor: 移除缺失技能接口并收紧MO技能匹配权限`|✅|`git commit -m "refactor: 移除缺失技能接口并收紧MO技能匹配权限" --author="member1 <member1@edu.com>"`|
 |`member3`|#32|`feat: 新增本地演示业务数据初始化`|✅|`git commit -m "feat: 新增本地演示业务数据初始化" --author="member3 <member3@edu.com>"`|
+|`member4`|#33|`fix: 收紧 TA 档案必填字段校验`|✅|`git commit -m "fix: 收紧 TA 档案必填字段校验" --author="member4 <member4@edu.com>"`|
