@@ -1,5 +1,6 @@
 package com.example.authlogin;
 
+import com.example.authlogin.dao.ApplicationDao;
 import com.example.authlogin.dao.JobDao;
 import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
 public class JobServlet extends HttpServlet {
 
     private JobDao jobDao;
+    private ApplicationDao applicationDao;
     private static final int MAX_TITLE_LENGTH = 200;
     private static final int MAX_COURSE_CODE_LENGTH = 50;
     private static final int MAX_COURSE_NAME_LENGTH = 120;
@@ -60,6 +62,7 @@ public class JobServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         jobDao = JobDao.getInstance();
+        applicationDao = ApplicationDao.getInstance();
         logInfo("JobServlet initialized");
     }
 
@@ -148,12 +151,13 @@ public class JobServlet extends HttpServlet {
         }
 
         Job job = jobOpt.get();
+        long applicantCount = applicationDao.countByJobId(job.getJobId());
         JsonResponseUtil.writeJsonResponse(
                 response,
                 200,
                 true,
                 "Job retrieved successfully",
-                JsonResponseUtil.rawObject(buildJobJson(job))
+                JsonResponseUtil.rawObject(buildJobJson(job, applicantCount))
         );
     }
 
@@ -606,6 +610,13 @@ public class JobServlet extends HttpServlet {
      * 构建单个职位JSON
      */
     private String buildJobJson(Job job) {
+        return buildJobJson(job, -1L);
+    }
+
+    /**
+     * @param applicantCount 若 &lt; 0 则不输出 applicantCount 字段（职位列表用）
+     */
+    private String buildJobJson(Job job, long applicantCount) {
         StringBuilder json = new StringBuilder();
         json.append("\"jobId\": \"").append(escapeJson(job.getJobId())).append("\", ");
         json.append("\"moId\": \"").append(escapeJson(job.getMoId())).append("\", ");
@@ -620,6 +631,9 @@ public class JobServlet extends HttpServlet {
         json.append("\"salary\": \"").append(escapeJson(job.getSalary() != null ? job.getSalary() : "")).append("\", ");
         json.append("\"deadline\": \"").append(job.getDeadline() != null ? job.getDeadline().toString() : "").append("\", ");
         json.append("\"status\": \"").append(job.getStatus() != null ? job.getStatus().name() : "OPEN").append("\"");
+        if (applicantCount >= 0) {
+            json.append(", \"applicantCount\": ").append(applicantCount);
+        }
         return json.toString();
     }
 

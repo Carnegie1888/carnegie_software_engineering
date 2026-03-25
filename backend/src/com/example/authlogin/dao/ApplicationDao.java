@@ -21,7 +21,7 @@ public class ApplicationDao {
 
     private static final String APPLICATION_DIR = StoragePaths.getApplicationsDir();
     private static final String APPLICATION_FILE = APPLICATION_DIR + File.separator + "applications.csv";
-    private static final String CSV_HEADER = "applicationId,jobId,applicantId,applicantName,applicantEmail,jobTitle,courseCode,moId,moName,status,coverLetter,appliedAt,updatedAt,reviewedAt";
+    private static final String CSV_HEADER = "applicationId,jobId,applicantId,applicantName,applicantEmail,jobTitle,courseCode,moId,moName,status,coverLetter,appliedAt,updatedAt,reviewedAt,progressStage,reviewStartedAt,interviewScheduledAt,finalDecisionAt";
 
     private static ApplicationDao instance;
 
@@ -278,10 +278,58 @@ public class ApplicationDao {
             app.setStatus(status);
             app.setUpdatedAt(LocalDateTime.now());
             app.setReviewedAt(LocalDateTime.now());
+            if (status != Application.Status.PENDING) {
+                app.setProgressStage(Application.ProgressStage.COMPLETED);
+                if (app.getFinalDecisionAt() == null) {
+                    app.setFinalDecisionAt(LocalDateTime.now());
+                }
+            }
             save(app);
             return true;
         }
         return false;
+    }
+
+    /**
+     * MO：开始材料审核（仅待处理且阶段为已提交）
+     */
+    public boolean startReview(String applicationId) {
+        Optional<Application> appOpt = findById(applicationId);
+        if (appOpt.isEmpty()) {
+            return false;
+        }
+        Application app = appOpt.get();
+        if (app.getStatus() != Application.Status.PENDING) {
+            return false;
+        }
+        if (app.getProgressStage() != Application.ProgressStage.SUBMITTED) {
+            return false;
+        }
+        app.setProgressStage(Application.ProgressStage.UNDER_REVIEW);
+        app.setReviewStartedAt(LocalDateTime.now());
+        save(app);
+        return true;
+    }
+
+    /**
+     * MO：标记已安排面试（仅待处理且阶段为审核中）
+     */
+    public boolean scheduleInterview(String applicationId) {
+        Optional<Application> appOpt = findById(applicationId);
+        if (appOpt.isEmpty()) {
+            return false;
+        }
+        Application app = appOpt.get();
+        if (app.getStatus() != Application.Status.PENDING) {
+            return false;
+        }
+        if (app.getProgressStage() != Application.ProgressStage.UNDER_REVIEW) {
+            return false;
+        }
+        app.setProgressStage(Application.ProgressStage.INTERVIEW_SCHEDULED);
+        app.setInterviewScheduledAt(LocalDateTime.now());
+        save(app);
+        return true;
     }
 
     /**

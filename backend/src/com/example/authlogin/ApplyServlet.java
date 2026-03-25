@@ -349,8 +349,15 @@ public class ApplyServlet extends HttpServlet {
                 case "withdraw":
                     handleWithdraw(response, application, currentUser);
                     break;
+                case "start_review":
+                    handleStartReview(response, application, currentUser);
+                    break;
+                case "schedule_interview":
+                    handleScheduleInterview(response, application, currentUser);
+                    break;
                 default:
-                    JsonResponseUtil.writeJsonResponse(response, 400, false, "Invalid action. Use 'accept', 'reject', or 'withdraw'", null);
+                    JsonResponseUtil.writeJsonResponse(response, 400, false,
+                            "Invalid action. Use 'accept', 'reject', 'withdraw', 'start_review', or 'schedule_interview'", null);
             }
 
         } catch (Exception e) {
@@ -477,6 +484,60 @@ public class ApplyServlet extends HttpServlet {
     }
 
     /**
+     * MO：开始材料审核
+     */
+    private void handleStartReview(HttpServletResponse response, Application application, User currentUser)
+            throws IOException {
+        if (currentUser.getRole() != User.Role.MO) {
+            JsonResponseUtil.writeJsonResponse(response, 403, false, "Only MO can start review", null);
+            return;
+        }
+        if (application.getMoId() == null || !application.getMoId().equals(currentUser.getUserId())) {
+            JsonResponseUtil.writeJsonResponse(response, 403, false, "You can only review applications for your own jobs", null);
+            return;
+        }
+        boolean ok = applicationDao.startReview(application.getApplicationId());
+        if (!ok) {
+            JsonResponseUtil.writeJsonResponse(response, 400, false,
+                    "Cannot start review (application must be pending and in submitted stage)", null);
+            return;
+        }
+        Optional<Application> updated = applicationDao.findById(application.getApplicationId());
+        if (updated.isPresent()) {
+            JsonResponseUtil.writeJsonResponse(response, 200, true, "Review started", buildApplicationPayload(updated.get()));
+        } else {
+            JsonResponseUtil.writeJsonResponse(response, 500, false, "Failed to retrieve updated application", null);
+        }
+    }
+
+    /**
+     * MO：标记已安排面试
+     */
+    private void handleScheduleInterview(HttpServletResponse response, Application application, User currentUser)
+            throws IOException {
+        if (currentUser.getRole() != User.Role.MO) {
+            JsonResponseUtil.writeJsonResponse(response, 403, false, "Only MO can schedule interviews", null);
+            return;
+        }
+        if (application.getMoId() == null || !application.getMoId().equals(currentUser.getUserId())) {
+            JsonResponseUtil.writeJsonResponse(response, 403, false, "You can only review applications for your own jobs", null);
+            return;
+        }
+        boolean ok = applicationDao.scheduleInterview(application.getApplicationId());
+        if (!ok) {
+            JsonResponseUtil.writeJsonResponse(response, 400, false,
+                    "Cannot schedule interview (application must be pending and in under review stage)", null);
+            return;
+        }
+        Optional<Application> updated = applicationDao.findById(application.getApplicationId());
+        if (updated.isPresent()) {
+            JsonResponseUtil.writeJsonResponse(response, 200, true, "Interview scheduled", buildApplicationPayload(updated.get()));
+        } else {
+            JsonResponseUtil.writeJsonResponse(response, 500, false, "Failed to retrieve updated application", null);
+        }
+    }
+
+    /**
      * 处理撤回申请（申请人操作）
      */
     private void handleWithdraw(HttpServletResponse response, Application application, User currentUser)
@@ -566,7 +627,13 @@ public class ApplyServlet extends HttpServlet {
         json.append("\"moName\": \"").append(escapeJson(app.getMoName() != null ? app.getMoName() : "")).append("\", ");
         json.append("\"status\": \"").append(app.getStatus() != null ? app.getStatus().name() : "PENDING").append("\", ");
         json.append("\"coverLetter\": \"").append(escapeJson(app.getCoverLetter() != null ? app.getCoverLetter() : "")).append("\", ");
-        json.append("\"appliedAt\": \"").append(app.getAppliedAt() != null ? app.getAppliedAt().toString() : "").append("\"");
+        json.append("\"appliedAt\": \"").append(app.getAppliedAt() != null ? app.getAppliedAt().toString() : "").append("\", ");
+        json.append("\"updatedAt\": \"").append(app.getUpdatedAt() != null ? app.getUpdatedAt().toString() : "").append("\", ");
+        json.append("\"reviewedAt\": \"").append(app.getReviewedAt() != null ? app.getReviewedAt().toString() : "").append("\", ");
+        json.append("\"progressStage\": \"").append(app.getProgressStage() != null ? app.getProgressStage().name() : "SUBMITTED").append("\", ");
+        json.append("\"reviewStartedAt\": \"").append(app.getReviewStartedAt() != null ? app.getReviewStartedAt().toString() : "").append("\", ");
+        json.append("\"interviewScheduledAt\": \"").append(app.getInterviewScheduledAt() != null ? app.getInterviewScheduledAt().toString() : "").append("\", ");
+        json.append("\"finalDecisionAt\": \"").append(app.getFinalDecisionAt() != null ? app.getFinalDecisionAt().toString() : "").append("\"");
         return json.toString();
     }
 
@@ -597,7 +664,13 @@ public class ApplyServlet extends HttpServlet {
                 "moName", safeText(app.getMoName()),
                 "status", app.getStatus() != null ? app.getStatus().name() : "PENDING",
                 "coverLetter", safeText(app.getCoverLetter()),
-                "appliedAt", app.getAppliedAt() != null ? app.getAppliedAt().toString() : ""
+                "appliedAt", app.getAppliedAt() != null ? app.getAppliedAt().toString() : "",
+                "updatedAt", app.getUpdatedAt() != null ? app.getUpdatedAt().toString() : "",
+                "reviewedAt", app.getReviewedAt() != null ? app.getReviewedAt().toString() : "",
+                "progressStage", app.getProgressStage() != null ? app.getProgressStage().name() : "SUBMITTED",
+                "reviewStartedAt", app.getReviewStartedAt() != null ? app.getReviewStartedAt().toString() : "",
+                "interviewScheduledAt", app.getInterviewScheduledAt() != null ? app.getInterviewScheduledAt().toString() : "",
+                "finalDecisionAt", app.getFinalDecisionAt() != null ? app.getFinalDecisionAt().toString() : ""
         );
     }
 
