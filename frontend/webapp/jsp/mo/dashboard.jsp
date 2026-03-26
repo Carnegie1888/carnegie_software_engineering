@@ -18,7 +18,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="portal.page.moDashboard.title">MO Dashboard - Post TA Jobs</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/mo-dashboard.css">
+    <link rel="stylesheet" href="<%= contextPath %>/css/mo/mo-dashboard.css">
 </head>
 <body>
     <div class="portal-shell portal-shell-mo">
@@ -179,8 +179,8 @@
         window.APP_CURRENT_USER_ID = "<%= userId %>";
         window.APP_CURRENT_USERNAME = "<%= username %>";
     </script>
-    <script src="<%= contextPath %>/js/i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/portal-i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/mo-dashboard.js" defer></script>
+    <script src="<%= contextPath %>/js/common/i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/common/portal-i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/mo/mo-dashboard.js" defer></script>
 </body>
 </html>

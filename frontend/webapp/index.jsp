@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="index.page.title">TA Hiring Portal - Home</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/portal-home.css">
+    <link rel="stylesheet" href="<%= contextPath %>/css/portal/portal-home.css">
 </head>
 <body>
     <header class="home-header">
@@ -169,6 +169,6 @@
         </footer>
     </main>
 
-    <script src="<%= contextPath %>/js/i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/common/i18n.js" defer></script>
 </body>
 </html>

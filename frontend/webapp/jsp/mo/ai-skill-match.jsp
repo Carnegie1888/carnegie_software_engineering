@@ -23,7 +23,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="portal.page.moAiSkillMatch.title">AI Skill Match - TA Hiring System</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/mo-ai-skill-match.css">
+    <link rel="stylesheet" href="<%= contextPath %>/css/mo/mo-ai-skill-match.css">
 </head>
 <body>
     <div class="portal-shell portal-shell-mo">
@@ -165,8 +165,8 @@
         window.APP_CURRENT_USER_ID = "<%= userId %>";
         window.APP_CURRENT_USERNAME = "<%= username %>";
     </script>
-    <script src="<%= contextPath %>/js/i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/portal-i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/mo-ai-skill-match.js" defer></script>
+    <script src="<%= contextPath %>/js/common/i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/common/portal-i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/mo/mo-ai-skill-match.js" defer></script>
 </body>
 </html>

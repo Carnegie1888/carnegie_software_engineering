@@ -9,7 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="login.page.title">Login - TA Hiring System</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/login.css">
+    <link rel="stylesheet" href="<%= contextPath %>/css/auth/login.css">
 </head>
 <body>
     <main class="login-page">
@@ -132,7 +132,7 @@
     <script>
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
-    <script src="<%= contextPath %>/js/i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/login.js" defer></script>
+    <script src="<%= contextPath %>/js/common/i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/auth/login.js" defer></script>
 </body>
 </html>

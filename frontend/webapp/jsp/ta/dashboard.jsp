@@ -14,7 +14,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="portal.page.taDashboard.title">TA Profile Setup - TA Hiring System</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/ta-dashboard.css?v=20260326a">
+    <link rel="stylesheet" href="<%= contextPath %>/css/ta/ta-dashboard.css?v=20260326a">
 </head>
 <body>
     <div class="portal-shell portal-shell-ta">
@@ -391,8 +391,8 @@
     <script>
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
-    <script src="<%= contextPath %>/js/i18n.js?v=20260326a" defer></script>
-    <script src="<%= contextPath %>/js/portal-i18n.js?v=20260326a" defer></script>
-    <script src="<%= contextPath %>/js/ta-dashboard.js?v=20260326a" defer></script>
+    <script src="<%= contextPath %>/js/common/i18n.js?v=20260326a" defer></script>
+    <script src="<%= contextPath %>/js/common/portal-i18n.js?v=20260326a" defer></script>
+    <script src="<%= contextPath %>/js/ta/ta-dashboard.js?v=20260326a" defer></script>
 </body>
 </html>

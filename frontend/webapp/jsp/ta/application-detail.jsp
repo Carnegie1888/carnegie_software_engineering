@@ -14,7 +14,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="portal.page.taApplicationDetail.title">Application detail - TA Hiring System</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/ta-application-detail.css">
+    <link rel="stylesheet" href="<%= contextPath %>/css/ta/ta-application-detail.css">
 </head>
 <body>
     <div class="portal-shell portal-shell-ta">
@@ -187,8 +187,8 @@
     <script>
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
-    <script src="<%= contextPath %>/js/i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/portal-i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/ta-application-detail.js" defer></script>
+    <script src="<%= contextPath %>/js/common/i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/common/portal-i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/ta/ta-application-detail.js" defer></script>
 </body>
 </html>

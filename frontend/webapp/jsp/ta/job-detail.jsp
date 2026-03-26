@@ -19,7 +19,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="portal.page.taJobDetail.title">Job detail - TA Hiring System</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/ta-job-detail.css">
+    <link rel="stylesheet" href="<%= contextPath %>/css/ta/ta-job-detail.css">
 </head>
 <body>
     <div class="portal-shell portal-shell-ta">
@@ -291,8 +291,8 @@
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
         window.APP_CURRENT_ROLE = "<%= currentRole %>";
     </script>
-    <script src="<%= contextPath %>/js/i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/portal-i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/ta-job-detail.js" defer></script>
+    <script src="<%= contextPath %>/js/common/i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/common/portal-i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/ta/ta-job-detail.js" defer></script>
 </body>
 </html>

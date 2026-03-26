@@ -272,3 +272,4 @@
 |`member6`|#55|`refactor: 将管理员邀请从仪表盘拆分为独立页面`|✅|`git commit -m "refactor: 将管理员邀请从仪表盘拆分为独立页面" --author="member6 <member6@edu.com>"`|
 |`member6`|#56|`refactor: 重组后端与前端目录结构并清理占位文件`|✅|`git commit -m "refactor: 重组后端与前端目录结构并清理占位文件" --author="member6 <member6@edu.com>"`|
 |`member2`|#57|`refactor: 同步后端包重构并更新 AI 匹配相关测试`|✅|`git commit -m "refactor: 同步后端包重构并更新 AI 匹配相关测试" --author="member2 <member2@edu.com>"`|
+|`member5`|#58|`refactor: 更新 JSP 页面资源引用并修正样式入口`|✅|`git commit -m "refactor: 更新 JSP 页面资源引用并修正样式入口" --author="member5 <member5@edu.com>"`|

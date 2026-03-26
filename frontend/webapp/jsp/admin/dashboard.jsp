@@ -18,7 +18,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="portal.page.adminDashboard.title">Admin Workload Dashboard - TA Hiring System</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/admin-dashboard.css">
+    <link rel="stylesheet" href="<%= contextPath %>/css/admin/admin-dashboard.css">
 </head>
 <body>
     <div class="portal-shell portal-shell-admin">
@@ -157,8 +157,8 @@
         window.APP_CURRENT_USER_ID = "<%= userId %>";
         window.APP_CURRENT_USERNAME = "<%= username %>";
     </script>
-    <script src="<%= contextPath %>/js/i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/portal-i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/admin-dashboard.js" defer></script>
+    <script src="<%= contextPath %>/js/common/i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/common/portal-i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/admin/admin-dashboard.js" defer></script>
 </body>
 </html>

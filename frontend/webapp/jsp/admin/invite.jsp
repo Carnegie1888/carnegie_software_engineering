@@ -13,7 +13,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="portal.page.adminInviteManagement.title">Admin Invitation Management - TA Hiring System</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/admin-invite-management.css">
+    <link rel="stylesheet" href="<%= contextPath %>/css/admin/admin-invite-management.css">
 </head>
 <body>
     <div class="portal-shell portal-shell-admin">
@@ -108,8 +108,8 @@
     <script>
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
-    <script src="<%= contextPath %>/js/i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/portal-i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/admin-invite-management.js" defer></script>
+    <script src="<%= contextPath %>/js/common/i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/common/portal-i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/admin/admin-invite-management.js" defer></script>
 </body>
 </html>

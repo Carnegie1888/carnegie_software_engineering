@@ -1,5 +1,5 @@
-@import url("./register.css");
-@import url("./portal-shell.css");
+@import url("../auth/register.css");
+@import url("../portal/portal-shell.css");
 
 .admin-dashboard-page {
     min-height: auto;
