@@ -1,4 +1,4 @@
-package com.example.authlogin.service;
+package com.example.authlogin.service.ai;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;

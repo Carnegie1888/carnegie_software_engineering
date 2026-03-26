@@ -1,4 +1,4 @@
-package com.example.authlogin;
+package com.example.authlogin.bootstrap;
 
 import com.example.authlogin.dao.ApplicantDao;
 import com.example.authlogin.dao.ApplicationDao;

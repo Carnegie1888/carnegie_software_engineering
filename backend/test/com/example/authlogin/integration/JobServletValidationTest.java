@@ -1,6 +1,6 @@
 package com.example.authlogin.integration;
 
-import com.example.authlogin.JobServlet;
+import com.example.authlogin.servlet.JobServlet;
 
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;

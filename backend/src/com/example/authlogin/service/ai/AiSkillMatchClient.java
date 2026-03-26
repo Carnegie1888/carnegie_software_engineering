@@ -1,4 +1,4 @@
-package com.example.authlogin.service;
+package com.example.authlogin.service.ai;
 
 import java.util.List;
 import java.util.Optional;

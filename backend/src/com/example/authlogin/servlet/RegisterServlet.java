@@ -1,4 +1,4 @@
-package com.example.authlogin;
+package com.example.authlogin.servlet;
 
 import com.example.authlogin.dao.UserDao;
 import com.example.authlogin.model.User;

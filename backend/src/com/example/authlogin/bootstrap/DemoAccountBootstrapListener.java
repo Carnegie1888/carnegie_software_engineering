@@ -1,4 +1,4 @@
-package com.example.authlogin;
+package com.example.authlogin.bootstrap;
 
 import com.example.authlogin.dao.UserDao;
 import jakarta.servlet.ServletContextEvent;

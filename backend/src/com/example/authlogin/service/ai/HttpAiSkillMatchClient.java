@@ -1,4 +1,4 @@
-package com.example.authlogin.service;
+package com.example.authlogin.service.ai;
 
 import java.io.IOException;
 import java.net.URI;

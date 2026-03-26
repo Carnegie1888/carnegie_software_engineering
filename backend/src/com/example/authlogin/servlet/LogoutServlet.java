@@ -1,4 +1,4 @@
-package com.example.authlogin;
+package com.example.authlogin.servlet;
 
 import com.example.authlogin.util.SessionUtil;
 import jakarta.servlet.ServletException;

@@ -1,13 +1,13 @@
-package com.example.authlogin;
+package com.example.authlogin.servlet;
 
 import com.example.authlogin.dao.ApplicantDao;
 import com.example.authlogin.dao.JobDao;
 import com.example.authlogin.model.Applicant;
 import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
-import com.example.authlogin.service.TaJobMatchAiConfig;
+import com.example.authlogin.service.ai.TaJobMatchAiConfig;
 import com.example.authlogin.service.TaJobMatchAnalysisService;
-import com.example.authlogin.service.TongyiXiaomiAnalysisClient;
+import com.example.authlogin.service.ai.TongyiXiaomiAnalysisClient;
 import com.example.authlogin.util.JsonResponseUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;

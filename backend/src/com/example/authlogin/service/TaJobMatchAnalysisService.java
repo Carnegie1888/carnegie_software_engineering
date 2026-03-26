@@ -2,6 +2,7 @@ package com.example.authlogin.service;
 
 import com.example.authlogin.model.Applicant;
 import com.example.authlogin.model.Job;
+import com.example.authlogin.service.ai.TongyiXiaomiAnalysisClient;
 
 import java.util.ArrayList;
 import java.util.Collections;

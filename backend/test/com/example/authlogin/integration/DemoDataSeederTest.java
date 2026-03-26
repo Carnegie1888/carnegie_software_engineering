@@ -1,6 +1,6 @@
 package com.example.authlogin.integration;
 
-import com.example.authlogin.DemoDataSeeder;
+import com.example.authlogin.bootstrap.DemoDataSeeder;
 import com.example.authlogin.dao.ApplicantDao;
 import com.example.authlogin.dao.ApplicationDao;
 import com.example.authlogin.dao.JobDao;

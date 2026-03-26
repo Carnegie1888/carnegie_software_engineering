@@ -1,5 +1,7 @@
 package com.example.authlogin.service;
 
+import com.example.authlogin.service.ai.AiSkillMatchClient;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
