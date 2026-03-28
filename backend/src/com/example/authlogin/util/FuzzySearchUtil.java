@@ -1,12 +1,5 @@
 package com.example.authlogin.util;
 
-import net.sourceforge.pinyin4j.PinyinHelper;
-import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
-import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
-import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
-import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
-import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -19,21 +12,20 @@ import java.util.regex.Pattern;
  * FuzzySearchUtil - 统一的关键词模糊搜索工具。
  *
  * 能力：
- * - 大小写归一化、空格/连字符归一化
+ * - 大小写归一化，空格/连字符归一化
  * - 拆词匹配
  * - 英文 typo（编辑距离 1-2）容错
  * - 中文原文匹配
- * - 拼音全拼匹配
- * - 拼音首字母匹配
+ *
+ * 注意：已移除拼音搜索功能（如需拼音搜索，请添加 pinyin4j 依赖）
  */
 public final class FuzzySearchUtil {
 
-    private static final Pattern CJK_PATTERN = Pattern.compile("[\\u4E00-\\u9FFF]");
     private static final Pattern ALNUM_PATTERN = Pattern.compile("^[a-z0-9]+$");
     private static final Pattern SEPARATOR_PATTERN = Pattern.compile("[\\s\\-_]+");
     private static final Pattern NON_SEARCH_CHAR_PATTERN = Pattern.compile("[^\\p{L}\\p{Nd}\\u4E00-\\u9FFF]+");
     private static final Pattern MULTI_SPACE_PATTERN = Pattern.compile("\\s+");
-    private static final HanyuPinyinOutputFormat PINYIN_FORMAT = createPinyinFormat();
+    private static final Pattern CJK_PATTERN = Pattern.compile("[\\u4E00-\\u9FFF]");
 
     private FuzzySearchUtil() {
     }
@@ -77,8 +69,6 @@ public final class FuzzySearchUtil {
         CONTAINS(820, false),
         TOKEN_COVERAGE(760, false),
         TYPO(680, true),
-        PINYIN_FULL(560, true),
-        PINYIN_INITIALS(500, true),
         NONE(0, true);
 
         private final int baseScore;
@@ -145,25 +135,19 @@ public final class FuzzySearchUtil {
         private final String compactCombined;
         private final List<String> tokens;
         private final boolean hasChinese;
-        private final String pinyinCompact;
-        private final String pinyinInitials;
 
         private CandidateProfile(List<String> normalizedFields,
                                  List<String> compactFields,
                                  String normalizedCombined,
                                  String compactCombined,
                                  List<String> tokens,
-                                 boolean hasChinese,
-                                 String pinyinCompact,
-                                 String pinyinInitials) {
+                                 boolean hasChinese) {
             this.normalizedFields = normalizedFields;
             this.compactFields = compactFields;
             this.normalizedCombined = normalizedCombined;
             this.compactCombined = compactCombined;
             this.tokens = tokens;
             this.hasChinese = hasChinese;
-            this.pinyinCompact = pinyinCompact;
-            this.pinyinInitials = pinyinInitials;
         }
     }
 
@@ -235,14 +219,6 @@ public final class FuzzySearchUtil {
         if (typoDistance >= 0) {
             int score = MatchTier.TYPO.baseScore - (typoDistance * 36);
             return MatchResult.of(MatchTier.TYPO, score);
-        }
-
-        if (matchesPinyinFull(query, candidate)) {
-            return MatchResult.of(MatchTier.PINYIN_FULL, MatchTier.PINYIN_FULL.baseScore + scoreBonus(query.compact.length(), 16));
-        }
-
-        if (matchesPinyinInitials(query, candidate)) {
-            return MatchResult.of(MatchTier.PINYIN_INITIALS, MatchTier.PINYIN_INITIALS.baseScore + scoreBonus(query.compact.length(), 10));
         }
 
         return MatchResult.noMatch();
@@ -347,20 +323,6 @@ public final class FuzzySearchUtil {
         return best == Integer.MAX_VALUE ? -1 : best;
     }
 
-    private static boolean matchesPinyinFull(QueryProfile query, CandidateProfile candidate) {
-        if (!candidate.hasChinese || !query.alphaNumericCompact || query.compact.length() < 2) {
-            return false;
-        }
-        return !candidate.pinyinCompact.isEmpty() && candidate.pinyinCompact.contains(query.compact);
-    }
-
-    private static boolean matchesPinyinInitials(QueryProfile query, CandidateProfile candidate) {
-        if (!candidate.hasChinese || !query.alphaNumericCompact || query.compact.length() < 3) {
-            return false;
-        }
-        return !candidate.pinyinInitials.isEmpty() && candidate.pinyinInitials.contains(query.compact);
-    }
-
     private static int maxTypoDistance(int queryLength) {
         if (queryLength >= 8) {
             return 2;
@@ -413,7 +375,6 @@ public final class FuzzySearchUtil {
     private static CandidateProfile buildCandidateProfile(List<String> fields) {
         List<String> normalizedFields = new ArrayList<>();
         List<String> compactFields = new ArrayList<>();
-        StringBuilder rawBuilder = new StringBuilder();
         boolean hasChinese = false;
 
         if (fields != null) {
@@ -428,7 +389,6 @@ public final class FuzzySearchUtil {
                 }
                 normalizedFields.add(normalized);
                 compactFields.add(compact(normalized));
-                rawBuilder.append(raw).append(' ');
                 if (!hasChinese && containsChinese(raw)) {
                     hasChinese = true;
                 }
@@ -439,70 +399,14 @@ public final class FuzzySearchUtil {
         String compactCombined = compact(normalizedCombined);
         List<String> tokens = tokenize(normalizedCombined);
 
-        String pinyinCompact = "";
-        String pinyinInitials = "";
-        if (hasChinese) {
-            String[] pinyinVariants = buildPinyinVariants(rawBuilder.toString());
-            pinyinCompact = pinyinVariants[0];
-            pinyinInitials = pinyinVariants[1];
-        }
-
         return new CandidateProfile(
                 normalizedFields,
                 compactFields,
                 normalizedCombined,
                 compactCombined,
                 tokens,
-                hasChinese,
-                pinyinCompact,
-                pinyinInitials
+                hasChinese
         );
-    }
-
-    private static String[] buildPinyinVariants(String rawText) {
-        StringBuilder pinyin = new StringBuilder();
-
-        for (int i = 0; i < rawText.length(); i++) {
-            char ch = rawText.charAt(i);
-            if (isChinese(ch)) {
-                String converted = toPinyin(ch);
-                if (!converted.isEmpty()) {
-                    pinyin.append(converted).append(' ');
-                }
-                continue;
-            }
-
-            if (Character.isLetterOrDigit(ch)) {
-                pinyin.append(Character.toLowerCase(ch));
-            } else {
-                pinyin.append(' ');
-            }
-        }
-
-        String normalizedPinyin = normalize(pinyin.toString());
-        String pinyinCompact = compact(normalizedPinyin);
-
-        StringBuilder initials = new StringBuilder();
-        for (String token : tokenize(normalizedPinyin)) {
-            if (!token.isEmpty()) {
-                initials.append(token.charAt(0));
-            }
-        }
-
-        String pinyinInitials = initials.toString();
-        return new String[] { pinyinCompact, pinyinInitials };
-    }
-
-    private static String toPinyin(char ch) {
-        try {
-            String[] values = PinyinHelper.toHanyuPinyinStringArray(ch, PINYIN_FORMAT);
-            if (values == null || values.length == 0) {
-                return "";
-            }
-            return values[0].toLowerCase(Locale.ROOT);
-        } catch (BadHanyuPinyinOutputFormatCombination ignored) {
-            return "";
-        }
     }
 
     private static String normalize(String value) {
@@ -542,20 +446,7 @@ public final class FuzzySearchUtil {
         return text != null && CJK_PATTERN.matcher(text).find();
     }
 
-    private static boolean isChinese(char ch) {
-        return ch >= '\u4E00' && ch <= '\u9FFF';
-    }
-
     private static int scoreBonus(int value, int cap) {
         return Math.min(value, cap);
     }
-
-    private static HanyuPinyinOutputFormat createPinyinFormat() {
-        HanyuPinyinOutputFormat format = new HanyuPinyinOutputFormat();
-        format.setCaseType(HanyuPinyinCaseType.LOWERCASE);
-        format.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
-        format.setVCharType(HanyuPinyinVCharType.WITH_V);
-        return format;
-    }
 }
-
