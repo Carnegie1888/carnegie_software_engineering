@@ -19,11 +19,28 @@ if not exist "%CATALINA_HOME%" (
     exit /b 1
 )
 
+if not defined JAVA_HOME (
+    echo [ERROR] JAVA_HOME is not set. Add it to config.bat or Windows environment variables.
+    exit /b 1
+)
+if not exist "%JAVA_HOME%\bin\java.exe" (
+    echo [ERROR] Invalid JAVA_HOME: %JAVA_HOME%
+    echo java.exe not found. Fix the path in config.bat.
+    exit /b 1
+)
+
+echo Using JAVA_HOME=%JAVA_HOME%
 echo Starting Tomcat...
 echo.
 
 REM Start Tomcat
 call "%CATALINA_HOME%\bin\startup.bat"
+if errorlevel 1 (
+    echo.
+    echo [ERROR] Tomcat did not start. See messages above or logs under Tomcat\logs\
+    endlocal
+    exit /b 1
+)
 
 echo.
 echo ========================================
