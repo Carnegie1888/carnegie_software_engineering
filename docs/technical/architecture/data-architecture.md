@@ -19,7 +19,7 @@
 ### 1.2 存储目录结构
 
 ```
-${DATA_DIR}/                     # 可配置，默认 ${catalina.base}/data/groupproject/
+${DATA_DIR}/                     # 可配置，默认 ${user.dir}/data/
 ├── users/                       # 用户数据
 │   ├── users_ta.csv            # TA 用户
 │   ├── users_mo.csv           # MO 用户
@@ -41,12 +41,18 @@ ${DATA_DIR}/                     # 可配置，默认 ${catalina.base}/data/grou
 通过 `StoragePaths` 工具类统一管理：
 
 ```java
-// 优先级: 系统属性 > 环境变量 > catalina.base > user.dir
+// 优先级: 系统属性 > 环境变量 > 项目根目录 data > catalina.base
+// 默认: ${user.dir}/data/
 StoragePaths.getDataDir();       // 根数据目录
 StoragePaths.getUsersDir();     // 用户目录
 StoragePaths.getJobsDir();      // 职位目录
 // ...
 ```
+
+**目录优先级说明**：
+1. 系统属性 `ta.hiring.data.dir` 或环境变量 `TA_HIRING_DATA_DIR`（显式配置优先）
+2. 项目根目录下的 `data` 文件夹（`${user.dir}/data/`）
+3. Tomcat `catalina.base/data/groupproject/`（回退方案）
 
 ---
 

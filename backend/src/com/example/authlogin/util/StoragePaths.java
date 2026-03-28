@@ -25,12 +25,24 @@ public final class StoragePaths {
             return configuredDir;
         }
 
+        // 优先使用项目根目录 (user.dir) 下的 data 文件夹
+        String userDir = System.getProperty("user.dir");
+        if (userDir != null && !userDir.trim().isEmpty()) {
+            String projectDataDir = Paths.get(userDir, "data").toString();
+            // 检查项目根目录下是否存在 data 目录
+            if (java.nio.file.Files.exists(java.nio.file.Paths.get(projectDataDir))) {
+                return projectDataDir;
+            }
+        }
+
+        // 回退到 Tomcat catalina.base 下的 data/groupproject
         String catalinaBase = System.getProperty("catalina.base");
         if (catalinaBase != null && !catalinaBase.trim().isEmpty()) {
             return Paths.get(catalinaBase, "data", APP_NAME).toString();
         }
 
-        return Paths.get(System.getProperty("user.dir"), "data").toString();
+        // 最终回退到 user.dir/data
+        return Paths.get(userDir, "data").toString();
     }
 
     public static String getUsersDir() {

@@ -45,7 +45,7 @@ TA Hiring System 采用传统的 **三层架构 (Three-Tier Architecture)**，�
                                 ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    File System (CSV Storage)                      │
-│  ${catalina.base}/data/groupproject/                            │
+│  ${user.dir}/data/                                              │
 │  ├── users/           # 用户数据 (按角色分文件)                   │
 │  │   ├── users_ta.csv                                         │
 │  │   ├── users_mo.csv                                         │
@@ -236,8 +236,8 @@ fetch('/api/ta/job/list', {
 
 1. **Java 系统属性**: `-Dta.hiring.data.dir=/path`
 2. **环境变量**: `TA_HIRING_DATA_DIR=/path`
-3. **Tomcat catalina.base**: `{catalina.base}/data/groupproject`
-4. **当前工作目录**: `{user.dir}/data`
+3. **项目根目录**: `{user.dir}/data`
+4. **Tomcat catalina.base 回退**: `{catalina.base}/data/groupproject`
 
 ### 5.2 AI 配置
 

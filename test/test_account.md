@@ -32,4 +32,4 @@ admin_demo / Pass1234
 
 1. 启动 Tomcat 服务器后，演示账户会自动创建到 `data/users/` 目录下的 CSV 文件中
 2. 使用 MO 账户登录后可审核 TA 的申请
-3. 数据目录默认位置：`{user.dir}/data/` 或 `{catalina.base}/data/groupproject/`
+3. 数据目录默认位置：`{user.dir}/data/`

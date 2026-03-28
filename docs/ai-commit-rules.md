@@ -20,10 +20,9 @@
 
 ### 2. 提交信息格式
 ```
-<type>(<scope>): <subject>
+<type>: <subject>
 ```
 - type: `feat` `fix` `refactor` `test` `chore` `docs`
-- scope: 简短范围，如 `auth` `job` `profile` `ta` `mo`
 
 ### 3. 协作要求
 - 同一功能的多处改动应由**不同成员**分别提交
@@ -34,7 +33,7 @@
 ```bash
 git commit -m "<type>: <subject>" --author="<name> <email>"
 ```
-
+ git commit -m "chore: 整理文档并优化启动脚本" --author="member6 <member6@edu.com>"
 ### 5. 成员 author 信息
 | 成员 | author |
 |------|--------|
@@ -50,4 +49,19 @@ git commit -m "<type>: <subject>" --author="<name> <email>"
 git commit -m "feat: 新增候选人筛选面板" --author="member5 <member5@edu.com>"
 git commit -m "fix: 修复岗位匹配接口参数错误" --author="member2 <member2@edu.com>"
 git commit -m "refactor: 重构申请人档案读写逻辑" --author="member4 <member4@edu.com>"
+```
+
+### 7. Git Log 查询方式
+```bash
+# 查看最近5条提交记录
+git log --oneline -5
+
+# 查看最近5条提交记录的作者
+git log --oneline -5 --format="%h %an"
+
+# 查看某个文件的提交历史
+git log --oneline -10 -- <file-path>
+
+# 查看某个成员最近的提交
+git log --oneline --author="member1" -5
 ```

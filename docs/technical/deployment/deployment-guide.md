@@ -122,8 +122,8 @@ export TA_HIRING_DATA_DIR=/var/data/ta-hiring
 ```
 
 **方式 3: 默认位置**
-- Tomcat: `{catalina.base}/data/groupproject`
-- 开发模式: `{user.dir}/data`
+- 项目根目录: `{user.dir}/data`
+- Tomcat 回退: `{catalina.base}/data/groupproject`
 
 ### 5.2 AI 服务配置
 
@@ -219,7 +219,7 @@ ${CATALINA_HOME}/webapps/groupproject/
 ├── js/
 └── ...
 
-${DATA_DIR:-${catalina.base}/data/groupproject}/
+${DATA_DIR:-${user.dir}/data}/
 ├── users/
 │   ├── users_ta.csv
 │   ├── users_mo.csv
