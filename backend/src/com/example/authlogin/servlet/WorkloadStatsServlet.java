@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
  * WorkloadStatsServlet - 管理员工作量统计接口
@@ -73,11 +74,10 @@ public class WorkloadStatsServlet extends HttpServlet {
                 return;
             }
 
-            JsonResponseUtil.write(response, 200, true, "MO workload stats generated",
-                    java.util.Map.of(
-                            "moWorkloads",
-                            workloadStatsService.calculateMoWorkloadStats(applicationDao.findAll(), start, end)
-                    ));
+            List<WorkloadStatsService.MoWorkloadStats> moStats = workloadStatsService.calculateMoWorkloadStats(applicationDao.findAll(), start, end);
+            String moWorkloadsJson = moWorkloadsToJson(moStats);
+            JsonResponseUtil.writeResponse(response, 200, true, "MO workload stats generated",
+                    "\"moWorkloads\": " + moWorkloadsJson);
             return;
         }
 
