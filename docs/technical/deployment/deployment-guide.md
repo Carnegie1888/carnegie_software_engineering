@@ -108,22 +108,15 @@ unzip target/groupproject.war -d ${CATALINA_HOME}/webapps/groupproject
 
 ### 5.1 数据目录配置
 
-数据目录用于存储 CSV 文件和上传的文件。按优先级选择以下方式之一:
+数据目录用于存储 CSV 文件和上传的文件。**必须**在 `scripts/config.bat` 中配置 `TA_HIRING_DATA_DIR` 环境变量：
 
-**方式 1: Java 系统属性**
-```bash
-# 在 setenv.sh (Linux) 或 setenv.bat (Windows) 中添加:
-CATALINA_OPTS="-Dta.hiring.data.dir=/var/data/ta-hiring"
+```batch
+REM ==== DATA DIRECTORY ====
+REM 设置数据目录路径（默认使用 Tomcat 下的 data 目录）
+set TA_HIRING_DATA_DIR=%CATALINA_HOME%\data
 ```
 
-**方式 2: 环境变量**
-```bash
-export TA_HIRING_DATA_DIR=/var/data/ta-hiring
-```
-
-**方式 3: 默认位置**
-- 项目根目录: `{user.dir}/data`
-- Tomcat 回退: `{catalina.base}/data/groupproject`
+**重要**：必须配置 `TA_HIRING_DATA_DIR`，否则应用启动时会抛出异常。
 
 ### 5.2 AI 服务配置
 
@@ -219,7 +212,7 @@ ${CATALINA_HOME}/webapps/groupproject/
 ├── js/
 └── ...
 
-${DATA_DIR:-${user.dir}/data}/
+${TA_HIRING_DATA_DIR}/
 ├── users/
 │   ├── users_ta.csv
 │   ├── users_mo.csv

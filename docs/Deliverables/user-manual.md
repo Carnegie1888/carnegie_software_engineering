@@ -20,7 +20,15 @@ This manual is intended to help TA, MO, and Admin users complete common business
 
 If the port has been changed, please use the port configured in your local Tomcat environment.
 
-### 2.1 Development Demo Accounts
+### 2.2 Login Page
+
+![登录页面](user-manual-images/login.png)
+
+### 2.3 Registration Page
+
+![注册页面](user-manual-images/register.png)
+
+### 2.4 Development Demo Accounts
 
 For development and demonstration, the system provides the following fixed accounts:
 
@@ -70,6 +78,10 @@ If any of these accounts are missing from the local user CSV files, the backend 
 
 ## 5. TA User Guide
 
+### 5.0 TA Dashboard
+
+![TA Dashboard](user-manual-images/ta-dashboard.png)
+
 ### 5.1 Create a Profile
 
 On the TA page, fill in:
@@ -86,7 +98,12 @@ On the TA page, fill in:
 
 ### 5.3 Apply for a Job
 
-On the job list page, select a job, fill in the cover letter, and submit it.  
+On the job list page, select a job, fill in the cover letter, and submit it.
+
+### 5.4 Job List
+
+![TA Job List](user-manual-images/ta-job-list.png)
+
 After submission, you can view the following statuses on the application status page:
 
 - `PENDING` Waiting for review
@@ -94,9 +111,17 @@ After submission, you can view the following statuses on the application status 
 - `REJECTED` Rejected
 - `WITHDRAWN` Withdrawn
 
+### 5.5 Application Status
+
+![TA Application Status](user-manual-images/ta-application-status.png)
+
 ---
 
 ## 6. MO User Guide
+
+### 6.0 MO Dashboard
+
+![MO Dashboard](user-manual-images/mo-dashboard.png)
 
 ### 6.1 Publish a Job
 
@@ -112,7 +137,11 @@ On the application review page, you can:
 - View applicant information and cover letters
 - Accept or reject applications in `PENDING` status
 
-### 6.3 Missing Skills Analysis
+### 6.3 Applicant Selection
+
+![MO Applicant Selection](user-manual-images/mo-applicant-selection.png)
+
+### 6.4 Missing Skills Analysis
 
 Through the missing skills interface, you can view:
 
@@ -120,9 +149,17 @@ Through the missing skills interface, you can view:
 - Aggregated frequency of missing skills
 - Recommended improvement suggestions
 
+### 6.5 AI Skill Match
+
+![MO AI Skill Match](user-manual-images/mo-ai-skill-match.png)
+
 ---
 
 ## 7. Admin User Guide
+
+### 7.0 Admin Dashboard
+
+![Admin Dashboard](user-manual-images/admin-dashboard.png)
 
 ### 7.1 Total Application Statistics
 
@@ -173,3 +210,23 @@ Set `export=csv` to download the statistics for external reporting and analysis.
 
 - After each iteration, update the page paths and interface descriptions in this manual
 - When new permission controls or field validation are added, update the "Roles and Permissions" and "Frequently Asked Questions" sections
+
+---
+
+## 10. Screenshot Requirements Summary
+
+Below is a summary of all screenshots required for this user manual:
+
+| Section | File Name | Description |
+|---------|-----------|-------------|
+| 2.2 | `login.png` | Login page with username/password fields and role selector |
+| 2.3 | `register.png` | Registration page with role selection and registration form |
+| 5.0 | `ta-dashboard.png` | TA dashboard with personal profile summary and quick actions |
+| 5.4 | `ta-job-list.png` | TA job listing page showing available positions |
+| 5.5 | `ta-application-status.png` | TA application status page showing all applications |
+| 6.0 | `mo-dashboard.png` | MO dashboard with job posting stats and pending applications |
+| 6.3 | `mo-applicant-selection.png` | MO applicant review page with accept/reject buttons |
+| 6.5 | `mo-ai-skill-match.png` | MO AI skill matching analysis page |
+| 7.0 | `admin-dashboard.png` | Admin dashboard with system stats and TA workload charts |
+
+**Note**: All screenshots should be placed in the `user-manual-images/` directory (relative to the markdown file) with the specified filenames. Recommended screenshot dimensions: 1920x1080 or similar, showing the full interface with browser frame removed.

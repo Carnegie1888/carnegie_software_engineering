@@ -19,7 +19,7 @@
 ### 1.2 存储目录结构
 
 ```
-${DATA_DIR}/                     # 可配置，默认 ${user.dir}/data/
+${TA_HIRING_DATA_DIR}/           # 必须在 config.bat 中配置
 ├── users/                       # 用户数据
 │   ├── users_ta.csv            # TA 用户
 │   ├── users_mo.csv           # MO 用户

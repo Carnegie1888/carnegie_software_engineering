@@ -123,13 +123,11 @@ docs/technical/
 
 ## 数据目录
 
-运行时数据默认存储在项目 `data/` 目录下。如需指定其他位置，可设置 JVM 属性：
+运行时数据存储在 Tomcat 下的 `data/` 目录。**必须**在 `scripts/config.bat` 中配置 `TA_HIRING_DATA_DIR` 环境变量：
 
-```text
--Dta.hiring.data.dir=/path/to/data
+```bat
+set TA_HIRING_DATA_DIR=%CATALINA_HOME%\data
 ```
-
-或环境变量 `TA_HIRING_DATA_DIR`。
 
 ## 日志
 
