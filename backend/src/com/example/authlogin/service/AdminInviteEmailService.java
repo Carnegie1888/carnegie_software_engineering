@@ -1,5 +1,7 @@
 package com.example.authlogin.service;
 
+import com.example.authlogin.util.Logger;
+
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
@@ -23,8 +25,8 @@ public class AdminInviteEmailService {
 
         if (!config.isSendmailReady()) {
             String reason = "Sendmail is not configured. Set TA_HIRING_MAIL_FROM and optionally TA_HIRING_SENDMAIL_PATH.";
-            System.out.println("[AdminInviteEmailService] " + reason);
-            System.out.println("[AdminInviteEmailService] Invite email preview to " + recipientEmail + ":\n" + textBody);
+            Logger.i("AdminInviteEmailService", reason);
+            Logger.i("AdminInviteEmailService", "Invite email preview to " + recipientEmail + ":\n" + textBody);
             return SendResult.fallback(reason, textBody);
         }
 
@@ -51,14 +53,14 @@ public class AdminInviteEmailService {
             int exitCode = process.waitFor();
             if (exitCode != 0) {
                 String reason = "sendmail exited with code " + exitCode;
-                System.err.println("[AdminInviteEmailService] " + reason);
+                Logger.e("AdminInviteEmailService", reason);
                 return SendResult.fallback(reason, textBody);
             }
             return SendResult.sent();
         } catch (Exception e) {
             String reason = "sendmail failed: " + e.getMessage();
-            System.err.println("[AdminInviteEmailService] " + reason);
-            System.err.println("[AdminInviteEmailService] Invite email preview to " + recipientEmail + ":\n" + textBody);
+            Logger.e("AdminInviteEmailService", reason);
+            Logger.i("AdminInviteEmailService", "Invite email preview to " + recipientEmail + ":\n" + textBody);
             return SendResult.fallback(reason, textBody);
         }
     }

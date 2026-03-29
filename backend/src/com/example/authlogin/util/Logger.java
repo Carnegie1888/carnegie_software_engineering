@@ -24,8 +24,12 @@ public final class Logger {
     private final Path logPath;
 
     private Logger() {
-        // 使用 user.dir 获取项目根目录
+        // 使用 user.dir 获取项目根目录，兼容从 scripts 目录运行的场景
         String userDir = System.getProperty("user.dir");
+        // 如果 user.dir 是 scripts，就退到父目录
+        if (userDir != null && userDir.endsWith("scripts")) {
+            userDir = new java.io.File(userDir).getParent();
+        }
         Path logsDir = Paths.get(userDir, LOG_DIR);
 
         // 确保日志目录存在

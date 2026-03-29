@@ -3,6 +3,7 @@ package com.example.authlogin.servlet;
 import com.example.authlogin.dao.UserDao;
 import com.example.authlogin.model.User;
 import com.example.authlogin.util.JsonResponseUtil;
+import com.example.authlogin.util.Logger;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -42,14 +43,11 @@ public class RegisterServlet extends HttpServlet {
 
     // 简单的日志方法
     private void logInfo(String message) {
-        System.out.println("[RegisterServlet] " + message);
+        Logger.i("RegisterServlet", message);
     }
 
     private void logError(String message, Throwable t) {
-        System.err.println("[RegisterServlet ERROR] " + message);
-        if (t != null) {
-            t.printStackTrace(System.err);
-        }
+        Logger.e("RegisterServlet", message, t);
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.example.authlogin.dao.ApplicantDao;
 import com.example.authlogin.model.Applicant;
 import com.example.authlogin.model.User;
 import com.example.authlogin.util.JsonResponseUtil;
+import com.example.authlogin.util.Logger;
 import com.example.authlogin.util.StoragePaths;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -89,14 +90,11 @@ public class ApplicantServlet extends HttpServlet {
 
     // 简单的日志方法
     private void logInfo(String message) {
-        System.out.println("[ApplicantServlet] " + message);
+        Logger.i("ApplicantServlet", message);
     }
 
     private void logError(String message, Throwable t) {
-        System.err.println("[ApplicantServlet ERROR] " + message);
-        if (t != null) {
-            t.printStackTrace(System.err);
-        }
+        Logger.e("ApplicantServlet", message, t);
     }
 
     @Override

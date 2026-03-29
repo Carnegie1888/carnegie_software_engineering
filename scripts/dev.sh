@@ -72,7 +72,8 @@ javac -encoding UTF-8 -d "$BUILD_DIR/WEB-INF/classes" -cp "$CLASSPATH" \
     "$SRC_DIR/com/example/authlogin/util/SecurityTokenUtil.java" \
     "$SRC_DIR/com/example/authlogin/util/FuzzySearchUtil.java" \
     "$SRC_DIR/com/example/authlogin/util/SessionUtil.java" \
-    "$SRC_DIR/com/example/authlogin/util/PermissionUtil.java"
+    "$SRC_DIR/com/example/authlogin/util/PermissionUtil.java" \
+    "$SRC_DIR/com/example/authlogin/util/Logger.java"
 
 if [ $? -ne 0 ]; then
     echo "[ERROR] Util compilation failed!"

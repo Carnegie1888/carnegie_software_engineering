@@ -1,5 +1,6 @@
 package com.example.authlogin.servlet;
 
+import com.example.authlogin.util.Logger;
 import com.example.authlogin.util.SessionUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -42,7 +43,7 @@ public class LogoutServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
         }
 
-        System.out.println("[LogoutServlet] User logged out: " + username);
+        Logger.i("LogoutServlet", "User logged out: " + username);
     }
 
     @Override

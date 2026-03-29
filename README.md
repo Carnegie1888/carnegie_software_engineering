@@ -131,6 +131,10 @@ docs/technical/
 
 或环境变量 `TA_HIRING_DATA_DIR`。
 
+## 日志
+
+后端日志文件位于项目根目录 `logs/app.log`，记录所有接口的请求和错误信息。
+
 ## 常见问题
 
 - **端口 8080 被占用**：先关闭已运行的 Tomcat 实例

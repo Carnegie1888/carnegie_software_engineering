@@ -6,6 +6,7 @@ import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
 import com.example.authlogin.util.FuzzySearchUtil;
 import com.example.authlogin.util.JsonResponseUtil;
+import com.example.authlogin.util.Logger;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -49,14 +50,11 @@ public class JobServlet extends HttpServlet {
 
     // 简单的日志方法
     private void logInfo(String message) {
-        System.out.println("[JobServlet] " + message);
+        Logger.i("JobServlet", message);
     }
 
     private void logError(String message, Throwable t) {
-        System.err.println("[JobServlet ERROR] " + message);
-        if (t != null) {
-            t.printStackTrace(System.err);
-        }
+        Logger.e("JobServlet", message, t);
     }
 
     @Override

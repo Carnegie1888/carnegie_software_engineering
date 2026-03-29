@@ -1,6 +1,7 @@
 package com.example.authlogin.filter;
 
 import com.example.authlogin.model.User;
+import com.example.authlogin.util.Logger;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -78,7 +79,7 @@ public class AuthFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        System.out.println("[AuthFilter] Initialized");
+        Logger.i("AuthFilter", "Initialized");
     }
 
     @Override
@@ -222,6 +223,6 @@ public class AuthFilter implements Filter {
 
     @Override
     public void destroy() {
-        System.out.println("[AuthFilter] Destroyed");
+        Logger.i("AuthFilter", "Destroyed");
     }
 }
