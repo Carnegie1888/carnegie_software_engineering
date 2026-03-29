@@ -117,6 +117,60 @@ public class WorkloadStatsService {
         }
     }
 
+    public static class TaWorkloadStats {
+        private final String taId;
+        private final String taName;
+        private final int totalApplications;
+        private final int pending;
+        private final int accepted;
+        private final int rejected;
+        private final int withdrawn;
+
+        public TaWorkloadStats(String taId,
+                               String taName,
+                               int totalApplications,
+                               int pending,
+                               int accepted,
+                               int rejected,
+                               int withdrawn) {
+            this.taId = taId;
+            this.taName = taName;
+            this.totalApplications = totalApplications;
+            this.pending = pending;
+            this.accepted = accepted;
+            this.rejected = rejected;
+            this.withdrawn = withdrawn;
+        }
+
+        public String getTaId() {
+            return taId;
+        }
+
+        public String getTaName() {
+            return taName;
+        }
+
+        public int getTotalApplications() {
+            return totalApplications;
+        }
+
+        public int getPending() {
+            return pending;
+        }
+
+        public int getAccepted() {
+            return accepted;
+        }
+
+        public int getRejected() {
+            return rejected;
+        }
+
+        public int getWithdrawn() {
+            return withdrawn;
+        }
+    }
+
     /**
      * 阶段2：实现申请数量统计逻辑。
      */
@@ -144,6 +198,19 @@ public class WorkloadStatsService {
                                                           LocalDateTime start,
                                                           LocalDateTime end) {
         return getOrBuildSnapshot(applications, start, end).moWorkloads;
+    }
+
+    /**
+     * 按 TA 统计申请工作量。
+     */
+    public List<TaWorkloadStats> calculateTaWorkloadStats(List<Application> applications) {
+        return calculateTaWorkloadStats(applications, null, null);
+    }
+
+    public List<TaWorkloadStats> calculateTaWorkloadStats(List<Application> applications,
+                                                          LocalDateTime start,
+                                                          LocalDateTime end) {
+        return getOrBuildSnapshot(applications, start, end).taWorkloads;
     }
 
     public String exportMoWorkloadCsv(List<Application> applications, LocalDateTime start, LocalDateTime end) {
@@ -187,13 +254,30 @@ public class WorkloadStatsService {
         }
     }
 
+    private static class MutableTaStats {
+        private final String taId;
+        private final String taName;
+        private int totalApplications;
+        private int pending;
+        private int accepted;
+        private int rejected;
+        private int withdrawn;
+
+        private MutableTaStats(String taId, String taName) {
+            this.taId = taId;
+            this.taName = taName;
+        }
+    }
+
     private static class StatsSnapshot {
         private final ApplicationCounts counts;
         private final List<MoWorkloadStats> moWorkloads;
+        private final List<TaWorkloadStats> taWorkloads;
 
-        private StatsSnapshot(ApplicationCounts counts, List<MoWorkloadStats> moWorkloads) {
+        private StatsSnapshot(ApplicationCounts counts, List<MoWorkloadStats> moWorkloads, List<TaWorkloadStats> taWorkloads) {
             this.counts = counts;
             this.moWorkloads = moWorkloads;
+            this.taWorkloads = taWorkloads;
         }
     }
 
@@ -235,7 +319,8 @@ public class WorkloadStatsService {
         int rejected = 0;
         int withdrawn = 0;
 
-        Map<String, MutableMoStats> grouped = new LinkedHashMap<>();
+        Map<String, MutableMoStats> moGrouped = new LinkedHashMap<>();
+        Map<String, MutableTaStats> taGrouped = new LinkedHashMap<>();
 
         for (Application application : applications) {
             if (application == null) {
@@ -257,10 +342,11 @@ public class WorkloadStatsService {
                 withdrawn++;
             }
 
+            // MO 统计
             String moId = safeText(application.getMoId(), "UNKNOWN_MO");
             String moName = safeText(application.getMoName(), "Unknown MO");
             String moKey = moId + "|" + moName;
-            MutableMoStats moStats = grouped.computeIfAbsent(moKey, ignored -> new MutableMoStats(moId, moName));
+            MutableMoStats moStats = moGrouped.computeIfAbsent(moKey, ignored -> new MutableMoStats(moId, moName));
             moStats.totalApplications++;
 
             if (status == null || status == Application.Status.PENDING) {
@@ -274,11 +360,28 @@ public class WorkloadStatsService {
             } else if (status == Application.Status.WITHDRAWN) {
                 moStats.withdrawn++;
             }
+
+            // TA 统计
+            String taId = safeText(application.getApplicantId(), "UNKNOWN_TA");
+            String taName = safeText(application.getApplicantName(), "Unknown TA");
+            String taKey = taId + "|" + taName;
+            MutableTaStats taStats = taGrouped.computeIfAbsent(taKey, ignored -> new MutableTaStats(taId, taName));
+            taStats.totalApplications++;
+
+            if (status == null || status == Application.Status.PENDING) {
+                taStats.pending++;
+            } else if (status == Application.Status.ACCEPTED) {
+                taStats.accepted++;
+            } else if (status == Application.Status.REJECTED) {
+                taStats.rejected++;
+            } else if (status == Application.Status.WITHDRAWN) {
+                taStats.withdrawn++;
+            }
         }
 
-        List<MoWorkloadStats> workloadList = new ArrayList<>();
-        for (MutableMoStats mo : grouped.values()) {
-            workloadList.add(new MoWorkloadStats(
+        List<MoWorkloadStats> moWorkloadList = new ArrayList<>();
+        for (MutableMoStats mo : moGrouped.values()) {
+            moWorkloadList.add(new MoWorkloadStats(
                     mo.moId,
                     mo.moName,
                     mo.totalApplications,
@@ -290,8 +393,21 @@ public class WorkloadStatsService {
             ));
         }
 
+        List<TaWorkloadStats> taWorkloadList = new ArrayList<>();
+        for (MutableTaStats ta : taGrouped.values()) {
+            taWorkloadList.add(new TaWorkloadStats(
+                    ta.taId,
+                    ta.taName,
+                    ta.totalApplications,
+                    ta.pending,
+                    ta.accepted,
+                    ta.rejected,
+                    ta.withdrawn
+            ));
+        }
+
         ApplicationCounts counts = new ApplicationCounts(total, pending, accepted, rejected, withdrawn);
-        return new StatsSnapshot(counts, Collections.unmodifiableList(workloadList));
+        return new StatsSnapshot(counts, Collections.unmodifiableList(moWorkloadList), Collections.unmodifiableList(taWorkloadList));
     }
 
     private String buildSnapshotKey(List<Application> applications, LocalDateTime start, LocalDateTime end) {

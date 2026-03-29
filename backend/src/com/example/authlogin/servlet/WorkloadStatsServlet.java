@@ -81,6 +81,14 @@ public class WorkloadStatsServlet extends HttpServlet {
             return;
         }
 
+        if ("ta".equalsIgnoreCase(mode)) {
+            List<WorkloadStatsService.TaWorkloadStats> taStats = workloadStatsService.calculateTaWorkloadStats(applicationDao.findAll(), start, end);
+            String taWorkloadsJson = taWorkloadsToJson(taStats);
+            JsonResponseUtil.writeResponse(response, 200, true, "TA workload stats generated",
+                    "\"taWorkloads\": " + taWorkloadsJson);
+            return;
+        }
+
         WorkloadStatsService.ApplicationCounts counts = workloadStatsService.calculateApplicationCounts(applicationDao.findAll(), start, end);
         JsonResponseUtil.write(response, 200, true, "Application count stats generated",
                 java.util.Map.of(
@@ -123,6 +131,30 @@ public class WorkloadStatsServlet extends HttpServlet {
                 json.append("\"totalApplications\": ").append(stats.getTotalApplications()).append(", ");
                 json.append("\"pending\": ").append(stats.getPending()).append(", ");
                 json.append("\"processed\": ").append(stats.getProcessed()).append(", ");
+                json.append("\"accepted\": ").append(stats.getAccepted()).append(", ");
+                json.append("\"rejected\": ").append(stats.getRejected()).append(", ");
+                json.append("\"withdrawn\": ").append(stats.getWithdrawn());
+                json.append("}");
+                if (i < workloads.size() - 1) {
+                    json.append(", ");
+                }
+            }
+        }
+        json.append("]");
+        return json.toString();
+    }
+
+    private String taWorkloadsToJson(java.util.List<WorkloadStatsService.TaWorkloadStats> workloads) {
+        StringBuilder json = new StringBuilder();
+        json.append("[");
+        if (workloads != null) {
+            for (int i = 0; i < workloads.size(); i++) {
+                WorkloadStatsService.TaWorkloadStats stats = workloads.get(i);
+                json.append("{");
+                json.append("\"taId\": \"").append(escapeJson(stats.getTaId())).append("\", ");
+                json.append("\"taName\": \"").append(escapeJson(stats.getTaName())).append("\", ");
+                json.append("\"totalApplications\": ").append(stats.getTotalApplications()).append(", ");
+                json.append("\"pending\": ").append(stats.getPending()).append(", ");
                 json.append("\"accepted\": ").append(stats.getAccepted()).append(", ");
                 json.append("\"rejected\": ").append(stats.getRejected()).append(", ");
                 json.append("\"withdrawn\": ").append(stats.getWithdrawn());

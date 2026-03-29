@@ -4,45 +4,39 @@ import java.nio.file.Paths;
 
 /**
  * StoragePaths - 统一管理运行时数据目录
- * 优先使用显式配置，其次使用 Tomcat 的 catalina.base，最后回退到当前工作目录。
+ *
+ * 配置方式：在 config.bat 中设置 TA_HIRING_DATA_DIR 环境变量
+ *
+ * 数据目录结构：
+ * ${TA_HIRING_DATA_DIR}/
+ * ├── users/
+ * ├── jobs/
+ * ├── applicants/
+ * ├── applications/
+ * ├── invites/
+ * ├── resumes/
+ * └── photos/
  */
 public final class StoragePaths {
 
-    private static final String DATA_DIR_PROPERTY = "ta.hiring.data.dir";
     private static final String DATA_DIR_ENV = "TA_HIRING_DATA_DIR";
-    private static final String APP_NAME = "groupproject";
 
     private StoragePaths() {
     }
 
+    /**
+     * 获取数据根目录
+     * 必须通过 config.bat 配置 TA_HIRING_DATA_DIR 环境变量
+     */
     public static String getDataDir() {
-        String configuredDir = firstNonBlank(
-                System.getProperty(DATA_DIR_PROPERTY),
-                System.getenv(DATA_DIR_ENV)
+        String dataDir = System.getenv(DATA_DIR_ENV);
+        if (dataDir != null && !dataDir.trim().isEmpty()) {
+            return dataDir.trim();
+        }
+        throw new IllegalStateException(
+            "数据目录未配置。请在 config.bat 中设置 TA_HIRING_DATA_DIR 环境变量。\n" +
+            "例如：set TA_HIRING_DATA_DIR=%CATALINA_HOME%\\data"
         );
-
-        if (configuredDir != null) {
-            return configuredDir;
-        }
-
-        // 优先使用项目根目录 (user.dir) 下的 data 文件夹
-        String userDir = System.getProperty("user.dir");
-        if (userDir != null && !userDir.trim().isEmpty()) {
-            String projectDataDir = Paths.get(userDir, "data").toString();
-            // 检查项目根目录下是否存在 data 目录
-            if (java.nio.file.Files.exists(java.nio.file.Paths.get(projectDataDir))) {
-                return projectDataDir;
-            }
-        }
-
-        // 回退到 Tomcat catalina.base 下的 data/groupproject
-        String catalinaBase = System.getProperty("catalina.base");
-        if (catalinaBase != null && !catalinaBase.trim().isEmpty()) {
-            return Paths.get(catalinaBase, "data", APP_NAME).toString();
-        }
-
-        // 最终回退到 user.dir/data
-        return Paths.get(userDir, "data").toString();
     }
 
     public static String getUsersDir() {
@@ -79,14 +73,5 @@ public final class StoragePaths {
 
     public static String getPhotoDraftDir() {
         return Paths.get(getDataDir(), "photo-drafts").toString();
-    }
-
-    private static String firstNonBlank(String... values) {
-        for (String value : values) {
-            if (value != null && !value.trim().isEmpty()) {
-                return value.trim();
-            }
-        }
-        return null;
     }
 }
