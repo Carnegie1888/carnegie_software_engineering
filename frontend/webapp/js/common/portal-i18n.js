@@ -304,6 +304,7 @@
             "Course code": { key: "portal.common.courseCode" },
             "Apply filters": { key: "portal.common.applyFilters" },
             "Clear": { key: "portal.common.clear" },
+            "Loading...": { key: "portal.common.loading" },
             "Loading positions...": { key: "portal.taJobList.loadingPositions" },
             "Refresh": { key: "portal.common.refresh" },
 
@@ -362,6 +363,18 @@
             "My postings": { key: "portal.moDashboard.myPostings" },
             "Published jobs": { key: "portal.moDashboard.publishedJobs" },
             "Loading your jobs...": { key: "portal.moDashboard.loadingJobs" },
+            "My Postings": { key: "portal.moDashboard.myJobs" },
+            "Post New Job": { key: "portal.moDashboard.postNew" },
+            "View and manage your job postings.": { key: "portal.moDashboard.myJobsDesc" },
+            "No job postings yet": { key: "portal.moDashboard.noJobsTitle" },
+            "Click \"Post New Job\" to create your first TA position listing.": { key: "portal.moDashboard.noJobsDesc" },
+            "Edit Job": { key: "portal.moDashboard.editJob" },
+            "Confirm Delete": { key: "portal.moDashboard.confirmDelete" },
+            "Are you sure you want to delete this job posting?": { key: "portal.moDashboard.deleteConfirmMsg" },
+
+            "Save Changes": { key: "portal.action.save" },
+            "Cancel": { key: "portal.action.cancel" },
+            "Delete": { key: "portal.action.delete" },
 
             "Track hiring activity, then jump directly to posting and applicant review workflows.": { key: "portal.moOverview.subtitle" },
             "Active jobs": { key: "portal.moOverview.activeJobs" },
