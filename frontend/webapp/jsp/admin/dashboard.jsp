@@ -137,6 +137,13 @@
                                 </header>
                                 <div id="mo-chart" class="mo-chart" aria-live="polite"></div>
                             </article>
+                            <article class="chart-card">
+                                <header class="chart-header">
+                                    <h2>TA Workload Overview</h2>
+                                    <p>Application count by talent associate.</p>
+                                </header>
+                                <div id="ta-chart" class="ta-chart" aria-live="polite"></div>
+                            </article>
                         </section>
 
                         <section class="mo-panel" aria-label="MO工作量列表">
@@ -145,6 +152,14 @@
                                 <p id="mo-summary">Loading workload...</p>
                             </header>
                             <div id="mo-list" class="mo-list" aria-live="polite"></div>
+                        </section>
+
+                        <section class="ta-panel" aria-label="TA工作量列表">
+                            <header class="ta-panel-header">
+                                <h2>TA Workload</h2>
+                                <p id="ta-summary">Loading workload...</p>
+                            </header>
+                            <div id="ta-list" class="ta-list" aria-live="polite"></div>
                         </section>
                     </section>
                 </main>

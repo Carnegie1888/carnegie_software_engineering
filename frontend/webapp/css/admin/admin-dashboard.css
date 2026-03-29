@@ -307,7 +307,8 @@
 }
 
 .status-chart,
-.mo-chart {
+.mo-chart,
+.ta-chart {
     margin-top: 10px;
     display: flex;
     flex-direction: column;
@@ -360,6 +361,10 @@
 
 .chart-fill.mo {
     background: #0071e3;
+}
+
+.chart-fill.ta {
+    background: #a341d1;
 }
 
 .chart-row .chart-value {
@@ -462,6 +467,98 @@
     font-weight: 600;
 }
 
+.ta-panel {
+    margin-top: 14px;
+    border: 1px solid #e8e8ec;
+    border-radius: 16px;
+    background: #f5f5f7;
+    padding: 14px;
+}
+
+.ta-panel-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.ta-panel-header h2 {
+    margin: 0;
+    color: #1d1d1f;
+    font-size: 18px;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+.ta-panel-header p {
+    margin: 0;
+    color: #6e6e73;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.ta-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ta-item {
+    border: 1px solid #e5e5ea;
+    border-radius: 14px;
+    background: #fff;
+    padding: 12px;
+}
+
+.ta-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.ta-item-header h3 {
+    margin: 0;
+    color: #1d1d1f;
+    font-size: 15px;
+    line-height: 1.45;
+    font-weight: 600;
+}
+
+.ta-item-id {
+    color: #86868b;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.ta-item-stats {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.ta-item-stats p {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ta-item-stats span {
+    color: #86868b;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.ta-item-stats strong {
+    color: #1d1d1f;
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
 .empty-state {
     border: 1px dashed #d2d2d7;
     border-radius: 14px;
@@ -514,6 +611,10 @@
 
     .mo-item-stats {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ta-item-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
@@ -627,6 +728,10 @@
         grid-template-columns: 1fr;
     }
 
+    .ta-item-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .mo-item {
         border-radius: 12px;
         padding: 10px;
@@ -637,6 +742,19 @@
     }
 
     .mo-item-id {
+        font-size: 11px;
+    }
+
+    .ta-item {
+        border-radius: 12px;
+        padding: 10px;
+    }
+
+    .ta-item-header h3 {
+        font-size: 14px;
+    }
+
+    .ta-item-id {
         font-size: 11px;
     }
 }

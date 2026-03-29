@@ -12,6 +12,8 @@
     var messageNode = document.getElementById("dashboard-message");
     var moSummaryNode = document.getElementById("mo-summary");
     var moListNode = document.getElementById("mo-list");
+    var taSummaryNode = document.getElementById("ta-summary");
+    var taListNode = document.getElementById("ta-list");
 
     var summaryNodes = {
         total: document.getElementById("summary-total"),
@@ -22,7 +24,8 @@
     };
     var chartNodes = {
         statusChart: document.getElementById("status-chart"),
-        moChart: document.getElementById("mo-chart")
+        moChart: document.getElementById("mo-chart"),
+        taChart: document.getElementById("ta-chart")
     };
     var EMPTY_COUNTS = {
         total: 0,
@@ -38,7 +41,7 @@
         { key: "withdrawn", label: "Withdrawn", style: "withdrawn" }
     ];
 
-    if (!filterForm || !startInput || !endInput || !moSummaryNode || !moListNode) {
+    if (!filterForm || !startInput || !endInput || !moSummaryNode || !moListNode || !taSummaryNode || !taListNode) {
         return;
     }
 
@@ -90,15 +93,19 @@
         hideMessage();
         moSummaryNode.textContent = "Loading workload...";
         moListNode.innerHTML = "";
+        taSummaryNode.textContent = "Loading workload...";
+        taListNode.innerHTML = "";
 
         return Promise.all([
             fetchCounts(),
-            fetchMoWorkloads()
+            fetchMoWorkloads(),
+            fetchTaWorkloads()
         ]).then(function (values) {
             var countsResult = values[0];
             var moResult = values[1];
+            var taResult = values[2];
 
-            if (countsResult.unauthorized || moResult.unauthorized) {
+            if (countsResult.unauthorized || moResult.unauthorized || taResult.unauthorized) {
                 handleUnauthorized();
                 return;
             }
@@ -116,11 +123,22 @@
                 : [];
             renderMoList(moWorkloads);
             renderMoChart(moWorkloads);
+
+            if (!taResult.ok) {
+                showMessage(taResult.message || "Failed to load TA workloads.", "error");
+            }
+            var taWorkloads = taResult.ok && Array.isArray(getPayloadDataArray(taResult.payload, "taWorkloads"))
+                ? getPayloadDataArray(taResult.payload, "taWorkloads")
+                : [];
+            renderTaList(taWorkloads);
+            renderTaChart(taWorkloads);
         }).catch(function () {
             showMessage("Network error while loading dashboard.", "error");
             renderSummary(EMPTY_COUNTS);
             renderMoList([]);
             renderMoChart([]);
+            renderTaList([]);
+            renderTaChart([]);
         }).finally(function () {
             state.loading = false;
             setLoadingState(false);
@@ -144,6 +162,16 @@
             headers: { "X-Requested-With": "XMLHttpRequest" }
         }).then(function (result) {
             return normalizeApiResult(result, "MO workload request failed.");
+        });
+    }
+
+    function fetchTaWorkloads() {
+        var url = contextPath + "/api/admin/workload" + buildQueryString({ mode: "ta" });
+        return request(url, {
+            method: "GET",
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        }).then(function (result) {
+            return normalizeApiResult(result, "TA workload request failed.");
         });
     }
 
@@ -307,6 +335,67 @@
                 buildChartRow(safeText(item.moName, "MO"), percent, total, "mo")
             );
         });
+    }
+
+    function renderTaChart(taWorkloads) {
+        if (!chartNodes.taChart) {
+            return;
+        }
+        chartNodes.taChart.innerHTML = "";
+
+        if (!Array.isArray(taWorkloads) || taWorkloads.length === 0) {
+            chartNodes.taChart.innerHTML = "<p class=\"empty-copy\">No TA workload data available.</p>";
+            return;
+        }
+
+        var sorted = taWorkloads.slice().sort(function (a, b) {
+            return toNumber(b.totalApplications) - toNumber(a.totalApplications);
+        }).slice(0, 6);
+
+        var maxValue = 0;
+        sorted.forEach(function (item) {
+            maxValue = Math.max(maxValue, toNumber(item.totalApplications));
+        });
+
+        sorted.forEach(function (item) {
+            var total = toNumber(item.totalApplications);
+            var percent = maxValue > 0 ? Math.round((total * 100) / maxValue) : 0;
+            chartNodes.taChart.appendChild(
+                buildChartRow(safeText(item.taName, "TA"), percent, total, "ta")
+            );
+        });
+    }
+
+    function renderTaList(taWorkloads) {
+        taListNode.innerHTML = "";
+        if (!Array.isArray(taWorkloads) || taWorkloads.length === 0) {
+            taSummaryNode.textContent = "No TA workload data in selected range.";
+            taListNode.appendChild(createEmptyState());
+            return;
+        }
+
+        taSummaryNode.textContent = "Loaded " + taWorkloads.length + " TA workload item" + (taWorkloads.length > 1 ? "s" : "") + ".";
+        taWorkloads.forEach(function (item) {
+            taListNode.appendChild(createTaItem(item));
+        });
+    }
+
+    function createTaItem(item) {
+        var element = document.createElement("article");
+        element.className = "ta-item";
+        element.innerHTML =
+            `<div class="ta-item-header">` +
+                `<h3>` + escapeHtml(safeText(item.taName, "TA User")) + `</h3>` +
+                `<span class="ta-item-id">` + escapeHtml(safeText(item.taId, "-")) + `</span>` +
+            `</div>` +
+            `<div class="ta-item-stats">` +
+                `<p><span>Total</span><strong>` + escapeHtml(String(toNumber(item.totalApplications))) + `</strong></p>` +
+                `<p><span>Pending</span><strong>` + escapeHtml(String(toNumber(item.pending))) + `</strong></p>` +
+                `<p><span>Accepted</span><strong>` + escapeHtml(String(toNumber(item.accepted))) + `</strong></p>` +
+                `<p><span>Rejected</span><strong>` + escapeHtml(String(toNumber(item.rejected))) + `</strong></p>` +
+                `<p><span>Withdrawn</span><strong>` + escapeHtml(String(toNumber(item.withdrawn))) + `</strong></p>` +
+            `</div>`;
+        return element;
     }
 
     function buildChartRow(label, percent, value, styleClass) {
