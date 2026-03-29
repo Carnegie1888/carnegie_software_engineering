@@ -166,263 +166,236 @@ public class JobServlet extends HttpServlet {
                 return;
             }
 
-            // 检查用户角色（只有MO可以发布职位）
-            if (currentUser.getRole() != User.Role.MO) {
-                JsonResponseUtil.writeJsonResponse(response, 403, false, "Only MO can post jobs", null);
-                return;
+            // 获取jobId参数（如果有则是更新，没有则是创建）
+            String jobId = request.getParameter("id");
+
+            if (jobId != null && !jobId.trim().isEmpty()) {
+                // ========== 更新职位 ==========
+                updateJob(request, response, currentUser, jobId.trim());
+            } else {
+                // ========== 创建职位 ==========
+                createJob(request, response, currentUser);
             }
 
-            // 获取请求参数
-            String title = request.getParameter("title");
-            String courseCode = request.getParameter("courseCode");
-            String courseName = request.getParameter("courseName");
-            String description = request.getParameter("description");
-            String skills = request.getParameter("requiredSkills");
-            String positionsStr = request.getParameter("positions");
-            String workload = request.getParameter("workload");
-            String salary = request.getParameter("salary");
-            String deadlineStr = request.getParameter("deadline");
-
-            // 输入验证
-            String error = validateInput(
-                    title,
-                    courseCode,
-                    courseName,
-                    description,
-                    skills,
-                    positionsStr,
-                    workload,
-                    salary,
-                    deadlineStr
-            );
-            if (error != null) {
-                logInfo("Validation failed: " + error);
-                JsonResponseUtil.writeJsonResponse(response, 400, false, error, null);
-                return;
-            }
-
-            String titleText = title != null ? title.trim() : "";
-            String courseCodeText = courseCode != null ? courseCode.trim() : "";
-            String courseNameText = courseName != null ? courseName.trim() : "";
-            String descriptionText = description != null ? description.trim() : "";
-            String skillsText = skills != null ? skills.trim() : "";
-            String positionsText = positionsStr != null ? positionsStr.trim() : "";
-            String workloadText = workload != null ? workload.trim() : "";
-            String salaryText = salary != null ? salary.trim() : "";
-            String deadlineText = deadlineStr != null ? deadlineStr.trim() : "";
-
-            // 创建职位对象
-            Job job = new Job();
-            job.setMoId(currentUser.getUserId());
-            job.setMoName(currentUser.getUsername()); // 使用username作为MO姓名
-            job.setTitle(titleText);
-            job.setCourseCode(courseCodeText);
-            job.setCourseName(courseNameText);
-            job.setDescription(descriptionText);
-
-            // 处理技能列表
-            job.setRequiredSkills(normalizeSkillsToList(skillsText));
-
-            // 处理职位数量
-            int positions = 1;
-            if (!positionsText.isEmpty()) {
-                positions = Integer.parseInt(positionsText);
-            }
-            job.setPositions(positions);
-
-            job.setWorkload(workloadText);
-            job.setSalary(salaryText);
-
-            // 处理截止日期
-            LocalDateTime deadline = parseDeadline(deadlineText);
-            if (deadline != null) {
-                job.setDeadline(deadline);
-            }
-
-            // 保存职位
-            Job savedJob = jobDao.create(job);
-            logInfo("Job created successfully: " + savedJob.getJobId() + " by MO: " + currentUser.getUsername());
-
-            JsonResponseUtil.writeJsonResponse(response, 201, true, "Job created successfully!",
-                    JsonResponseUtil.rawObject("\"jobId\": \"" + escapeJson(savedJob.getJobId()) + "\""));
-
-        } catch (IllegalArgumentException e) {
-            logInfo("Job creation failed: " + e.getMessage());
-            JsonResponseUtil.writeJsonResponse(response, 400, false, e.getMessage(), null);
         } catch (Exception e) {
-            logError("Unexpected error during job creation", e);
+            logError("Unexpected error in doPost", e);
             JsonResponseUtil.writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
         }
     }
 
-    @Override
-    protected void doPut(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("application/json;charset=UTF-8");
-
-        try {
-            // 获取当前登录用户
-            User currentUser = getCurrentUser(request);
-            if (currentUser == null) {
-                JsonResponseUtil.writeJsonResponse(response, 401, false, "Please login first", null);
-                return;
-            }
-
-            // 获取要更新的职位ID
-            String jobId = request.getParameter("id");
-            if (jobId == null || jobId.trim().isEmpty()) {
-                JsonResponseUtil.writeJsonResponse(response, 400, false, "Job ID is required", null);
-                return;
-            }
-
-            // 查找职位
-            Optional<Job> jobOpt = jobDao.findById(jobId.trim());
-            if (jobOpt.isEmpty()) {
-                JsonResponseUtil.writeJsonResponse(response, 404, false, "Job not found", null);
-                return;
-            }
-
-            Job job = jobOpt.get();
-
-            // 检查权限（只有职位所属MO可以更新）
-            if (!job.getMoId().equals(currentUser.getUserId())) {
-                JsonResponseUtil.writeJsonResponse(response, 403, false, "You can only update your own jobs", null);
-                return;
-            }
-
-            // 获取请求参数
-            String title = request.getParameter("title");
-            String courseCode = request.getParameter("courseCode");
-            String courseName = request.getParameter("courseName");
-            String description = request.getParameter("description");
-            String skills = request.getParameter("requiredSkills");
-            String positionsStr = request.getParameter("positions");
-            String workload = request.getParameter("workload");
-            String salary = request.getParameter("salary");
-            String deadlineStr = request.getParameter("deadline");
-            String statusStr = request.getParameter("status");
-
-            // 更新字段（对传入参数做与发布一致的校验）
-            if (title != null) {
-                String titleText = title.trim();
-                String titleError = validateTitle(titleText, true);
-                if (titleError != null) {
-                    JsonResponseUtil.writeJsonResponse(response, 400, false, titleError, null);
-                    return;
-                }
-                job.setTitle(titleText);
-            }
-            if (courseCode != null) {
-                String courseCodeText = courseCode.trim();
-                String courseCodeError = validateCourseCode(courseCodeText, true);
-                if (courseCodeError != null) {
-                    JsonResponseUtil.writeJsonResponse(response, 400, false, courseCodeError, null);
-                    return;
-                }
-                job.setCourseCode(courseCodeText);
-            }
-            if (courseName != null) {
-                String courseNameText = courseName.trim();
-                String courseNameError = validateCourseName(courseNameText, true);
-                if (courseNameError != null) {
-                    JsonResponseUtil.writeJsonResponse(response, 400, false, courseNameError, null);
-                    return;
-                }
-                job.setCourseName(courseNameText);
-            }
-            if (description != null) {
-                String descriptionText = description.trim();
-                String descriptionError = validateDescription(descriptionText, true);
-                if (descriptionError != null) {
-                    JsonResponseUtil.writeJsonResponse(response, 400, false, descriptionError, null);
-                    return;
-                }
-                job.setDescription(descriptionText);
-            }
-
-            // 处理技能列表
-            if (skills != null) {
-                String skillsText = skills.trim();
-                String skillsError = validateSkills(skillsText, true);
-                if (skillsError != null) {
-                    JsonResponseUtil.writeJsonResponse(response, 400, false, skillsError, null);
-                    return;
-                }
-                job.setRequiredSkills(normalizeSkillsToList(skillsText));
-            }
-
-            // 处理职位数量
-            if (positionsStr != null) {
-                String positionsText = positionsStr.trim();
-                String positionsError = validatePositions(positionsText, true);
-                if (positionsError != null) {
-                    JsonResponseUtil.writeJsonResponse(response, 400, false, positionsError, null);
-                    return;
-                }
-                job.setPositions(Integer.parseInt(positionsText));
-            }
-
-            if (workload != null) {
-                String workloadText = workload.trim();
-                String workloadError = validateWorkload(workloadText, true);
-                if (workloadError != null) {
-                    JsonResponseUtil.writeJsonResponse(response, 400, false, workloadError, null);
-                    return;
-                }
-                job.setWorkload(workloadText);
-            }
-            if (salary != null) {
-                String salaryText = salary.trim();
-                String salaryError = validateSalary(salaryText, true);
-                if (salaryError != null) {
-                    JsonResponseUtil.writeJsonResponse(response, 400, false, salaryError, null);
-                    return;
-                }
-                job.setSalary(salaryText);
-            }
-
-            // 处理截止日期
-            if (deadlineStr != null) {
-                String deadlineText = deadlineStr.trim();
-                String deadlineError = validateDeadline(deadlineText, true);
-                if (deadlineError != null) {
-                    JsonResponseUtil.writeJsonResponse(response, 400, false, deadlineError, null);
-                    return;
-                }
-                LocalDateTime deadline = parseDeadline(deadlineText);
-                if (deadline == null) {
-                    JsonResponseUtil.writeJsonResponse(response, 400, false, "Invalid deadline format", null);
-                    return;
-                }
-                job.setDeadline(deadline);
-            }
-
-            // 处理状态更新
-            if (statusStr != null) {
-                String statusText = statusStr.trim();
-                String statusError = validateStatus(statusText, true);
-                if (statusError != null) {
-                    JsonResponseUtil.writeJsonResponse(response, 400, false, statusError, null);
-                    return;
-                }
-                Job.Status newStatus = Job.Status.valueOf(statusText.toUpperCase());
-                job.setStatus(newStatus);
-            }
-
-            // 保存更新
-            Job updatedJob = jobDao.update(job);
-            logInfo("Job updated successfully: " + updatedJob.getJobId());
-
-            JsonResponseUtil.writeJsonResponse(response, 200, true, "Job updated successfully!",
-                    JsonResponseUtil.rawObject("\"jobId\": \"" + escapeJson(updatedJob.getJobId()) + "\""));
-
-        } catch (IllegalArgumentException e) {
-            logInfo("Job update failed: " + e.getMessage());
-            JsonResponseUtil.writeJsonResponse(response, 400, false, e.getMessage(), null);
-        } catch (Exception e) {
-            logError("Unexpected error during job update", e);
-            JsonResponseUtil.writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
+    /**
+     * 创建职位
+     */
+    private void createJob(HttpServletRequest request, HttpServletResponse response, User currentUser)
+            throws IOException {
+        // 检查用户角色（只有MO可以发布职位）
+        if (currentUser.getRole() != User.Role.MO) {
+            JsonResponseUtil.writeJsonResponse(response, 403, false, "Only MO can post jobs", null);
+            return;
         }
+
+        // 获取请求参数
+        String title = request.getParameter("title");
+        String courseCode = request.getParameter("courseCode");
+        String courseName = request.getParameter("courseName");
+        String description = request.getParameter("description");
+        String skills = request.getParameter("requiredSkills");
+        String positionsStr = request.getParameter("positions");
+        String workload = request.getParameter("workload");
+        String salary = request.getParameter("salary");
+        String deadlineStr = request.getParameter("deadline");
+
+        // 输入验证
+        String error = validateInput(title, courseCode, courseName, description, skills,
+                positionsStr, workload, salary, deadlineStr);
+        if (error != null) {
+            logInfo("Validation failed: " + error);
+            JsonResponseUtil.writeJsonResponse(response, 400, false, error, null);
+            return;
+        }
+
+        String titleText = title != null ? title.trim() : "";
+        String courseCodeText = courseCode != null ? courseCode.trim() : "";
+        String courseNameText = courseName != null ? courseName.trim() : "";
+        String descriptionText = description != null ? description.trim() : "";
+        String skillsText = skills != null ? skills.trim() : "";
+        String positionsText = positionsStr != null ? positionsStr.trim() : "";
+        String workloadText = workload != null ? workload.trim() : "";
+        String salaryText = salary != null ? salary.trim() : "";
+        String deadlineText = deadlineStr != null ? deadlineStr.trim() : "";
+
+        // 创建职位对象
+        Job job = new Job();
+        job.setMoId(currentUser.getUserId());
+        job.setMoName(currentUser.getUsername());
+        job.setTitle(titleText);
+        job.setCourseCode(courseCodeText);
+        job.setCourseName(courseNameText);
+        job.setDescription(descriptionText);
+        job.setRequiredSkills(normalizeSkillsToList(skillsText));
+
+        int positions = 1;
+        if (!positionsText.isEmpty()) {
+            positions = Integer.parseInt(positionsText);
+        }
+        job.setPositions(positions);
+
+        job.setWorkload(workloadText);
+        job.setSalary(salaryText);
+
+        LocalDateTime deadline = parseDeadline(deadlineText);
+        if (deadline != null) {
+            job.setDeadline(deadline);
+        }
+
+        Job savedJob = jobDao.create(job);
+        logInfo("Job created successfully: " + savedJob.getJobId() + " by MO: " + currentUser.getUsername());
+
+        JsonResponseUtil.writeJsonResponse(response, 201, true, "Job created successfully!",
+                JsonResponseUtil.rawObject("\"jobId\": \"" + escapeJson(savedJob.getJobId()) + "\""));
+    }
+
+    /**
+     * 更新职位
+     */
+    private void updateJob(HttpServletRequest request, HttpServletResponse response, User currentUser, String jobId)
+            throws IOException {
+        // 查找职位
+        Optional<Job> jobOpt = jobDao.findById(jobId);
+        if (jobOpt.isEmpty()) {
+            JsonResponseUtil.writeJsonResponse(response, 404, false, "Job not found", null);
+            return;
+        }
+
+        Job job = jobOpt.get();
+
+        // 检查权限（只有职位所属MO可以更新）
+        if (!job.getMoId().equals(currentUser.getUserId())) {
+            JsonResponseUtil.writeJsonResponse(response, 403, false, "You can only update your own jobs", null);
+            return;
+        }
+
+        // 获取请求参数
+        String title = request.getParameter("title");
+        String courseCode = request.getParameter("courseCode");
+        String courseName = request.getParameter("courseName");
+        String description = request.getParameter("description");
+        String skills = request.getParameter("requiredSkills");
+        String positionsStr = request.getParameter("positions");
+        String workload = request.getParameter("workload");
+        String salary = request.getParameter("salary");
+        String deadlineStr = request.getParameter("deadline");
+        String statusStr = request.getParameter("status");
+
+        // 更新字段
+        if (title != null) {
+            String titleText = title.trim();
+            String titleError = validateTitle(titleText, true);
+            if (titleError != null) {
+                JsonResponseUtil.writeJsonResponse(response, 400, false, titleError, null);
+                return;
+            }
+            job.setTitle(titleText);
+        }
+        if (courseCode != null) {
+            String courseCodeText = courseCode.trim();
+            String courseCodeError = validateCourseCode(courseCodeText, true);
+            if (courseCodeError != null) {
+                JsonResponseUtil.writeJsonResponse(response, 400, false, courseCodeError, null);
+                return;
+            }
+            job.setCourseCode(courseCodeText);
+        }
+        if (courseName != null) {
+            String courseNameText = courseName.trim();
+            String courseNameError = validateCourseName(courseNameText, true);
+            if (courseNameError != null) {
+                JsonResponseUtil.writeJsonResponse(response, 400, false, courseNameError, null);
+                return;
+            }
+            job.setCourseName(courseNameText);
+        }
+        if (description != null) {
+            String descriptionText = description.trim();
+            String descriptionError = validateDescription(descriptionText, true);
+            if (descriptionError != null) {
+                JsonResponseUtil.writeJsonResponse(response, 400, false, descriptionError, null);
+                return;
+            }
+            job.setDescription(descriptionText);
+        }
+
+        if (skills != null) {
+            String skillsText = skills.trim();
+            String skillsError = validateSkills(skillsText, true);
+            if (skillsError != null) {
+                JsonResponseUtil.writeJsonResponse(response, 400, false, skillsError, null);
+                return;
+            }
+            job.setRequiredSkills(normalizeSkillsToList(skillsText));
+        }
+
+        if (positionsStr != null) {
+            String positionsText = positionsStr.trim();
+            String positionsError = validatePositions(positionsText, true);
+            if (positionsError != null) {
+                JsonResponseUtil.writeJsonResponse(response, 400, false, positionsError, null);
+                return;
+            }
+            job.setPositions(Integer.parseInt(positionsText));
+        }
+
+        if (workload != null) {
+            String workloadText = workload.trim();
+            String workloadError = validateWorkload(workloadText, true);
+            if (workloadError != null) {
+                JsonResponseUtil.writeJsonResponse(response, 400, false, workloadError, null);
+                return;
+            }
+            job.setWorkload(workloadText);
+        }
+        if (salary != null) {
+            String salaryText = salary.trim();
+            String salaryError = validateSalary(salaryText, true);
+            if (salaryError != null) {
+                JsonResponseUtil.writeJsonResponse(response, 400, false, salaryError, null);
+                return;
+            }
+            job.setSalary(salaryText);
+        }
+
+        if (deadlineStr != null) {
+            String deadlineText = deadlineStr.trim();
+            String deadlineError = validateDeadline(deadlineText, true);
+            if (deadlineError != null) {
+                JsonResponseUtil.writeJsonResponse(response, 400, false, deadlineError, null);
+                return;
+            }
+            LocalDateTime deadline = parseDeadline(deadlineText);
+            if (deadline == null) {
+                JsonResponseUtil.writeJsonResponse(response, 400, false, "Invalid deadline format", null);
+                return;
+            }
+            job.setDeadline(deadline);
+        }
+
+        if (statusStr != null) {
+            String statusText = statusStr.trim();
+            String statusError = validateStatus(statusText, true);
+            if (statusError != null) {
+                JsonResponseUtil.writeJsonResponse(response, 400, false, statusError, null);
+                return;
+            }
+            Job.Status newStatus = Job.Status.valueOf(statusText.toUpperCase());
+            job.setStatus(newStatus);
+        }
+
+        // 保存更新
+        Job updatedJob = jobDao.update(job);
+        logInfo("Job updated successfully: " + updatedJob.getJobId());
+
+        JsonResponseUtil.writeJsonResponse(response, 200, true, "Job updated successfully!",
+                JsonResponseUtil.rawObject("\"jobId\": \"" + escapeJson(updatedJob.getJobId()) + "\""));
     }
 
     @Override
