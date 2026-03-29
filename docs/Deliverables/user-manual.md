@@ -1,4 +1,4 @@
-# Carnegie Software Engineering System User Manual
+# TARecruitmentSystem Software Engineering System User Manual
 
 ## 1. Document Overview
 

@@ -41,18 +41,21 @@ ${DATA_DIR}/                     # 可配置，默认 ${user.dir}/data/
 通过 `StoragePaths` 工具类统一管理：
 
 ```java
-// 优先级: 系统属性 > 环境变量 > 项目根目录 data > catalina.base
-// 默认: ${user.dir}/data/
 StoragePaths.getDataDir();       // 根数据目录
 StoragePaths.getUsersDir();     // 用户目录
 StoragePaths.getJobsDir();      // 职位目录
 // ...
 ```
 
-**目录优先级说明**：
-1. 系统属性 `ta.hiring.data.dir` 或环境变量 `TA_HIRING_DATA_DIR`（显式配置优先）
-2. 项目根目录下的 `data` 文件夹（`${user.dir}/data/`）
-3. Tomcat `catalina.base/data/groupproject/`（回退方案）
+**配置方式**：在 `scripts/config.bat` 中设置 `TA_HIRING_DATA_DIR` 环境变量：
+
+```batch
+REM ==== DATA DIRECTORY ====
+REM 设置数据目录路径
+set TA_HIRING_DATA_DIR=%CATALINA_HOME%\data
+```
+
+**重要**：必须配置 `TA_HIRING_DATA_DIR`，否则应用启动时会抛出异常。
 
 ---
 

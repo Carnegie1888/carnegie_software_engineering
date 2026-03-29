@@ -2,7 +2,7 @@
 
 ## 概述
 
-本文档是 Carnegie Software Engineering Group Project (TA Hiring System) 的技术文档集合，提供系统的整体架构设计和各功能模块的详细技术实现说明。
+本文档是 TARecruitmentSystem Software Engineering Group Project (TA Hiring System) 的技术文档集合，提供系统的整体架构设计和各功能模块的详细技术实现说明。
 
 **项目背景**：这是一个面向计算机科学硕士课程的 TA (Teaching Assistant) 招聘管理系统，允许学生申请 TA 职位，模块负责人 (MO) 发布职位并审核申请，系统还集成了 AI 技能匹配功能。
 

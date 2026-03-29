@@ -1,4 +1,4 @@
-# Carnegie Software Engineering Group Project
+# TARecruitmentSystem Software Engineering Group Project
 
 基于 `Tomcat + Servlet + JSP` 的教学场景 TA 招聘系统，面向三类角色：
 
