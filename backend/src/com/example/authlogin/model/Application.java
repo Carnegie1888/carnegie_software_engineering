@@ -38,7 +38,7 @@ public class Application {
     }
 
     /**
-     * 流程阶段：提交后默认为已提交，MO 可推进到审核中、已约面试，结束后为已完成。
+     * 流程阶段：提交后即进入审核中，结束后为已完成。
      */
     public enum ProgressStage {
         SUBMITTED,
@@ -52,7 +52,8 @@ public class Application {
         this.appliedAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
         this.status = Status.PENDING;
-        this.progressStage = ProgressStage.SUBMITTED;
+        this.progressStage = ProgressStage.UNDER_REVIEW;
+        this.reviewStartedAt = this.appliedAt;
     }
 
     public Application(String jobId, String applicantId, String applicantName, String applicantEmail) {
@@ -228,7 +229,7 @@ public class Application {
             appliedAt != null ? appliedAt.format(formatter) : "",
             updatedAt != null ? updatedAt.format(formatter) : "",
             reviewedAt != null ? reviewedAt.format(formatter) : "",
-            progressStage != null ? progressStage.name() : ProgressStage.SUBMITTED.name(),
+            progressStage != null ? progressStage.name() : ProgressStage.UNDER_REVIEW.name(),
             reviewStartedAt != null ? reviewStartedAt.format(formatter) : "",
             interviewScheduledAt != null ? interviewScheduledAt.format(formatter) : "",
             finalDecisionAt != null ? finalDecisionAt.format(formatter) : ""
@@ -294,10 +295,11 @@ public class Application {
             app.setFinalDecisionAt(LocalDateTime.parse(parts[17], formatter));
         }
 
-        // 旧 CSV 仅有 14 列（至 reviewedAt），需按 status 覆盖构造函数默认的 SUBMITTED
+        // 旧 CSV 仅有 14 列（至 reviewedAt），需按 status 推断流程阶段。
         if (parts.length <= 14) {
             applyLegacyProgressInference(app);
         }
+        normalizePendingProgress(app);
 
         return app;
     }
@@ -312,7 +314,22 @@ public class Application {
                 app.setFinalDecisionAt(app.getReviewedAt());
             }
         } else {
-            app.setProgressStage(ProgressStage.SUBMITTED);
+            app.setProgressStage(ProgressStage.UNDER_REVIEW);
+            if (app.getReviewStartedAt() == null) {
+                app.setReviewStartedAt(app.getAppliedAt());
+            }
+        }
+    }
+
+    private static void normalizePendingProgress(Application app) {
+        if (app == null || app.getStatus() != Status.PENDING) {
+            return;
+        }
+        if (app.getProgressStage() == null || app.getProgressStage() == ProgressStage.SUBMITTED) {
+            app.setProgressStage(ProgressStage.UNDER_REVIEW);
+        }
+        if (app.getReviewStartedAt() == null) {
+            app.setReviewStartedAt(app.getAppliedAt());
         }
     }
 

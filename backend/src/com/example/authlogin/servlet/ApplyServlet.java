@@ -282,7 +282,7 @@ public class ApplyServlet extends HttpServlet {
             Application application = new Application();
             application.setJobId(normalizedJobId);
             application.setApplicantId(currentUser.getUserId());
-            application.setApplicantName(currentUser.getUsername());
+            application.setApplicantName(applicant.getFullName());
             application.setApplicantEmail(currentUser.getEmail());
             application.setJobTitle(job.getTitle());
             application.setCourseCode(job.getCourseCode());
@@ -623,7 +623,6 @@ public class ApplyServlet extends HttpServlet {
             fields.add(application.getApplicantName());
             fields.add(application.getApplicantEmail());
             fields.add(application.getJobTitle());
-            fields.add(application.getCourseCode());
             return fields;
         }
 
