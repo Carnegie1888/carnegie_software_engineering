@@ -2,6 +2,7 @@ package com.example.authlogin.servlet;
 
 import com.example.authlogin.dao.ApplicationDao;
 import com.example.authlogin.dao.JobDao;
+import com.example.authlogin.dao.UserDao;
 import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
 import com.example.authlogin.util.FuzzySearchUtil;
@@ -15,12 +16,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -39,14 +43,16 @@ public class JobServlet extends HttpServlet {
 
     private JobDao jobDao;
     private ApplicationDao applicationDao;
+    private UserDao userDao;
     private static final int MAX_TITLE_LENGTH = 200;
     private static final int MAX_COURSE_CODE_LENGTH = 50;
     private static final int MAX_COURSE_NAME_LENGTH = 120;
     private static final int MAX_DESCRIPTION_LENGTH = 4000;
     private static final int MAX_SKILLS_LENGTH = 500;
-    private static final int MAX_WORKLOAD_LENGTH = 120;
     private static final int MAX_SALARY_LENGTH = 120;
     private static final int MAX_POSITIONS = 200;
+    private static final double MIN_WEEKLY_HOURS = 0.5;
+    private static final double MAX_WEEKLY_HOURS = 40.0;
 
     // 简单的日志方法
     private void logInfo(String message) {
@@ -61,6 +67,7 @@ public class JobServlet extends HttpServlet {
     public void init() throws ServletException {
         jobDao = JobDao.getInstance();
         applicationDao = ApplicationDao.getInstance();
+        userDao = UserDao.getInstance();
         logInfo("JobServlet initialized");
     }
 
@@ -201,13 +208,15 @@ public class JobServlet extends HttpServlet {
         String description = request.getParameter("description");
         String skills = request.getParameter("requiredSkills");
         String positionsStr = request.getParameter("positions");
-        String workload = request.getParameter("workload");
+        String weeklyHoursStr = request.getParameter("weeklyHours");
+        String workStartDateStr = request.getParameter("workStartDate");
+        String workEndDateStr = request.getParameter("workEndDate");
         String salary = request.getParameter("salary");
         String deadlineStr = request.getParameter("deadline");
 
         // 输入验证
         String error = validateInput(title, courseCode, courseName, description, skills,
-                positionsStr, workload, salary, deadlineStr);
+                positionsStr, weeklyHoursStr, workStartDateStr, workEndDateStr, salary, deadlineStr);
         if (error != null) {
             logInfo("Validation failed: " + error);
             JsonResponseUtil.writeJsonResponse(response, 400, false, error, null);
@@ -220,14 +229,16 @@ public class JobServlet extends HttpServlet {
         String descriptionText = description != null ? description.trim() : "";
         String skillsText = skills != null ? skills.trim() : "";
         String positionsText = positionsStr != null ? positionsStr.trim() : "";
-        String workloadText = workload != null ? workload.trim() : "";
+        String weeklyHoursText = weeklyHoursStr != null ? weeklyHoursStr.trim() : "";
+        String workStartDateText = workStartDateStr != null ? workStartDateStr.trim() : "";
+        String workEndDateText = workEndDateStr != null ? workEndDateStr.trim() : "";
         String salaryText = salary != null ? salary.trim() : "";
         String deadlineText = deadlineStr != null ? deadlineStr.trim() : "";
 
         // 创建职位对象
         Job job = new Job();
         job.setMoId(currentUser.getUserId());
-        job.setMoName(currentUser.getUsername());
+        job.setMoName(buildMoDisplayName(currentUser, currentUser.getUsername()));
         job.setTitle(titleText);
         job.setCourseCode(courseCodeText);
         job.setCourseName(courseNameText);
@@ -240,7 +251,9 @@ public class JobServlet extends HttpServlet {
         }
         job.setPositions(positions);
 
-        job.setWorkload(workloadText);
+        job.setWeeklyHours(parseWeeklyHours(weeklyHoursText));
+        job.setWorkStartDate(LocalDate.parse(workStartDateText));
+        job.setWorkEndDate(LocalDate.parse(workEndDateText));
         job.setSalary(salaryText);
 
         LocalDateTime deadline = parseDeadline(deadlineText);
@@ -282,7 +295,9 @@ public class JobServlet extends HttpServlet {
         String description = request.getParameter("description");
         String skills = request.getParameter("requiredSkills");
         String positionsStr = request.getParameter("positions");
-        String workload = request.getParameter("workload");
+        String weeklyHoursStr = request.getParameter("weeklyHours");
+        String workStartDateStr = request.getParameter("workStartDate");
+        String workEndDateStr = request.getParameter("workEndDate");
         String salary = request.getParameter("salary");
         String deadlineStr = request.getParameter("deadline");
         String statusStr = request.getParameter("status");
@@ -345,14 +360,32 @@ public class JobServlet extends HttpServlet {
             job.setPositions(Integer.parseInt(positionsText));
         }
 
-        if (workload != null) {
-            String workloadText = workload.trim();
-            String workloadError = validateWorkload(workloadText, true);
-            if (workloadError != null) {
-                JsonResponseUtil.writeJsonResponse(response, 400, false, workloadError, null);
+        if (weeklyHoursStr != null) {
+            String weeklyHoursText = weeklyHoursStr.trim();
+            String weeklyHoursError = validateWeeklyHours(weeklyHoursText, true);
+            if (weeklyHoursError != null) {
+                JsonResponseUtil.writeJsonResponse(response, 400, false, weeklyHoursError, null);
                 return;
             }
-            job.setWorkload(workloadText);
+            job.setWeeklyHours(parseWeeklyHours(weeklyHoursText));
+        }
+        if (workStartDateStr != null) {
+            String workStartDateText = workStartDateStr.trim();
+            String workStartDateError = validateWorkDate(workStartDateText, "Work start date", true);
+            if (workStartDateError != null) {
+                JsonResponseUtil.writeJsonResponse(response, 400, false, workStartDateError, null);
+                return;
+            }
+            job.setWorkStartDate(LocalDate.parse(workStartDateText));
+        }
+        if (workEndDateStr != null) {
+            String workEndDateText = workEndDateStr.trim();
+            String workEndDateError = validateWorkDate(workEndDateText, "Work end date", true);
+            if (workEndDateError != null) {
+                JsonResponseUtil.writeJsonResponse(response, 400, false, workEndDateError, null);
+                return;
+            }
+            job.setWorkEndDate(LocalDate.parse(workEndDateText));
         }
         if (salary != null) {
             String salaryText = salary.trim();
@@ -379,6 +412,14 @@ public class JobServlet extends HttpServlet {
             job.setDeadline(deadline);
         }
 
+        if (deadlineStr != null || workStartDateStr != null || workEndDateStr != null) {
+            String scheduleError = validateWorkSchedule(job.getDeadline(), job.getWorkStartDate(), job.getWorkEndDate(), true);
+            if (scheduleError != null) {
+                JsonResponseUtil.writeJsonResponse(response, 400, false, scheduleError, null);
+                return;
+            }
+        }
+
         if (statusStr != null) {
             String statusText = statusStr.trim();
             String statusError = validateStatus(statusText, true);
@@ -391,6 +432,7 @@ public class JobServlet extends HttpServlet {
         }
 
         // 保存更新
+        job.setMoName(buildMoDisplayName(currentUser, job.getMoName()));
         Job updatedJob = jobDao.update(job);
         logInfo("Job updated successfully: " + updatedJob.getJobId());
 
@@ -468,7 +510,9 @@ public class JobServlet extends HttpServlet {
                                  String description,
                                  String skills,
                                  String positions,
-                                 String workload,
+                                 String weeklyHours,
+                                 String workStartDate,
+                                 String workEndDate,
                                  String salary,
                                  String deadlineStr) {
         String titleText = trimToEmpty(title);
@@ -477,7 +521,9 @@ public class JobServlet extends HttpServlet {
         String descriptionText = trimToEmpty(description);
         String skillsText = trimToEmpty(skills);
         String positionsText = trimToEmpty(positions);
-        String workloadText = trimToEmpty(workload);
+        String weeklyHoursText = trimToEmpty(weeklyHours);
+        String workStartDateText = trimToEmpty(workStartDate);
+        String workEndDateText = trimToEmpty(workEndDate);
         String salaryText = trimToEmpty(salary);
         String deadlineText = trimToEmpty(deadlineStr);
 
@@ -505,15 +551,27 @@ public class JobServlet extends HttpServlet {
         if (error != null) {
             return error;
         }
-        error = validateWorkload(workloadText, true);
+        error = validateWeeklyHours(weeklyHoursText, true);
         if (error != null) {
             return error;
         }
-        error = validateSalary(salaryText, true);
+        error = validateWorkDate(workStartDateText, "Work start date", true);
+        if (error != null) {
+            return error;
+        }
+        error = validateWorkDate(workEndDateText, "Work end date", true);
         if (error != null) {
             return error;
         }
         error = validateDeadline(deadlineText, true);
+        if (error != null) {
+            return error;
+        }
+        error = validateWorkSchedule(parseDeadline(deadlineText), LocalDate.parse(workStartDateText), LocalDate.parse(workEndDateText), true);
+        if (error != null) {
+            return error;
+        }
+        error = validateSalary(salaryText, true);
         if (error != null) {
             return error;
         }
@@ -601,6 +659,12 @@ public class JobServlet extends HttpServlet {
         if (hasControlChars(skillsText) || containsDangerousMarkup(skillsText)) {
             return "Required skills contain unsupported characters";
         }
+        if (skillsText.matches(".*[;；、|].*")) {
+            return "Please use English commas or Chinese commas to separate skills";
+        }
+        if (skillsText.matches("(^[,，]|.*[,，]\\s*[,，].*|.*[,，]\\s*$)")) {
+            return "Please remove empty skill items";
+        }
 
         List<String> normalizedSkills = normalizeSkillsToList(skillsText);
         if (normalizedSkills.isEmpty()) {
@@ -608,6 +672,13 @@ public class JobServlet extends HttpServlet {
         }
         if (normalizedSkills.size() > 20) {
             return "Please list up to 20 skills";
+        }
+        Set<String> seen = new HashSet<>();
+        for (String skill : normalizedSkills) {
+            String normalized = skill.toLowerCase().replaceAll("\\s+", " ");
+            if (!seen.add(normalized)) {
+                return "Duplicate skills found. Please keep each skill only once";
+            }
         }
 
         return null;
@@ -634,20 +705,69 @@ public class JobServlet extends HttpServlet {
         return null;
     }
 
-    private String validateWorkload(String workloadText, boolean required) {
-        if (required && workloadText.isEmpty()) {
-            return "Workload is required";
+    private String validateWeeklyHours(String weeklyHoursText, boolean required) {
+        if (required && weeklyHoursText.isEmpty()) {
+            return "Weekly hours are required";
         }
-        if (workloadText.isEmpty()) {
+        if (weeklyHoursText.isEmpty()) {
             return null;
         }
-        if (workloadText.length() > MAX_WORKLOAD_LENGTH) {
-            return "Workload is too long";
+        if (!weeklyHoursText.matches("^\\d+(?:\\.\\d)?$")) {
+            return "Weekly hours must be a number with at most one decimal place";
         }
-        if (hasControlChars(workloadText) || containsDangerousMarkup(workloadText)) {
-            return "Workload contains unsupported characters";
+        Double weeklyHours = parseWeeklyHours(weeklyHoursText);
+        if (weeklyHours == null) {
+            return "Invalid weekly hours";
+        }
+        if (weeklyHours < MIN_WEEKLY_HOURS || weeklyHours > MAX_WEEKLY_HOURS) {
+            return "Weekly hours must be between 0.5 and 40";
         }
         return null;
+    }
+
+    private String validateWorkDate(String dateText, String label, boolean required) {
+        if (required && dateText.isEmpty()) {
+            return label + " is required";
+        }
+        if (dateText.isEmpty()) {
+            return null;
+        }
+        try {
+            LocalDate.parse(dateText);
+        } catch (Exception e) {
+            return label + " must use yyyy-MM-dd";
+        }
+        return null;
+    }
+
+    private String validateWorkSchedule(LocalDateTime deadline, LocalDate workStartDate, LocalDate workEndDate, boolean required) {
+        if (required && workStartDate == null) {
+            return "Work start date is required";
+        }
+        if (required && workEndDate == null) {
+            return "Work end date is required";
+        }
+        if (required && deadline == null) {
+            return "Application deadline is required";
+        }
+        if (deadline != null && workStartDate != null && workStartDate.isBefore(deadline.toLocalDate())) {
+            return "Work start date cannot be before application deadline";
+        }
+        if (workStartDate != null && workEndDate != null && workEndDate.isBefore(workStartDate)) {
+            return "Work end date cannot be before work start date";
+        }
+        return null;
+    }
+
+    private Double parseWeeklyHours(String weeklyHoursText) {
+        if (weeklyHoursText == null || weeklyHoursText.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Double.parseDouble(weeklyHoursText.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private String validateSalary(String salaryText, boolean required) {
@@ -702,7 +822,7 @@ public class JobServlet extends HttpServlet {
         if (rawSkills == null || rawSkills.trim().isEmpty()) {
             return new ArrayList<>();
         }
-        return Arrays.stream(rawSkills.split("[,;]"))
+        return Arrays.stream(rawSkills.split("[,，]"))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
@@ -758,10 +878,11 @@ public class JobServlet extends HttpServlet {
 
     private String buildJobJson(Job job, long applicantCount, LocalDateTime referenceTime) {
         Job.Status effectiveStatus = job.getEffectiveStatus(referenceTime);
+        String moDisplayName = resolveMoDisplayName(job);
         StringBuilder json = new StringBuilder();
         json.append("\"jobId\": \"").append(escapeJson(job.getJobId())).append("\", ");
         json.append("\"moId\": \"").append(escapeJson(job.getMoId())).append("\", ");
-        json.append("\"moName\": \"").append(escapeJson(job.getMoName())).append("\", ");
+        json.append("\"moName\": \"").append(escapeJson(moDisplayName)).append("\", ");
         json.append("\"title\": \"").append(escapeJson(job.getTitle())).append("\", ");
         json.append("\"courseCode\": \"").append(escapeJson(job.getCourseCode())).append("\", ");
         json.append("\"courseName\": \"").append(escapeJson(job.getCourseName() != null ? job.getCourseName() : "")).append("\", ");
@@ -769,6 +890,9 @@ public class JobServlet extends HttpServlet {
         json.append("\"requiredSkills\": \"").append(escapeJson(job.getRequiredSkillsAsString())).append("\", ");
         json.append("\"positions\": ").append(job.getPositions()).append(", ");
         json.append("\"workload\": \"").append(escapeJson(job.getWorkload() != null ? job.getWorkload() : "")).append("\", ");
+        json.append("\"weeklyHours\": ").append(job.getWeeklyHours() != null ? Job.formatWeeklyHours(job.getWeeklyHours()) : "null").append(", ");
+        json.append("\"workStartDate\": \"").append(job.getWorkStartDate() != null ? job.getWorkStartDate().toString() : "").append("\", ");
+        json.append("\"workEndDate\": \"").append(job.getWorkEndDate() != null ? job.getWorkEndDate().toString() : "").append("\", ");
         json.append("\"salary\": \"").append(escapeJson(job.getSalary() != null ? job.getSalary() : "")).append("\", ");
         json.append("\"deadline\": \"").append(job.getDeadline() != null ? job.getDeadline().toString() : "").append("\", ");
         json.append("\"status\": \"").append(effectiveStatus.name()).append("\"");
@@ -776,6 +900,35 @@ public class JobServlet extends HttpServlet {
             json.append(", \"applicantCount\": ").append(applicantCount);
         }
         return json.toString();
+    }
+
+    private String resolveMoDisplayName(Job job) {
+        if (job == null) {
+            return "";
+        }
+        return userDao.findById(job.getMoId())
+                .map(user -> buildMoDisplayName(user, job.getMoName()))
+                .orElse(job.getMoName());
+    }
+
+    private String buildMoDisplayName(User user, String fallbackName) {
+        if (user == null) {
+            return fallbackName != null ? fallbackName : "";
+        }
+        String realName = safeText(user.getRealName()).trim();
+        String professionalTitle = safeText(user.getProfessionalTitle()).trim();
+        if (!realName.isEmpty()) {
+            return professionalTitle.isEmpty() ? realName : professionalTitle + " " + realName;
+        }
+        String displayName = safeText(user.getDisplayName()).trim();
+        if (!displayName.isEmpty()) {
+            return displayName;
+        }
+        String storedName = safeText(fallbackName).trim();
+        if (!storedName.isEmpty() && !storedName.equals(user.getUsername())) {
+            return storedName;
+        }
+        return safeText(user.getUsername());
     }
 
     /**
@@ -787,7 +940,9 @@ public class JobServlet extends HttpServlet {
 
         for (int i = 0; i < jobs.size(); i++) {
             json.append("{");
-            json.append(buildJobJson(jobs.get(i), -1L, referenceTime));
+            Job job = jobs.get(i);
+            long applicantCount = applicationDao.countByJobId(job.getJobId());
+            json.append(buildJobJson(job, applicantCount, referenceTime));
             json.append("}");
             if (i < jobs.size() - 1) {
                 json.append(", ");
@@ -805,6 +960,10 @@ public class JobServlet extends HttpServlet {
     /**
      * JSON字符串转义
      */
+    private String safeText(String value) {
+        return value == null ? "" : value;
+    }
+
     private String escapeJson(String str) {
         if (str == null) return "";
         return str.replace("\\", "\\\\")
