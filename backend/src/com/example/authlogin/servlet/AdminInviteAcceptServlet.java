@@ -1,9 +1,8 @@
 package com.example.authlogin.servlet;
 
-import com.example.authlogin.dao.AdminInviteDao;
 import com.example.authlogin.dao.UserDao;
-import com.example.authlogin.model.AdminInvite;
 import com.example.authlogin.model.User;
+import com.example.authlogin.service.InviteCodeService;
 import com.example.authlogin.util.JsonResponseUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -12,11 +11,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
- * AdminInviteAcceptServlet - 邀请接受接口（创建管理员账号）。
+ * AdminInviteAcceptServlet - 接受邀请码，创建管理员账号。
+ *
+ * 邀请码由 InviteCodeService 生成的时间窗口码校验；
+ * 不再依赖 CSV 存储的邀请记录。
  */
 @WebServlet("/api/admin/invite/accept")
 public class AdminInviteAcceptServlet extends HttpServlet {
@@ -25,15 +26,15 @@ public class AdminInviteAcceptServlet extends HttpServlet {
     private static final Pattern USERNAME_PATTERN = Pattern.compile("^[A-Za-z][A-Za-z0-9_]{2,19}$");
     private static final int USERNAME_MAX_LENGTH = 20;
     private static final int EMAIL_MAX_LENGTH = 100;
-    private static final int PASSWORD_MIN_LENGTH = 6;
+    private static final int PASSWORD_MIN_LENGTH = 8;
     private static final int PASSWORD_MAX_LENGTH = 100;
 
-    private AdminInviteDao inviteDao;
+    private InviteCodeService inviteCodeService;
     private UserDao userDao;
 
     @Override
     public void init() throws ServletException {
-        inviteDao = AdminInviteDao.getInstance();
+        inviteCodeService = InviteCodeService.getInstance();
         userDao = UserDao.getInstance();
     }
 
@@ -46,38 +47,26 @@ public class AdminInviteAcceptServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("application/json;charset=UTF-8");
 
-        String username = trimToEmpty(request.getParameter("username"));
+        String username = trimToEmpty(request.getParameter("username")).toLowerCase();
         String email = normalizeEmail(request.getParameter("email"));
-        String password = trimToEmpty(request.getParameter("password"));
-        String confirmPassword = trimToEmpty(request.getParameter("confirmPassword"));
-        String token = trimToEmpty(request.getParameter("token"));
+        String password = emptyIfNull(request.getParameter("password"));         // no trim
+        String confirmPassword = emptyIfNull(request.getParameter("confirmPassword")); // no trim
         String inviteCode = trimToEmpty(request.getParameter("inviteCode")).toUpperCase();
 
-        String validationError = validateInput(username, email, password, confirmPassword, token, inviteCode);
+        String validationError = validateInput(username, email, password, confirmPassword, inviteCode);
         if (validationError != null) {
             JsonResponseUtil.write(response, 400, false, validationError, null);
             return;
         }
 
-        Optional<AdminInvite> inviteOpt = !token.isEmpty()
-                ? inviteDao.findValidByToken(token)
-                : inviteDao.findValidByEmailAndCode(email, inviteCode);
-
-        if (inviteOpt.isEmpty()) {
-            JsonResponseUtil.write(response, 404, false, "Invitation is invalid, used, or expired", null);
-            return;
-        }
-
-        AdminInvite invite = inviteOpt.get();
-        if (!email.equalsIgnoreCase(trimToEmpty(invite.getEmail()))) {
-            JsonResponseUtil.write(response, 403, false, "Email does not match invitation", null);
+        if (!inviteCodeService.isValidCode(inviteCode)) {
+            JsonResponseUtil.write(response, 403, false, "Invite code is invalid or expired", null);
             return;
         }
 
         try {
             User user = new User(username, password, email, User.Role.ADMIN);
             User saved = userDao.create(user);
-            inviteDao.markInviteUsed(invite.getInviteId());
 
             JsonResponseUtil.write(response, 201, true, "Admin account created successfully",
                     JsonResponseUtil.objectMap(
@@ -93,54 +82,33 @@ public class AdminInviteAcceptServlet extends HttpServlet {
         }
     }
 
-    private String validateInput(String username,
-                                 String email,
-                                 String password,
-                                 String confirmPassword,
-                                 String token,
+    private String validateInput(String username, String email,
+                                 String password, String confirmPassword,
                                  String inviteCode) {
-        if (username.isEmpty()) {
-            return "Username is required";
-        }
-        if (username.length() > USERNAME_MAX_LENGTH) {
-            return "Username is too long";
-        }
-        if (hasControlChars(username) || containsDangerousMarkup(username)) {
+        if (username.isEmpty()) return "Username is required";
+        if (username.length() > USERNAME_MAX_LENGTH) return "Username is too long";
+        if (hasControlChars(username) || containsDangerousMarkup(username))
             return "Username contains unsupported characters";
-        }
-        if (!USERNAME_PATTERN.matcher(username).matches()) {
+        if (!USERNAME_PATTERN.matcher(username).matches())
             return "Username must be 3-20 characters, start with a letter, and contain only letters, numbers, and underscores";
-        }
+        if (username.contains("__")) return "Username cannot contain consecutive underscores";
+        if (username.charAt(username.length() - 1) == '_') return "Username cannot end with an underscore";
 
-        if (email.isEmpty()) {
-            return "Email is required";
-        }
-        if (email.length() > EMAIL_MAX_LENGTH) {
-            return "Email is too long";
-        }
-        if (hasControlChars(email) || containsDangerousMarkup(email) || !EMAIL_PATTERN.matcher(email).matches()) {
+        if (email.isEmpty()) return "Email is required";
+        if (email.length() > EMAIL_MAX_LENGTH) return "Email is too long";
+        if (hasControlChars(email) || containsDangerousMarkup(email) || !EMAIL_PATTERN.matcher(email).matches())
             return "Invalid email format";
-        }
 
-        if (password.isEmpty()) {
-            return "Password is required";
-        }
-        if (password.length() < PASSWORD_MIN_LENGTH) {
-            return "Password must be at least 6 characters";
-        }
-        if (password.length() > PASSWORD_MAX_LENGTH) {
-            return "Password is too long";
-        }
-        if (hasControlChars(password)) {
-            return "Password contains unsupported characters";
-        }
-        if (!password.equals(confirmPassword)) {
-            return "Passwords do not match";
-        }
+        if (password.isEmpty()) return "Password is required";
+        if (password.length() < PASSWORD_MIN_LENGTH) return "Password must be at least 8 characters";
+        if (password.length() > PASSWORD_MAX_LENGTH) return "Password is too long";
+        if (hasControlChars(password)) return "Password contains unsupported characters";
+        if (!password.matches(".*[A-Za-z].*") || !password.matches(".*[0-9].*"))
+            return "Password must contain at least one letter and one number";
+        if (!password.equals(confirmPassword)) return "Passwords do not match";
 
-        if (token.isEmpty() && inviteCode.isEmpty()) {
-            return "Invitation token or invite code is required";
-        }
+        if (inviteCode.isEmpty()) return "Invite code is required";
+
         return null;
     }
 
@@ -150,6 +118,10 @@ public class AdminInviteAcceptServlet extends HttpServlet {
 
     private String trimToEmpty(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private String emptyIfNull(String value) {
+        return value == null ? "" : value;
     }
 
     private boolean hasControlChars(String value) {
