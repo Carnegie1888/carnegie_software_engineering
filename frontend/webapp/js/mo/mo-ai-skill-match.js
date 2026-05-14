@@ -52,6 +52,13 @@
         });
     }
 
+    document.addEventListener("app:locale-changed", function () {
+        renderJobOptions(state.jobs);
+        renderSummary(state.matches);
+        renderList(state.matches);
+        setLoading(state.loadingMatches);
+    });
+
     loadJobs();
 
     function loadJobs() {
@@ -78,14 +85,14 @@
                 return;
             }
             if (!response.ok || !payload || payload.success !== true) {
-                showMessage("Unable to load jobs for matching.", "error");
+                showMessage(t("portal.dynamic.unableLoadJobsMatching", "Unable to load jobs for matching."), "error");
                 renderJobOptions([]);
                 return;
             }
             state.jobs = getPayloadDataArray(payload, "jobs");
             renderJobOptions(state.jobs);
         }).catch(function () {
-            showMessage("Network error while loading jobs.", "error");
+            showMessage(t("portal.dynamic.networkErrorLoadingMatchData", "Network error while loading match data."), "error");
             renderJobOptions([]);
         }).finally(function () {
             state.loadingJobs = false;
@@ -94,7 +101,11 @@
 
     function renderJobOptions(jobs) {
         var previous = jobFilter.value;
-        jobFilter.innerHTML = "<option value=\"\">Select a job</option>";
+        jobFilter.innerHTML = "";
+        var placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = t("portal.common.selectJob", "Select a job");
+        jobFilter.appendChild(placeholder);
         jobs.forEach(function (job) {
             var option = document.createElement("option");
             option.value = safeText(job.jobId, "");
@@ -120,7 +131,7 @@
             state.matches = [];
             renderSummary([]);
             renderList([]);
-            listSummaryNode.textContent = "Choose a job to load skill match results.";
+            listSummaryNode.textContent = t("portal.moAiSkillMatch.chooseJobHint", "Choose a job to load skill match results.");
             return Promise.resolve();
         }
 
@@ -128,7 +139,7 @@
         state.loadingMatches = true;
         setLoading(true);
         hideMessage();
-        listSummaryNode.textContent = "Loading match results...";
+        listSummaryNode.textContent = t("portal.dynamic.loadingMatchResults", "Loading match results...");
         listNode.innerHTML = "";
 
         var url = contextPath + "/api/mo/skill-match?jobId=" + encodeURIComponent(selectedJobId);
@@ -148,9 +159,9 @@
             }
 
             if (!response.ok || !payload || payload.success !== true) {
-                var msg = "Unable to load application matches.";
+                var msg = t("portal.dynamic.unableLoadApplicationMatches", "Unable to load application matches.");
                 if (payload && typeof payload.message === "string" && payload.message.trim()) {
-                    msg = payload.message.trim();
+                    msg = localizeServerMessage(payload.message, "portal.dynamic.unableLoadApplicationMatches", msg);
                 }
                 showMessage(msg, "error");
                 state.matches = [];
@@ -163,7 +174,7 @@
             renderSummary(state.matches);
             renderList(state.matches);
         }).catch(function () {
-            showMessage("Network error while loading match data.", "error");
+            showMessage(t("portal.dynamic.networkErrorLoadingMatchData", "Network error while loading match data."), "error");
             state.matches = [];
             renderSummary([]);
             renderList([]);
@@ -182,12 +193,12 @@
         return {
             applicationId: safeText(match.applicationId, ""),
             applicantId: safeText(match.applicantId, ""),
-            applicantName: safeText(match.applicantName, "Unknown applicant"),
+            applicantName: safeText(match.applicantName, t("portal.dynamic.unknownApplicant", "Unknown applicant")),
             applicantEmail: safeText(match.applicantEmail, "-"),
             status: safeText(match.applicationStatus, "PENDING").toUpperCase(),
             appliedAt: safeText(match.appliedAt, ""),
             courseCode: safeText(match.courseCode, "-"),
-            jobTitle: safeText(match.jobTitle, "Untitled position"),
+            jobTitle: safeText(match.jobTitle, t("portal.dynamic.untitledPosition", "Untitled position")),
             score: score,
             scoreLevel: score >= 85 ? "high" : (score >= 60 ? "medium" : "low"),
             matchedSkills: matchedSkills,
@@ -230,12 +241,16 @@
     function renderList(matches) {
         listNode.innerHTML = "";
         if (!matches.length) {
-            listSummaryNode.textContent = "No applicants found for selected job.";
+            listSummaryNode.textContent = state.selectedJob
+                ? t("portal.dynamic.noApplicantsForJob", "No applicants found for selected job.")
+                : t("portal.moAiSkillMatch.chooseJobHint", "Choose a job to load skill match results.");
             listNode.appendChild(createEmptyState());
             return;
         }
 
-        listSummaryNode.textContent = "Showing " + matches.length + " applicant match result" + (matches.length > 1 ? "s" : "") + ".";
+        listSummaryNode.textContent = t("portal.moAiSkillMatch.showingResultsPrefix", "Showing") + " " + matches.length + " " +
+            t("portal.moAiSkillMatch.matchResultUnit", "applicant match result") +
+            (window.AppI18n && window.AppI18n.getLocale && window.AppI18n.getLocale() === "en" && matches.length > 1 ? "s" : "") + ".";
         matches.forEach(function (match) {
             listNode.appendChild(createMatchCard(match));
         });
@@ -258,16 +273,16 @@
                 "</div>" +
             "</header>" +
             "<div class=\"match-meta\">" +
-                "<p><span>Job</span><strong>" + escapeHtml(match.jobTitle) + "</strong></p>" +
-                "<p><span>Course</span><strong>" + escapeHtml(match.courseCode) + "</strong></p>" +
-                "<p><span>Status</span><strong>" + escapeHtml(match.status) + "</strong></p>" +
-                "<p><span>Skill score</span><strong>" + escapeHtml(String(Math.round(match.skillScore))) + "%</strong></p>" +
-                "<p><span>Keyword score</span><strong>" + escapeHtml(String(Math.round(match.keywordScore))) + "%</strong></p>" +
+                "<p><span>" + escapeHtml(t("portal.common.job", "Job")) + "</span><strong>" + escapeHtml(match.jobTitle) + "</strong></p>" +
+                "<p><span>" + escapeHtml(t("portal.common.course", "Course")) + "</span><strong>" + escapeHtml(match.courseCode) + "</strong></p>" +
+                "<p><span>" + escapeHtml(t("portal.common.status", "Status")) + "</span><strong>" + escapeHtml(getStatusLabel(match.status)) + "</strong></p>" +
+                "<p><span>" + escapeHtml(t("portal.dynamic.skillScore", "Skill score")) + "</span><strong>" + escapeHtml(String(Math.round(match.skillScore))) + "%</strong></p>" +
+                "<p><span>" + escapeHtml(t("portal.dynamic.keywordScore", "Keyword score")) + "</span><strong>" + escapeHtml(String(Math.round(match.keywordScore))) + "%</strong></p>" +
             "</div>" +
             "<div class=\"skills-preview\">" + skillsPreview + "</div>" +
             "<div class=\"skills-preview keyword-preview\">" + keywordPreview + "</div>" +
             (match.aiEnhanced || match.aiReason
-                ? "<p class=\"match-ai-reason\">" + escapeHtml(match.aiReason || "AI-enhanced matching applied.") + "</p>"
+                ? "<p class=\"match-ai-reason\">" + escapeHtml(match.aiReason || t("portal.dynamic.aiEnhancedApplied", "AI-enhanced matching applied.")) + "</p>"
                 : "");
         return card;
     }
@@ -333,13 +348,13 @@
     function buildSkillPreview(matchedSkills, missingSkills) {
         var html = [];
         if (!matchedSkills.length && !missingSkills.length) {
-            return "<span class=\"skill-chip\">No structured skill data available</span>";
+            return "<span class=\"skill-chip\">" + escapeHtml(t("portal.dynamic.noStructuredSkillData", "No structured skill data available")) + "</span>";
         }
         matchedSkills.forEach(function (skill) {
-            html.push("<span class=\"skill-chip is-hit\">Matched: " + escapeHtml(skill) + "</span>");
+            html.push("<span class=\"skill-chip is-hit\">" + escapeHtml(t("portal.dynamic.matchedColon", "Matched:")) + " " + escapeHtml(skill) + "</span>");
         });
         missingSkills.forEach(function (skill) {
-            html.push("<span class=\"skill-chip\">Missing: " + escapeHtml(skill) + "</span>");
+            html.push("<span class=\"skill-chip\">" + escapeHtml(t("portal.dynamic.missingColon", "Missing:")) + " " + escapeHtml(skill) + "</span>");
         });
         return html.join("");
     }
@@ -347,13 +362,13 @@
     function buildKeywordPreview(matchedKeywords, missingKeywords) {
         var html = [];
         if (!matchedKeywords.length && !missingKeywords.length) {
-            return "<span class=\"skill-chip\">No keyword insights available</span>";
+            return "<span class=\"skill-chip\">" + escapeHtml(t("portal.dynamic.noKeywordInsights", "No keyword insights available")) + "</span>";
         }
         matchedKeywords.slice(0, 5).forEach(function (keyword) {
-            html.push("<span class=\"skill-chip is-hit\">Keyword: " + escapeHtml(keyword) + "</span>");
+            html.push("<span class=\"skill-chip is-hit\">" + escapeHtml(t("portal.dynamic.keywordColon", "Keyword:")) + " " + escapeHtml(keyword) + "</span>");
         });
         missingKeywords.slice(0, 5).forEach(function (keyword) {
-            html.push("<span class=\"skill-chip\">Gap keyword: " + escapeHtml(keyword) + "</span>");
+            html.push("<span class=\"skill-chip\">" + escapeHtml(t("portal.dynamic.gapKeywordColon", "Gap keyword:")) + " " + escapeHtml(keyword) + "</span>");
         });
         return html.join("");
     }
@@ -362,8 +377,8 @@
         var empty = document.createElement("div");
         empty.className = "empty-state";
         empty.innerHTML =
-            "<p class=\"empty-title\">No match data available</p>" +
-            "<p class=\"empty-copy\">Ask candidates to apply first, then load match results again.</p>";
+            "<p class=\"empty-title\">" + escapeHtml(t("portal.dynamic.noMatchDataTitle", "No match data available")) + "</p>" +
+            "<p class=\"empty-copy\">" + escapeHtml(t("portal.dynamic.askCandidatesThenLoadMatch", "Ask candidates to apply first, then load match results again.")) + "</p>";
         return empty;
     }
 
@@ -379,7 +394,7 @@
     function setLoading(loading) {
         if (loadButton) {
             loadButton.disabled = loading;
-            loadButton.textContent = loading ? "Loading..." : "Load results";
+            loadButton.textContent = loading ? t("portal.common.loading", "Loading...") : t("portal.moAiSkillMatch.loadResults", "Load results");
         }
         if (refreshButton) {
             refreshButton.disabled = loading;
@@ -414,10 +429,27 @@
     }
 
     function handleUnauthorized() {
-        showMessage("Your session has expired. Redirecting to login...", "error");
+        showMessage(t("portal.dynamic.sessionExpiredRedirect", "Your session has expired. Redirecting to login..."), "error");
         window.setTimeout(function () {
             window.location.href = contextPath + "/login.jsp";
         }, 900);
+    }
+
+    function getStatusLabel(status) {
+        var normalized = safeText(status, "").toLowerCase();
+        if (normalized === "pending") {
+            return t("portal.common.pending", "Pending");
+        }
+        if (normalized === "accepted") {
+            return t("portal.common.accepted", "Accepted");
+        }
+        if (normalized === "rejected") {
+            return t("portal.common.rejected", "Rejected");
+        }
+        if (normalized === "withdrawn") {
+            return t("portal.common.withdrawn", "Withdrawn");
+        }
+        return status || "-";
     }
 
     function request(url, options) {
@@ -472,5 +504,22 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#39;");
+    }
+
+    function t(key, fallback) {
+        if (window.AppI18n && typeof window.AppI18n.t === "function") {
+            return window.AppI18n.t(key, fallback || key);
+        }
+        return fallback || key;
+    }
+
+    function localizeServerMessage(message, fallbackKey, fallbackText) {
+        if (window.AppI18n && typeof window.AppI18n.localizeServerMessage === "function") {
+            return window.AppI18n.localizeServerMessage(message, fallbackKey, fallbackText);
+        }
+        if (typeof message === "string" && message.trim()) {
+            return message.trim();
+        }
+        return fallbackKey ? t(fallbackKey, fallbackText) : (fallbackText || "");
     }
 })();

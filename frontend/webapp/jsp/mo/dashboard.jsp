@@ -11,85 +11,52 @@
     if (usernameObj != null) {
         username = usernameObj.toString();
     }
+    String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "M";
 %>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="<%= contextPath %>/js/common/locale-bootstrap.js"></script>
     <title data-i18n="portal.page.moDashboard.title">MO Dashboard - Post TA Jobs</title>
     <link rel="stylesheet" href="<%= contextPath %>/css/mo/mo-dashboard.css">
+    <link rel="stylesheet" href="<%= contextPath %>/css/mo/mo-applicant-selection.css">
 </head>
 <body>
     <div class="portal-shell portal-shell-mo">
-        <aside class="portal-sidebar" data-i18n-aria-label="portal.nav.mo.aria">
-            <p class="portal-brand" data-i18n="portal.brand.mo">MO Portal</p>
-            <nav class="portal-nav">
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/applicant-selection.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M7 18c.2-2.6 2.4-4.5 5-4.5s4.8 1.9 5 4.5"></path>
-                        <circle cx="12" cy="8.5" r="3"></circle>
-                        <path d="M3.5 18c.1-1.6 1.3-2.8 2.9-3.1"></path>
-                        <path d="M20.5 18c-.1-1.6-1.3-2.8-2.9-3.1"></path>
-                    </svg>
-                    <span data-i18n="portal.nav.mo.applicants">Applicants</span>
-                </a>
-                <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/mo/dashboard.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M12 5v14"></path>
-                        <path d="M5 12h14"></path>
-                    </svg>
-                    <span data-i18n="portal.nav.mo.postJob">Post Job</span>
-                </a>
-            </nav>
-        </aside>
+        <%
+            String portalRole = "mo";
+            String tabParam = request.getParameter("tab");
+            String activeNav = "post-job".equals(tabParam) ? "post-job" : "my-jobs";
+            String heroTitleKey = "post-job".equals(activeNav) ? "portal.moDashboard.title" : "portal.moDashboard.myJobs";
+            String heroTitleFallback = "post-job".equals(activeNav) ? "Post New Job" : "My Postings";
+            String heroSubtitleKey = "post-job".equals(activeNav) ? "portal.moDashboard.subtitle" : "portal.moDashboard.myJobsHeroSubtitle";
+            String heroSubtitleFallback = "post-job".equals(activeNav)
+                    ? "Create a new TA position listing for your course."
+                    : "View and manage the TA job postings you have published.";
+            String pageTitleKey = heroTitleKey;
+            String pageTitleFallback = heroTitleFallback;
+        %>
+        <%@ include file="/WEB-INF/jsp/fragments/portal-sidebar.jspf" %>
 
         <section class="portal-main">
-            <header class="portal-topbar">
-                <div class="portal-topbar-menu">
-                    <span class="portal-topbar-role" data-i18n="portal.brand.mo">MO Portal</span>
-                    <span class="portal-topbar-divider" aria-hidden="true"></span>
-                    <span class="portal-topbar-page" data-i18n="portal.moDashboard.title">Post New Job</span>
-                </div>
-                <div class="portal-topbar-right">
-                    <div class="portal-user">
-                        <span class="portal-user-avatar"><%= username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "M" %></span>
-                        <span class="portal-user-name"><%= username == null || username.isEmpty() ? "MO User" : username %></span>
-                    </div>
-                    <div class="portal-topbar-actions">
-                        <div class="locale-switch" role="group" data-i18n-aria-label="common.locale.switchAria">
-                            <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">中文</button>
-                            <span class="locale-divider">/</span>
-                            <button class="locale-btn" type="button" data-locale-switch data-locale="en" data-i18n="common.locale.en">English</button>
-                        </div>
-                        <a class="portal-topbar-link" href="<%= contextPath %>/logout" data-i18n="portal.action.signOut">Sign Out</a>
-                    </div>
-                </div>
-            </header>
+            <%@ include file="/WEB-INF/jsp/fragments/portal-topbar.jspf" %>
 
             <div class="portal-content">
                 <main class="mo-page">
                     <section class="mo-hero" aria-labelledby="mo-page-title">
-                        <h1 id="mo-page-title" class="portal-page-title" data-i18n="portal.moDashboard.title">Post New Job</h1>
-                        <p class="subtitle">Create a new TA position listing for your course.</p>
+                        <h1 id="mo-page-title" class="portal-page-title" data-i18n="<%= heroTitleKey %>"><%= heroTitleFallback %></h1>
+                        <p class="subtitle" data-i18n="<%= heroSubtitleKey %>"><%= heroSubtitleFallback %></p>
                     </section>
 
                     <!-- Tab Navigation -->
-                    <div class="mo-tabs" role="tablist">
-                        <button class="mo-tab is-active" role="tab" aria-selected="true" data-tab="my-jobs" id="tab-my-jobs" aria-controls="panel-my-jobs">
-                            <span data-i18n="portal.moDashboard.myJobs">My Postings</span>
-                        </button>
-                        <button class="mo-tab" role="tab" aria-selected="false" data-tab="post-job" id="tab-post-job" aria-controls="panel-post-job">
-                            <span data-i18n="portal.moDashboard.postNew">Post New Job</span>
-                        </button>
-                    </div>
-
                     <!-- My Jobs Tab Panel -->
-                    <div class="mo-tab-panel is-active" id="panel-my-jobs" role="tabpanel" aria-labelledby="tab-my-jobs">
-                        <section class="mo-card" aria-label="我的岗位列表">
+                    <div class="mo-tab-panel <%= "my-jobs".equals(activeNav) ? "is-active" : "" %>" id="panel-my-jobs" role="tabpanel" aria-labelledby="tab-my-jobs" <%= "post-job".equals(activeNav) ? "hidden" : "" %>>
+                        <section class="mo-card" aria-label="我的岗位列表" data-i18n-aria-label="portal.moDashboard.myJobsPanelAria">
                             <div class="section-heading">
                                 <div>
-                                    <p class="eyebrow">Manage</p>
+                                    <p class="eyebrow" data-i18n="portal.moDashboard.manage">Manage</p>
                                     <h2 data-i18n="portal.moDashboard.myJobs">My Postings</h2>
                                     <p class="section-copy" data-i18n="portal.moDashboard.myJobsDesc">View and manage your job postings.</p>
                                 </div>
@@ -112,12 +79,12 @@
                     </div>
 
                     <!-- Post New Job Tab Panel -->
-                    <div class="mo-tab-panel" id="panel-post-job" role="tabpanel" aria-labelledby="tab-post-job" hidden>
-                        <section class="mo-card" aria-label="发布职位表单">
+                    <div class="mo-tab-panel <%= "post-job".equals(activeNav) ? "is-active" : "" %>" id="panel-post-job" role="tabpanel" aria-labelledby="tab-post-job" <%= "my-jobs".equals(activeNav) ? "hidden" : "" %>>
+                        <section class="mo-card" aria-label="发布职位表单" data-i18n-aria-label="portal.moDashboard.postJobPanelAria">
                             <div class="section-heading">
                                 <div>
-                                    <p class="eyebrow">Create posting</p>
-                                    <h2>Post a new TA position</h2>
+                                    <p class="eyebrow" data-i18n="portal.moDashboard.createPosting">Create posting</p>
+                                    <h2 data-i18n="portal.moDashboard.postPosition">Post a new TA position</h2>
                                     <p class="section-copy" data-i18n="portal.moDashboard.requiredLead">Fields labeled Required are required for publishing.</p>
                                 </div>
                             </div>
@@ -125,95 +92,226 @@
                             <div id="form-message" class="form-message hidden" role="status" aria-live="polite"></div>
 
                             <form id="job-create-form" class="mo-form" novalidate>
-                                <div class="field-grid">
+                                <div class="form-cluster">
+                                    <p class="form-cluster-title" data-i18n="portal.moDashboard.courseInfo">Course information</p>
+                                    <div class="field-grid">
                                     <div class="field field-full">
                                         <div class="field-label-row">
                                             <label for="job-title" data-i18n="portal.moDashboard.jobTitle">Job title</label>
-                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            <span class="field-label-end">
+                                                <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                    <span aria-hidden="true">i</span>
+                                                    <span class="field-tooltip" data-i18n="portal.moDashboard.hint.title">最多 200 字符，不含 HTML 标签</span>
+                                                </button>
+                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            </span>
                                         </div>
-                                        <input id="job-title" name="title" type="text" maxlength="200" placeholder="e.g. Teaching Assistant - Data Structures" required>
+                                        <input id="job-title" name="title" type="text" maxlength="200" placeholder="e.g. Teaching Assistant - Data Structures" data-i18n-placeholder="portal.moDashboard.jobTitlePlaceholder" required>
                                     </div>
 
                                     <div class="field">
                                         <div class="field-label-row">
                                             <label for="course-code" data-i18n="portal.common.courseCode">Course code</label>
-                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            <span class="field-label-end">
+                                                <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                    <span aria-hidden="true">i</span>
+                                                    <span class="field-tooltip" data-i18n="portal.moDashboard.hint.courseCode">字母或数字开头，如 EBU6304，最多 50 字符，不含空格</span>
+                                                </button>
+                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            </span>
                                         </div>
-                                        <input id="course-code" name="courseCode" type="text" maxlength="50" placeholder="e.g. EBU6304" required>
+                                        <input id="course-code" name="courseCode" type="text" maxlength="50" placeholder="e.g. EBU6304" data-i18n-placeholder="portal.moDashboard.courseCodePlaceholder" required>
                                     </div>
 
                                     <div class="field">
                                         <div class="field-label-row">
-                                            <label for="course-name">Course name</label>
-                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            <label for="course-name" data-i18n="portal.moDashboard.courseName">Course name</label>
+                                            <span class="field-label-end">
+                                                <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                    <span aria-hidden="true">i</span>
+                                                    <span class="field-tooltip" data-i18n="portal.moDashboard.hint.courseName">课程全称，最多 120 字符</span>
+                                                </button>
+                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            </span>
                                         </div>
-                                        <input id="course-name" name="courseName" type="text" maxlength="120" placeholder="e.g. Software Engineering" required>
+                                        <input id="course-name" name="courseName" type="text" maxlength="120" placeholder="e.g. Software Engineering" data-i18n-placeholder="portal.moDashboard.courseNamePlaceholder" required>
+                                    </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-cluster">
+                                    <p class="form-cluster-title" data-i18n="portal.moDashboard.roleRequirements">Role requirements</p>
+                                    <div class="field-grid">
+                                    <div class="field field-full">
+                                        <div class="field-label-row">
+                                            <label for="description" data-i18n="portal.common.description">Description</label>
+                                            <span class="field-label-end">
+                                                <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                    <span aria-hidden="true">i</span>
+                                                    <span class="field-tooltip" data-i18n="portal.moDashboard.hint.description">详细描述职责与要求，最多 4000 字符</span>
+                                                </button>
+                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            </span>
+                                        </div>
+                                        <textarea id="description" name="description" rows="5" maxlength="4000" placeholder="Describe responsibilities, expectations, and any course-specific requirements." data-i18n-placeholder="portal.moDashboard.descriptionPlaceholder" required></textarea>
                                     </div>
 
                                     <div class="field field-full">
                                         <div class="field-label-row">
-                                            <label for="description">Description</label>
-                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            <label for="required-skills" data-i18n="portal.common.requiredSkills">Required skills</label>
+                                            <span class="field-label-end">
+                                                <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                    <span aria-hidden="true">i</span>
+                                                    <span class="field-tooltip" data-i18n="portal.moDashboard.hint.requiredSkills">必须用英文逗号或中文逗号分隔，最多 20 项，如：Java, SQL, Git</span>
+                                                </button>
+                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            </span>
                                         </div>
-                                        <textarea id="description" name="description" rows="5" maxlength="4000" placeholder="Describe responsibilities, expectations, and any course-specific requirements." required></textarea>
+                                        <input id="required-skills" name="requiredSkills" type="text" maxlength="500" placeholder="Use English or Chinese commas only, e.g. Java, SQL, communication" data-i18n-placeholder="portal.moDashboard.requiredSkillsPlaceholder" required>
                                     </div>
-
-                                    <div class="field field-full">
-                                        <div class="field-label-row">
-                                            <label for="required-skills">Required skills</label>
-                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
-                                        </div>
-                                        <input id="required-skills" name="requiredSkills" type="text" maxlength="500" placeholder="Separate skills with commas, e.g. Java, SQL, communication" required>
                                     </div>
+                                </div>
 
+                                <div class="form-cluster">
+                                    <p class="form-cluster-title" data-i18n="portal.moDashboard.hiringSettings">Hiring settings</p>
+                                    <div class="field-grid">
                                     <div class="field">
                                         <div class="field-label-row">
                                             <label for="positions" data-i18n="portal.common.positions">Positions</label>
-                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            <span class="field-label-end">
+                                                <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                    <span aria-hidden="true">i</span>
+                                                    <span class="field-tooltip" data-i18n="portal.moDashboard.hint.positions">招募名额，1 至 200 之间的整数</span>
+                                                </button>
+                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            </span>
                                         </div>
                                         <input id="positions" name="positions" type="number" min="1" max="200" value="1" required>
                                     </div>
 
                                     <div class="field">
                                         <div class="field-label-row">
-                                            <label for="deadline">Application deadline</label>
-                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            <label for="deadline" data-i18n="portal.moDashboard.applicationDeadline">Application deadline</label>
+                                            <span class="field-label-end">
+                                                <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                    <span aria-hidden="true">i</span>
+                                                    <span class="field-tooltip" data-i18n="portal.moDashboard.hint.deadline">须晚于当前时间，且不超过 2 年</span>
+                                                </button>
+                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            </span>
                                         </div>
                                         <input id="deadline" name="deadline" type="datetime-local" required>
                                     </div>
 
                                     <div class="field">
                                         <div class="field-label-row">
-                                            <label for="workload">Workload</label>
-                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            <label for="weekly-hours" data-i18n="portal.moDashboard.weeklyHours">Weekly hours</label>
+                                            <span class="field-label-end">
+                                                <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                    <span aria-hidden="true">i</span>
+                                                    <span class="field-tooltip" data-i18n="portal.moDashboard.hint.weeklyHours">每周工作小时数，0.5 至 40，最多 1 位小数</span>
+                                                </button>
+                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            </span>
                                         </div>
-                                        <input id="workload" name="workload" type="text" maxlength="120" placeholder="e.g. 8 hours / week" required>
+                                        <input id="weekly-hours" name="weeklyHours" type="number" min="0.5" max="40" step="0.1" placeholder="8" data-i18n-placeholder="portal.moDashboard.weeklyHoursPlaceholder" required>
                                     </div>
 
                                     <div class="field">
                                         <div class="field-label-row">
-                                            <label for="salary">Salary</label>
-                                            <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            <label for="work-start-date" data-i18n="portal.moDashboard.workStartDate">Work start date</label>
+                                            <span class="field-label-end">
+                                                <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                    <span aria-hidden="true">i</span>
+                                                    <span class="field-tooltip" data-i18n="portal.moDashboard.hint.workStartDate">不得早于申请截止日期</span>
+                                                </button>
+                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            </span>
                                         </div>
-                                        <input id="salary" name="salary" type="text" maxlength="120" placeholder="e.g. 25 SGD / hour" required>
+                                        <input id="work-start-date" name="workStartDate" type="date" required>
+                                    </div>
+
+                                    <div class="field">
+                                        <div class="field-label-row">
+                                            <label for="work-end-date" data-i18n="portal.moDashboard.workEndDate">Work end date</label>
+                                            <span class="field-label-end">
+                                                <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                    <span aria-hidden="true">i</span>
+                                                    <span class="field-tooltip" data-i18n="portal.moDashboard.hint.workEndDate">不得早于工作开始日期</span>
+                                                </button>
+                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            </span>
+                                        </div>
+                                        <input id="work-end-date" name="workEndDate" type="date" required>
+                                    </div>
+
+                                    <div class="field">
+                                        <div class="field-label-row">
+                                            <label for="salary" data-i18n="portal.common.salary">Salary</label>
+                                            <span class="field-label-end">
+                                                <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                    <span aria-hidden="true">i</span>
+                                                    <span class="field-tooltip" data-i18n="portal.moDashboard.hint.salary">自由描述，如：25 RMB / 小时，最多 120 字符</span>
+                                                </button>
+                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                            </span>
+                                        </div>
+                                        <input id="salary" name="salary" type="text" maxlength="120" placeholder="e.g. 25 RMB / hour" data-i18n-placeholder="portal.moDashboard.salaryPlaceholder" required>
+                                    </div>
                                     </div>
                                 </div>
 
                                 <div class="form-actions">
-                                    <button id="publish-btn" class="primary-btn" type="submit">Publish job</button>
-                                    <button id="reset-btn" class="ghost-btn" type="reset">Reset form</button>
+                                    <button id="publish-btn" class="primary-btn" type="submit" data-i18n="portal.moDashboard.publishJob">Publish job</button>
+                                    <button id="reset-btn" class="ghost-btn" type="reset" data-i18n="portal.moDashboard.resetForm">Reset form</button>
                                 </div>
                             </form>
                         </section>
                     </div>
                     <!-- End of Tab Panels -->
 
+                <!-- Applicant Sub-View Panel -->
+                    <div id="panel-applicants" class="mo-applicant-subview hidden"
+                         aria-label="Applicant list"
+                         data-i18n-aria-label="portal.moApplicantSelection.panelAria">
+                        <div class="subview-header">
+                            <button id="subview-back-btn" class="ghost-btn subview-back-btn" type="button" aria-label="Back to course list" data-i18n-aria-label="portal.moApplicantSelection.backToCourseList">
+                                <svg class="subview-back-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"
+                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M15 18l-6-6 6-6"/>
+                                </svg>
+                            </button>
+                            <h2 id="subview-job-title" class="subview-job-title"></h2>
+                        </div>
+
+                        <form id="subview-search-form" class="search-form" novalidate>
+                            <div class="search-row">
+                                <input id="subview-search-input" name="keyword" type="text" maxlength="160"
+                                    data-i18n-placeholder="portal.moApplicantSelection.searchPlaceholder"
+                                    placeholder="Search by applicant name, email, or job title">
+                                <button id="subview-search-btn" class="primary-btn search-submit" type="submit"
+                                    data-i18n="portal.common.search">Search</button>
+                                <button id="subview-ai-search-btn" class="search-mode-toggle" type="button"
+                                    aria-label="Search mode" data-i18n-aria-label="portal.moApplicantSelection.searchModeToggle">
+                                    <span class="search-mode-option search-mode-option--search" data-mode-option="search"
+                                        data-i18n="portal.common.search">Search</span>
+                                    <span class="search-mode-option search-mode-option--ai" data-mode-option="ai"
+                                        data-i18n="portal.moApplicantSelection.aiSearchButton">AI</span>
+                                </button>
+                            </div>
+                        </form>
+
+                        <div id="subview-message" class="form-message hidden" role="status" aria-live="polite"></div>
+                        <p id="subview-list-summary" class="list-summary" hidden></p>
+                        <div id="subview-list" class="applications-list" aria-live="polite"></div>
+                    </div>
+
                 <!-- Edit Job Modal -->
                     <div class="modal-overlay hidden" id="edit-job-modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
                         <div class="modal-container">
                             <div class="modal-header">
                                 <h2 id="edit-modal-title" data-i18n="portal.moDashboard.editJob">Edit Job</h2>
-                                <button class="modal-close" id="edit-modal-close" aria-label="Close">&times;</button>
+                                <button class="modal-close" id="edit-modal-close" aria-label="Close" data-i18n-aria-label="portal.common.close">&times;</button>
                             </div>
                             <div class="modal-body">
                                 <div id="edit-form-message" class="form-message hidden" role="status" aria-live="polite"></div>
@@ -224,7 +322,13 @@
                                         <div class="field field-full">
                                             <div class="field-label-row">
                                                 <label for="edit-job-title" data-i18n="portal.moDashboard.jobTitle">Job title</label>
-                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                        <span aria-hidden="true">i</span>
+                                                        <span class="field-tooltip" data-i18n="portal.moDashboard.hint.title">最多 200 字符，不含 HTML 标签</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                </span>
                                             </div>
                                             <input id="edit-job-title" name="title" type="text" maxlength="200" required>
                                         </div>
@@ -232,75 +336,151 @@
                                         <div class="field">
                                             <div class="field-label-row">
                                                 <label for="edit-course-code" data-i18n="portal.common.courseCode">Course code</label>
-                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                        <span aria-hidden="true">i</span>
+                                                        <span class="field-tooltip" data-i18n="portal.moDashboard.hint.courseCode">字母或数字开头，如 EBU6304，最多 50 字符，不含空格</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                </span>
                                             </div>
                                             <input id="edit-course-code" name="courseCode" type="text" maxlength="50" required>
                                         </div>
 
                                         <div class="field">
                                             <div class="field-label-row">
-                                                <label for="edit-course-name">Course name</label>
-                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                <label for="edit-course-name" data-i18n="portal.moDashboard.courseName">Course name</label>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                        <span aria-hidden="true">i</span>
+                                                        <span class="field-tooltip" data-i18n="portal.moDashboard.hint.courseName">课程全称，最多 120 字符</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                </span>
                                             </div>
                                             <input id="edit-course-name" name="courseName" type="text" maxlength="120" required>
                                         </div>
 
                                         <div class="field field-full">
                                             <div class="field-label-row">
-                                                <label for="edit-description">Description</label>
-                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                <label for="edit-description" data-i18n="portal.common.description">Description</label>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                        <span aria-hidden="true">i</span>
+                                                        <span class="field-tooltip" data-i18n="portal.moDashboard.hint.description">详细描述职责与要求，最多 4000 字符</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                </span>
                                             </div>
                                             <textarea id="edit-description" name="description" rows="5" maxlength="4000" required></textarea>
                                         </div>
 
                                         <div class="field field-full">
                                             <div class="field-label-row">
-                                                <label for="edit-required-skills">Required skills</label>
-                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                <label for="edit-required-skills" data-i18n="portal.common.requiredSkills">Required skills</label>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                        <span aria-hidden="true">i</span>
+                                                        <span class="field-tooltip" data-i18n="portal.moDashboard.hint.requiredSkills">必须用英文逗号或中文逗号分隔，最多 20 项，如：Java, SQL, Git</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                </span>
                                             </div>
-                                            <input id="edit-required-skills" name="requiredSkills" type="text" maxlength="500" required>
+                                            <input id="edit-required-skills" name="requiredSkills" type="text" maxlength="500" placeholder="Use English or Chinese commas only, e.g. Java, SQL, communication" data-i18n-placeholder="portal.moDashboard.requiredSkillsPlaceholder" required>
                                         </div>
 
                                         <div class="field">
                                             <div class="field-label-row">
                                                 <label for="edit-positions" data-i18n="portal.common.positions">Positions</label>
-                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                        <span aria-hidden="true">i</span>
+                                                        <span class="field-tooltip" data-i18n="portal.moDashboard.hint.positions">招募名额，1 至 200 之间的整数</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                </span>
                                             </div>
                                             <input id="edit-positions" name="positions" type="number" min="1" max="200" required>
                                         </div>
 
                                         <div class="field">
                                             <div class="field-label-row">
-                                                <label for="edit-deadline">Application deadline</label>
-                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                <label for="edit-deadline" data-i18n="portal.moDashboard.applicationDeadline">Application deadline</label>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                        <span aria-hidden="true">i</span>
+                                                        <span class="field-tooltip" data-i18n="portal.moDashboard.hint.deadline">须晚于当前时间，且不超过 2 年</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                </span>
                                             </div>
                                             <input id="edit-deadline" name="deadline" type="datetime-local" required>
                                         </div>
 
                                         <div class="field">
                                             <div class="field-label-row">
-                                                <label for="edit-workload">Workload</label>
-                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                <label for="edit-weekly-hours" data-i18n="portal.moDashboard.weeklyHours">Weekly hours</label>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                        <span aria-hidden="true">i</span>
+                                                        <span class="field-tooltip" data-i18n="portal.moDashboard.hint.weeklyHours">每周工作小时数，0.5 至 40，最多 1 位小数</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                </span>
                                             </div>
-                                            <input id="edit-workload" name="workload" type="text" maxlength="120" required>
+                                            <input id="edit-weekly-hours" name="weeklyHours" type="number" min="0.5" max="40" step="0.1" required>
                                         </div>
 
                                         <div class="field">
                                             <div class="field-label-row">
-                                                <label for="edit-salary">Salary</label>
-                                                <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                <label for="edit-work-start-date" data-i18n="portal.moDashboard.workStartDate">Work start date</label>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                        <span aria-hidden="true">i</span>
+                                                        <span class="field-tooltip" data-i18n="portal.moDashboard.hint.workStartDate">不得早于申请截止日期</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                </span>
                                             </div>
-                                            <input id="edit-salary" name="salary" type="text" maxlength="120" required>
+                                            <input id="edit-work-start-date" name="workStartDate" type="date" required>
                                         </div>
 
                                         <div class="field">
                                             <div class="field-label-row">
-                                                <label for="edit-status">Status</label>
+                                                <label for="edit-work-end-date" data-i18n="portal.moDashboard.workEndDate">Work end date</label>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                        <span aria-hidden="true">i</span>
+                                                        <span class="field-tooltip" data-i18n="portal.moDashboard.hint.workEndDate">不得早于工作开始日期</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                </span>
+                                            </div>
+                                            <input id="edit-work-end-date" name="workEndDate" type="date" required>
+                                        </div>
+
+                                        <div class="field">
+                                            <div class="field-label-row">
+                                                <label for="edit-salary" data-i18n="portal.common.salary">Salary</label>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="填写提示" data-i18n-aria-label="portal.moDashboard.hintAria">
+                                                        <span aria-hidden="true">i</span>
+                                                        <span class="field-tooltip" data-i18n="portal.moDashboard.hint.salary">自由描述，如：25 RMB / 小时，最多 120 字符</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.moDashboard.required">Required</span>
+                                                </span>
+                                            </div>
+                                            <input id="edit-salary" name="salary" type="text" maxlength="120" placeholder="e.g. 25 RMB / hour" data-i18n-placeholder="portal.moDashboard.salaryPlaceholder" required>
+                                        </div>
+
+                                        <div class="field">
+                                            <div class="field-label-row">
+                                                <label for="edit-status" data-i18n="portal.common.status">Status</label>
                                             </div>
                                             <select id="edit-status" name="status">
-                                                <option value="OPEN">Open</option>
-                                                <option value="CLOSED">Closed</option>
-                                                <option value="FILLED">Filled</option>
+                                                <option value="OPEN" data-i18n="portal.common.open">Open</option>
+                                                <option value="CLOSED" data-i18n="portal.common.closed">Closed</option>
+                                                <option value="FILLED" data-i18n="portal.common.filled">Filled</option>
                                             </select>
                                         </div>
                                     </div>
@@ -319,7 +499,7 @@
                         <div class="modal-container modal-small">
                             <div class="modal-header">
                                 <h2 id="delete-modal-title" data-i18n="portal.moDashboard.confirmDelete">Confirm Delete</h2>
-                                <button class="modal-close" id="delete-modal-close" aria-label="Close">&times;</button>
+                                <button class="modal-close" id="delete-modal-close" aria-label="Close" data-i18n-aria-label="portal.common.close">&times;</button>
                             </div>
                             <div class="modal-body">
                                 <p id="delete-message" data-i18n="portal.moDashboard.deleteConfirmMsg">Are you sure you want to delete this job posting?</p>
@@ -341,6 +521,7 @@
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
         window.APP_CURRENT_USER_ID = "<%= userId %>";
         window.APP_CURRENT_USERNAME = "<%= username %>";
+        window.APP_INITIAL_TAB = "<%= activeNav %>";
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js" defer></script>
     <script src="<%= contextPath %>/js/common/portal-i18n.js" defer></script>

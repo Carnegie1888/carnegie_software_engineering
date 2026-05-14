@@ -99,7 +99,7 @@
                 if (!response.ok || !payload || payload.success !== true) {
                     var errorMessage = t("portal.dynamic.unableLoadApplicationsNow", "Unable to load applications right now.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
-                        errorMessage = payload.message.trim();
+                        errorMessage = localizeServerMessage(payload.message, "portal.dynamic.unableLoadApplicationsNow", errorMessage);
                     }
                     showMessage(errorMessage, "error");
                     state.applications = [];
@@ -1045,9 +1045,9 @@
 
     function materialDocIconSvg() {
         return "<svg class=\"material-doc-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\">" +
-            "<path d=\"M14 2H8a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8l-6-6z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linejoin=\"round\"></path>" +
-            "<path d=\"M14 2v6h6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linejoin=\"round\"></path>" +
-            "<path d=\"M10 13h8M10 17h6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\"></path>" +
+            "<path d=\"M7 3.5h6.2L18 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 20V5A1.5 1.5 0 0 1 7.5 3.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path>" +
+            "<path d=\"M13 3.8V8a1 1 0 0 0 1 1h4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path>" +
+            "<path d=\"M9.5 13h5M9.5 16.5h4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\"></path>" +
             "</svg>";
     }
 
@@ -1089,7 +1089,7 @@
             ? t("portal.moApplicantSelection.aiAnalyzing", "AI...")
             : aiState.expanded
                 ? t("portal.moApplicantSelection.aiHide", "Hide AI")
-                : t("portal.moApplicantSelection.aiShow", "AI");
+                : t("portal.moApplicantSelection.aiShow", "Match");
 
         card.innerHTML =
             "<header class=\"application-card-head\">" +
@@ -1108,7 +1108,8 @@
                                 "aria-controls=\"" + escapeHtml(aiPanelId) + "\" " +
                                 "aria-label=\"" + escapeHtml(aiTriggerLabel) + "\" " +
                                 "title=\"" + escapeHtml(t("portal.moApplicantSelection.aiChat", "Ask AI")) + "\">" +
-                                "<span aria-hidden=\"true\">AI</span>" +
+                                "<span class=\"application-ai-trigger-icon\" aria-hidden=\"true\">M</span>" +
+                                "<span>" + escapeHtml(aiTriggerLabel) + "</span>" +
                             "</button>" +
                             "<span class=\"status-pill status-" + escapeHtml(statusClass) + "\">" +
                                 escapeHtml(getStatusDisplayLabel(status)) +
@@ -1136,9 +1137,7 @@
             card.querySelectorAll("button[data-action]").forEach(function (btn) {
                 var action = btn.getAttribute("data-action");
                 btn.addEventListener("click", function () {
-                    if (action === "start_review") {
-                        handleProgressAction(applicationId, action);
-                    } else if (action === "accept" || action === "reject") {
+                    if (action === "accept" || action === "reject") {
                         handleReview(applicationId, action);
                     }
                 });
@@ -1249,7 +1248,7 @@
                 if (!response.ok || !payload || payload.success !== true) {
                     var errorMessage = t("portal.dynamic.moAiAnalysisFailed", "Unable to generate AI analysis right now.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
-                        errorMessage = payload.message.trim();
+                        errorMessage = localizeServerMessage(payload.message, "portal.dynamic.moAiAnalysisFailed", errorMessage);
                     }
                     aiState.statusMessage = errorMessage;
                     aiState.statusType = "error";
@@ -1471,17 +1470,11 @@
         }
         var dis = reviewingThis ? " disabled" : "";
         var proc = t("portal.moApplicantSelection.processing", "Processing...");
-        var startLabel = reviewingThis ? proc : t("portal.moApplicantSelection.startReview", "Start review");
         var acceptLabel = reviewingThis ? proc : t("portal.moApplicantSelection.hireApplicant", "Hire applicant");
         var rejectLabel = reviewingThis ? proc : t("portal.moApplicantSelection.rejectApplicant", "Reject");
 
-        var row = "<div class=\"review-actions review-actions--staged\">";
-        if (progressStage === "SUBMITTED") {
-            row += "<div class=\"review-stage-row\">" +
-                "<button class=\"stage-btn\" type=\"button\" data-action=\"start_review\" data-id=\"" +
-                escapeHtml(applicationId) + "\"" + dis + ">" + escapeHtml(startLabel) + "</button></div>";
-        }
-        row += "<div class=\"review-decision-row\">" +
+        return "<div class=\"review-actions review-actions--staged\">" +
+            "<div class=\"review-decision-row\">" +
             "<button class=\"accept-btn\" type=\"button\" data-action=\"accept\" data-id=\"" +
             escapeHtml(applicationId) + "\"" + dis + ">" +
             reviewBtnIconCheck() +
@@ -1493,7 +1486,6 @@
             "<span class=\"review-btn-text\">" + escapeHtml(rejectLabel) + "</span>" +
             "</button>" +
             "</div></div>";
-        return row;
     }
 
     function handleProgressAction(applicationId, action) {
@@ -1521,15 +1513,15 @@
                 }
 
                 if (!response.ok || !payload || payload.success !== true) {
-                    var errorMessage = "Unable to update progress.";
+                    var errorMessage = t("portal.moApplicantSelection.progressUpdateFailed", "Unable to update progress.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
-                        errorMessage = payload.message.trim();
+                        errorMessage = localizeServerMessage(payload.message, "portal.moApplicantSelection.progressUpdateFailed", errorMessage);
                     }
                     showMessage(errorMessage, "error");
                     return false;
                 }
 
-                showMessage("Review started.", "success");
+                showMessage(t("portal.moApplicantSelection.reviewStarted", "Review started."), "success");
                 return true;
             })
             .then(function (shouldReload) {
@@ -1539,7 +1531,7 @@
                 return null;
             })
             .catch(function () {
-                showMessage("Network error while updating progress.", "error");
+                showMessage(t("portal.moApplicantSelection.progressUpdateNetworkError", "Network error while updating progress."), "error");
             })
             .finally(function () {
                 state.reviewingId = "";
@@ -1665,15 +1657,17 @@
                 }
 
                 if (!response.ok || !payload || payload.success !== true) {
-                    var errorMessage = "Unable to update this application.";
+                    var errorMessage = t("portal.moApplicantSelection.applicationUpdateFailed", "Unable to update this application.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
-                        errorMessage = payload.message.trim();
+                        errorMessage = localizeServerMessage(payload.message, "portal.moApplicantSelection.applicationUpdateFailed", errorMessage);
                     }
                     showMessage(errorMessage, "error");
                     return false;
                 }
 
-                showMessage(action === "accept" ? "Application accepted successfully." : "Application rejected successfully.", "success");
+                showMessage(action === "accept"
+                    ? t("portal.moApplicantSelection.applicationAcceptedSuccess", "Application accepted successfully.")
+                    : t("portal.moApplicantSelection.applicationRejectedSuccess", "Application rejected successfully."), "success");
                 return true;
             })
             .then(function (shouldReload) {
@@ -1683,7 +1677,7 @@
                 return null;
             })
             .catch(function () {
-                showMessage("Network error while updating application.", "error");
+                showMessage(t("portal.moApplicantSelection.applicationUpdateNetworkError", "Network error while updating application."), "error");
             })
             .finally(function () {
                 state.reviewingId = "";
@@ -1825,6 +1819,16 @@
             return window.AppI18n.t(key, fallback || key);
         }
         return fallback || key;
+    }
+
+    function localizeServerMessage(message, fallbackKey, fallbackText) {
+        if (window.AppI18n && typeof window.AppI18n.localizeServerMessage === "function") {
+            return window.AppI18n.localizeServerMessage(message, fallbackKey, fallbackText);
+        }
+        if (typeof message === "string" && message.trim()) {
+            return message.trim();
+        }
+        return fallbackKey ? t(fallbackKey, fallbackText) : (fallbackText || "");
     }
 
     function safeText(value, fallback) {

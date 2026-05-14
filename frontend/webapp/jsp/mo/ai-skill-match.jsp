@@ -1,11 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     String contextPath = request.getContextPath();
-    if (!response.isCommitted()) {
-        response.sendRedirect(contextPath + "/jsp/mo/dashboard.jsp");
-        return;
-    }
-
     String userId = "";
     Object userIdObj = session.getAttribute("userId");
     if (userIdObj != null) {
@@ -16,135 +11,89 @@
     if (usernameObj != null) {
         username = usernameObj.toString();
     }
+    String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "M";
 %>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="<%= contextPath %>/js/common/locale-bootstrap.js"></script>
     <title data-i18n="portal.page.moAiSkillMatch.title">AI Skill Match - TA Hiring System</title>
     <link rel="stylesheet" href="<%= contextPath %>/css/mo/mo-ai-skill-match.css">
 </head>
 <body>
     <div class="portal-shell portal-shell-mo">
-        <aside class="portal-sidebar" data-i18n-aria-label="portal.nav.mo.aria">
-            <p class="portal-brand" data-i18n="portal.brand.mo">MO Portal</p>
-            <nav class="portal-nav">
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/applicant-selection.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M7 18c.2-2.6 2.4-4.5 5-4.5s4.8 1.9 5 4.5"></path>
-                        <circle cx="12" cy="8.5" r="3"></circle>
-                        <path d="M3.5 18c.1-1.6 1.3-2.8 2.9-3.1"></path>
-                        <path d="M20.5 18c-.1-1.6-1.3-2.8-2.9-3.1"></path>
-                    </svg>
-                    <span data-i18n="portal.nav.mo.applicants">Applicants</span>
-                </a>
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/dashboard.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M12 5v14"></path>
-                        <path d="M5 12h14"></path>
-                    </svg>
-                    <span data-i18n="portal.nav.mo.postJob">Post Job</span>
-                </a>
-                <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/mo/ai-skill-match.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M4 19h16"></path>
-                        <path d="M7 16V8"></path>
-                        <path d="M12 16V5"></path>
-                        <path d="M17 16v-6"></path>
-                    </svg>
-                    <span data-i18n="portal.nav.mo.aiMatch">AI Match</span>
-                </a>
-            </nav>
-        </aside>
+        <% String portalRole = "mo"; String activeNav = "ai-match"; String pageTitleKey = "portal.moAiSkillMatch.title"; String pageTitleFallback = "AI Skill Match"; %>
+        <%@ include file="/WEB-INF/jsp/fragments/portal-sidebar.jspf" %>
 
         <section class="portal-main">
-            <header class="portal-topbar">
-                <div class="portal-topbar-menu">
-                    <span class="portal-topbar-role" data-i18n="portal.brand.mo">MO Portal</span>
-                    <span class="portal-topbar-divider" aria-hidden="true"></span>
-                    <span class="portal-topbar-page" data-i18n="portal.moAiSkillMatch.title">AI Skill Match</span>
-                </div>
-                <div class="portal-topbar-right">
-                    <div class="portal-user">
-                        <span class="portal-user-avatar"><%= username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "M" %></span>
-                        <span class="portal-user-name"><%= username == null || username.isEmpty() ? "MO User" : username %></span>
-                    </div>
-                    <div class="portal-topbar-actions">
-                        <div class="locale-switch" role="group" data-i18n-aria-label="common.locale.switchAria">
-                            <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">中文</button>
-                            <span class="locale-divider">/</span>
-                            <button class="locale-btn" type="button" data-locale-switch data-locale="en" data-i18n="common.locale.en">English</button>
-                        </div>
-                        <a class="portal-topbar-link" href="<%= contextPath %>/logout" data-i18n="portal.action.signOut">Sign Out</a>
-                    </div>
-                </div>
-            </header>
+            <%@ include file="/WEB-INF/jsp/fragments/portal-topbar.jspf" %>
 
             <div class="portal-content">
                 <main class="ai-match-page ai-module-page">
                     <section class="match-hero ai-module-hero" aria-labelledby="match-title">
                         <h1 id="match-title" class="portal-page-title" data-i18n="portal.moAiSkillMatch.title">AI Skill Match</h1>
-                        <p class="subtitle">Review applicant matching scores aligned with your posted job requirements.</p>
+                        <p class="subtitle" data-i18n="portal.moAiSkillMatch.subtitle">Review applicant matching scores aligned with your posted job requirements.</p>
                     </section>
 
-                    <section class="match-panel ai-module-panel" aria-label="技能匹配结果">
+                    <section class="match-panel ai-module-panel" data-i18n-aria-label="portal.moAiSkillMatch.title" aria-label="技能匹配结果">
                         <form id="match-filter-form" class="filter-form ai-module-filter-form" novalidate>
                             <div class="field-group ai-module-field-group">
-                                <label for="job-filter">Job</label>
+                                <label for="job-filter" data-i18n="portal.common.job">Job</label>
                                 <select id="job-filter" name="jobId">
-                                    <option value="">Select a job</option>
+                                    <option value="" data-i18n="portal.common.selectJob">Select a job</option>
                                 </select>
                             </div>
                             <div class="filter-actions ai-module-filter-actions">
-                                <button id="load-match-btn" class="primary-btn" type="submit">Load results</button>
-                                <button id="refresh-match-btn" class="ghost-btn" type="button">Refresh</button>
+                                <button id="load-match-btn" class="primary-btn" type="submit" data-i18n="portal.moAiSkillMatch.loadResults">Load results</button>
+                                <button id="refresh-match-btn" class="ghost-btn" type="button" data-i18n="portal.common.refresh">Refresh</button>
                             </div>
                         </form>
 
                         <div id="match-message" class="form-message ai-module-form-message hidden" role="status" aria-live="polite"></div>
 
-                        <section class="summary-grid ai-module-summary-grid" aria-label="匹配统计概览">
+                        <section class="summary-grid ai-module-summary-grid" aria-label="匹配统计概览" data-i18n-aria-label="portal.moAiSkillMatch.summaryGridAria">
                             <article class="summary-card ai-module-summary-card">
-                                <p>Total applicants</p>
+                                <p data-i18n="portal.moAiSkillMatch.totalApplicants">Total applicants</p>
                                 <strong id="summary-total">0</strong>
                             </article>
                             <article class="summary-card ai-module-summary-card">
-                                <p>High match (≥85)</p>
+                                <p data-i18n="portal.moAiSkillMatch.highMatch">High match (>=85)</p>
                                 <strong id="summary-high">0</strong>
                             </article>
                             <article class="summary-card ai-module-summary-card">
-                                <p>Medium match (60-84)</p>
+                                <p data-i18n="portal.moAiSkillMatch.mediumMatch">Medium match (60-84)</p>
                                 <strong id="summary-medium">0</strong>
                             </article>
                             <article class="summary-card ai-module-summary-card">
-                                <p>Low match (&lt;60)</p>
+                                <p data-i18n="portal.moAiSkillMatch.lowMatch">Low match (&lt;60)</p>
                                 <strong id="summary-low">0</strong>
                             </article>
                         </section>
 
-                        <section class="visual-grid" aria-label="匹配度可视化组件">
+                        <section class="visual-grid" aria-label="匹配度可视化组件" data-i18n-aria-label="portal.moAiSkillMatch.visualGridAria">
                             <article class="visual-card average-card">
-                                <p class="visual-title">Average Match Score</p>
-                                <div id="average-ring" class="average-ring" aria-label="平均匹配度">
+                                <p class="visual-title" data-i18n="portal.moAiSkillMatch.averageMatchScore">Average Match Score</p>
+                                <div id="average-ring" class="average-ring" aria-label="平均匹配度" data-i18n-aria-label="portal.moAiSkillMatch.averageRingAria">
                                     <span id="average-score-text">0%</span>
                                 </div>
                             </article>
                             <article class="visual-card distribution-card">
-                                <p class="visual-title">Score Distribution</p>
+                                <p class="visual-title" data-i18n="portal.moAiSkillMatch.scoreDistribution">Score Distribution</p>
                                 <div class="distribution-list">
                                     <div class="distribution-item">
-                                        <span>High</span>
+                                        <span data-i18n="portal.common.high">High</span>
                                         <div class="distribution-track"><i id="dist-high"></i></div>
                                         <strong id="dist-high-label">0%</strong>
                                     </div>
                                     <div class="distribution-item">
-                                        <span>Medium</span>
+                                        <span data-i18n="portal.common.medium">Medium</span>
                                         <div class="distribution-track"><i id="dist-medium"></i></div>
                                         <strong id="dist-medium-label">0%</strong>
                                     </div>
                                     <div class="distribution-item">
-                                        <span>Low</span>
+                                        <span data-i18n="portal.common.low">Low</span>
                                         <div class="distribution-track"><i id="dist-low"></i></div>
                                         <strong id="dist-low-label">0%</strong>
                                     </div>
@@ -152,7 +101,7 @@
                             </article>
                         </section>
 
-                        <p id="match-list-summary" class="list-summary ai-module-list-summary">Choose a job to load skill match results.</p>
+                        <p id="match-list-summary" class="list-summary ai-module-list-summary" data-i18n="portal.moAiSkillMatch.chooseJobHint">Choose a job to load skill match results.</p>
                         <div id="match-list" class="match-list" aria-live="polite"></div>
                     </section>
                 </main>
