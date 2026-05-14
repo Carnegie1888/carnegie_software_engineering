@@ -58,7 +58,7 @@
             formData.set("role", role);
         }
 
-        return fetch(contextPath + "/login", {
+        return fetch(window.TARecruitment.routes.auth.login(), {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",

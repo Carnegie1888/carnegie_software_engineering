@@ -63,6 +63,7 @@
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js" defer></script>
     <script src="<%= contextPath %>/js/common/portal-i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/common/ta-recruitment.js?v=20260514-architecture" defer></script>
     <script src="<%= contextPath %>/js/ta/ta-application-status.js?v=20260513-ta-card-i18n-refresh" defer></script>
 </body>
 </html>

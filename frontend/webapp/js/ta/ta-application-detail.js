@@ -74,7 +74,7 @@
     }
 
     function loadAll() {
-        return request(contextPath + "/apply?id=" + encodeURIComponent(state.applicationId), {
+        return request(window.TARecruitment.routes.applications.detail(state.applicationId), {
             method: "GET",
             headers: { "X-Requested-With": "XMLHttpRequest" }
         })
@@ -100,12 +100,12 @@
                 }
                 var jobId = safeText(state.application.jobId, "");
                 return Promise.all([
-                    request(contextPath + "/api/applicants/detail?applicationId=" + encodeURIComponent(state.applicationId), {
+                    request(window.TARecruitment.routes.applications.applicant(state.applicationId), {
                         method: "GET",
                         headers: { "X-Requested-With": "XMLHttpRequest" }
                     }),
                     jobId
-                        ? request(contextPath + "/jobs?id=" + encodeURIComponent(jobId), {
+                        ? request(window.TARecruitment.routes.jobs.detail(jobId), {
                               method: "GET",
                               headers: { "X-Requested-With": "XMLHttpRequest" }
                           })
@@ -211,9 +211,15 @@
         }
 
         setWithdrawSubmitting(true);
-        request(contextPath + "/apply?id=" + encodeURIComponent(state.applicationId) + "&action=withdraw", {
-            method: "PUT",
-            headers: { "X-Requested-With": "XMLHttpRequest" }
+        var formData = new URLSearchParams();
+        formData.set("action", "withdraw");
+        request(window.TARecruitment.routes.applications.transition(state.applicationId), {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: formData.toString()
         })
             .then(function (result) {
                 var response = result.response;
@@ -542,6 +548,9 @@
     }
 
     function request(url, options) {
+        if (window.TARecruitment && window.TARecruitment.api) {
+            return window.TARecruitment.api.request(url, options, { parser: parseJson });
+        }
         return fetch(url, options).then(function (response) {
             return response.text().then(function (text) {
                 return {

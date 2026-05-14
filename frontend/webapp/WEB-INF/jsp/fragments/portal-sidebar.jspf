@@ -113,13 +113,15 @@
                 <polyline points="22,6 12,13 2,6"/>
             </svg>
         </a>
-        <a class="sidebar-signout" href="<%= contextPath %>/logout" data-i18n-aria-label="portal.action.signOut" aria-label="Sign Out" data-i18n-title="portal.action.signOut" title="Sign Out">
-            <svg class="sidebar-signout-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <polyline points="16 17 21 12 16 7"/>
-                <line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
-        </a>
+        <form class="sidebar-signout-form" method="post" action="<%= contextPath %>/api/auth/logout">
+            <button class="sidebar-signout" type="submit" data-i18n-aria-label="portal.action.signOut" aria-label="Sign Out" data-i18n-title="portal.action.signOut" title="Sign Out">
+                <svg class="sidebar-signout-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+            </button>
+        </form>
     </div>
 </aside>
 <% if (sidebarAccountEditable) { %>
@@ -205,6 +207,26 @@
         hasAvatar: false
     };
 
+    function getMeRoutes() {
+        return window.TARecruitment && window.TARecruitment.routes && window.TARecruitment.routes.me
+            ? window.TARecruitment.routes.me
+            : null;
+    }
+
+    function whenMeRoutesReady(callback) {
+        var routes = getMeRoutes();
+        if (routes) {
+            callback(routes);
+            return;
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            routes = getMeRoutes();
+            if (routes) {
+                callback(routes);
+            }
+        });
+    }
+
     function t(key, fallback) {
         if (window.AppI18n && typeof window.AppI18n.t === "function") {
             return window.AppI18n.t(key, fallback);
@@ -262,8 +284,9 @@
         if (usernameEl) {
             usernameEl.textContent = label;
         }
-        if (profile.hasAvatar) {
-            applyAvatar(el, contextPath + "/api/account/avatar?v=" + Date.now());
+        var routes = getMeRoutes();
+        if (profile.hasAvatar && routes) {
+            applyAvatar(el, routes.avatar() + "?v=" + Date.now());
         } else {
             clearAvatar(el, label);
         }
@@ -273,8 +296,9 @@
         if (displayNameInput) displayNameInput.value = getAccountLabel(profile);
         if (realNameInput) realNameInput.value = profile.realName || "";
         if (professionalTitleInput) professionalTitleInput.value = profile.professionalTitle || "";
-        if (profile.hasAvatar) {
-            applyAvatar(preview, contextPath + "/api/account/avatar?v=" + Date.now());
+        var routes = getMeRoutes();
+        if (profile.hasAvatar && routes) {
+            applyAvatar(preview, routes.avatar() + "?v=" + Date.now());
         } else {
             clearAvatar(preview, getAccountLabel(profile));
         }
@@ -298,7 +322,9 @@
 
     function loadProfile() {
         if (!el || !trigger) return;
-        fetch(contextPath + "/api/account/profile", {
+        var routes = getMeRoutes();
+        if (!routes) return;
+        fetch(routes.account(), {
             credentials: "same-origin",
             headers: { "X-Requested-With": "XMLHttpRequest" }
         })
@@ -366,13 +392,19 @@
             }
             if (saveBtn) saveBtn.disabled = true;
             var formData = new FormData(form);
+            var routes = getMeRoutes();
+            if (!routes) {
+                setMessage(t("portal.accountProfile.saveFailed", "Unable to save account profile."), true);
+                if (saveBtn) saveBtn.disabled = false;
+                return;
+            }
             if (displayNameInput) {
                 formData.set("displayName", displayNameInput.value.trim());
             }
             if (professionalTitleInput) {
                 formData.set("professionalTitle", professionalTitleInput.value.trim());
             }
-            fetch(contextPath + "/api/account/profile", {
+            fetch(routes.account(), {
                 method: "POST",
                 credentials: "same-origin",
                 headers: { "X-Requested-With": "XMLHttpRequest" },
@@ -428,7 +460,7 @@
 
     if (el && trigger) {
         clearAvatar(el);
-        loadProfile();
+        whenMeRoutesReady(loadProfile);
     } else if (el) {
         el.textContent = "";
         el.textContent = initial;

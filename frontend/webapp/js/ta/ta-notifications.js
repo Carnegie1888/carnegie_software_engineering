@@ -56,7 +56,7 @@
     }
 
     function loadNotifications() {
-        fetch(contextPath + "/api/notifications", {
+        fetch(window.TARecruitment.routes.notifications(), {
             headers: { "X-Requested-With": "XMLHttpRequest" }
         })
         .then(function (res) { return res.json(); })

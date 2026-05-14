@@ -90,7 +90,7 @@
     }
 
     function loadNotifications() {
-        fetch(contextPath + "/api/notifications", {
+        fetch(window.TARecruitment.routes.notifications(), {
             headers: { "X-Requested-With": "XMLHttpRequest" }
         })
         .then(function (res) { return res.json(); })
@@ -103,7 +103,7 @@
     }
 
     function deleteNotification(id) {
-        fetch(contextPath + "/api/notifications?notificationId=" + encodeURIComponent(id), {
+        fetch(window.TARecruitment.routes.notifications() + "?notificationId=" + encodeURIComponent(id), {
             method: "DELETE",
             headers: { "X-Requested-With": "XMLHttpRequest" }
         })
@@ -135,7 +135,7 @@
             params.append("title", title);
             params.append("content", content);
 
-            fetch(contextPath + "/api/notifications", {
+            fetch(window.TARecruitment.routes.notifications(), {
                 method: "POST",
                 headers: {
                     "X-Requested-With": "XMLHttpRequest",

@@ -202,7 +202,7 @@
             checkId = emailCheckId;
         }
 
-        var url = contextPath + "/check-available?type=" + encodeURIComponent(type) + "&value=" + encodeURIComponent(value);
+        var url = window.TARecruitment.routes.auth.availability(type, value);
         fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
             .then(function (res) { return res.json(); })
             .then(function (data) {
@@ -254,7 +254,7 @@
         formData.set("confirmPassword", confirmPassword);
         formData.set("role", role);
 
-        return fetch(contextPath + "/register", {
+        return fetch(window.TARecruitment.routes.auth.register(), {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",

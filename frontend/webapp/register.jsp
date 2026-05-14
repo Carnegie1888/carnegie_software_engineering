@@ -35,7 +35,7 @@
         <section class="register-card" data-i18n-aria-label="register.form.aria">
             <div id="form-message" class="form-message hidden" role="alert" aria-live="polite"></div>
 
-            <form id="register-form" class="register-form" method="post" action="<%= contextPath %>/register" novalidate>
+            <form id="register-form" class="register-form" method="post" action="<%= contextPath %>/api/auth/register" novalidate>
                 <div class="field">
                     <div class="field-label-row">
                         <label for="username" data-i18n="register.form.usernameLabel">Username</label>
@@ -196,6 +196,7 @@
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js?v=20260513-password-toggle" defer></script>
+    <script src="<%= contextPath %>/js/common/ta-recruitment.js?v=20260514-architecture" defer></script>
     <script src="<%= contextPath %>/js/auth/register.js?v=20260513-password-toggle" defer></script>
 </body>
 </html>

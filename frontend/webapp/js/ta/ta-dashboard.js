@@ -151,14 +151,14 @@
 
     if (resumeFileTrigger && resumeFileInput) {
         resumeFileTrigger.addEventListener("click", function () {
-            if (resumeFileTrigger.disabled) {
+            if (canPreviewResume()) {
+                openResumePreview();
                 return;
             }
-            if (resumeUploadShell && resumeUploadShell.classList.contains("is-filled")) {
-                openResumePreview();
-            } else {
-                resumeFileInput.click();
+            if (resumeFileTrigger.disabled || !canEditResumeSection()) {
+                return;
             }
+            resumeFileInput.click();
         });
     }
 
@@ -277,7 +277,7 @@
             submitButton.textContent = localizeText("portal.dynamic.checkingProfile", "Checking profile...");
         }
 
-        return request(contextPath + "/applicant", {
+        return request(window.TARecruitment.routes.me.applicantProfile(), {
             method: "GET",
             headers: {
                 "X-Requested-With": "XMLHttpRequest"
@@ -407,7 +407,7 @@
                 updateData.append("photo", state.selectedPhotoFile, state.selectedPhotoFile.name);
             }
 
-            return request(contextPath + "/applicant", {
+            return request(window.TARecruitment.routes.me.applicantProfile(), {
                 method: "POST",
                 headers: {
                     "X-Requested-With": "XMLHttpRequest"
@@ -444,7 +444,7 @@
             createMultipartData.append("removePhoto", "false");
             createMultipartData.append("photo", state.selectedPhotoFile, state.selectedPhotoFile.name);
 
-            return request(contextPath + "/applicant", {
+            return request(window.TARecruitment.routes.me.applicantProfile(), {
                 method: "POST",
                 headers: {
                     "X-Requested-With": "XMLHttpRequest"
@@ -453,7 +453,7 @@
             });
         }
 
-        return request(contextPath + "/applicant", {
+        return request(window.TARecruitment.routes.me.applicantProfile(), {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -787,7 +787,7 @@
     function uploadDraftResumeWithProgress(file) {
         return new Promise(function (resolve, reject) {
             var xhr = new XMLHttpRequest();
-            xhr.open("PUT", contextPath + "/applicant?draftResume=true", true);
+            xhr.open("POST", window.TARecruitment.routes.me.resumeDraft(), true);
             xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
 
             xhr.onerror = function () {
@@ -892,9 +892,20 @@
     function refreshResumeArea() {
         var resumeSectionEditable = canEditResumeSection();
         var activeResumeCard = buildActiveResumeCard();
+        var resumePreviewAvailable = canPreviewResume();
 
         if (resumeFileTrigger) {
-            resumeFileTrigger.disabled = !resumeSectionEditable && !activeResumeCard;
+            resumeFileTrigger.disabled = state.isUploadingResume || (!resumeSectionEditable && !resumePreviewAvailable);
+            var savedResumePreviewUrl = activeResumeCard && hasSavedResume()
+                && !state.selectedResumeFile
+                && !state.pendingResumePath
+                ? window.TARecruitment.routes.me.applicantResume()
+                : "";
+            if (savedResumePreviewUrl) {
+                resumeFileTrigger.setAttribute("data-preview-url", savedResumePreviewUrl);
+            } else {
+                resumeFileTrigger.removeAttribute("data-preview-url");
+            }
         }
         if (resumeFileInput) {
             resumeFileInput.disabled = !resumeSectionEditable;
@@ -929,6 +940,11 @@
             resumeRemoveButton.classList.toggle("hidden", !canRemoveCurrentResume);
             resumeRemoveButton.disabled = !canRemoveCurrentResume;
         }
+    }
+
+    function canPreviewResume() {
+        return !state.isUploadingResume
+            && (state.selectedResumeFile || state.pendingResumePath || hasSavedResume());
     }
 
     function buildActiveResumeCard() {
@@ -1159,7 +1175,7 @@
     }
 
     function buildSavedPhotoPreviewUrl() {
-        return contextPath + "/applicant?asset=photo&v=" + encodeURIComponent(String(state.photoPreviewVersion));
+        return window.TARecruitment.routes.me.applicantPhoto() + "?v=" + encodeURIComponent(String(state.photoPreviewVersion));
     }
 
     function showPhotoMessage(message, type) {
@@ -1199,7 +1215,7 @@
     }
 
     function discardPendingResume() {
-        return request(contextPath + "/applicant?draftResume=true", {
+        return request(window.TARecruitment.routes.me.resumeDraft(), {
             method: "DELETE",
             headers: {
                 "X-Requested-With": "XMLHttpRequest"
@@ -1834,6 +1850,9 @@
     }
 
     function request(url, options) {
+        if (window.TARecruitment && window.TARecruitment.api) {
+            return window.TARecruitment.api.request(url, options, { parser: parseResponse });
+        }
         return fetch(url, options).then(function (response) {
             return response.text().then(function (bodyText) {
                 return {
@@ -1994,16 +2013,31 @@
         var url = "";
         if (state.selectedResumeFile) {
             url = URL.createObjectURL(state.selectedResumeFile);
-            window.open(url, "_blank");
+            openPreviewUrl(url, true);
             return;
         }
         if (state.pendingResumePath) {
-            url = contextPath + state.pendingResumePath;
+            showResumeMessage(
+                localizeText("portal.dynamic.saveResumeBeforePreview", "Save changes before previewing the uploaded resume."),
+                "success"
+            );
+            return;
         } else if (hasSavedResume()) {
-            url = contextPath + "/applicant?asset=resume";
+            url = window.TARecruitment.routes.me.applicantResume();
         }
         if (url) {
-            window.open(url, "_blank");
+            openPreviewUrl(url, false);
+        }
+    }
+
+    function openPreviewUrl(url, openInNewTab) {
+        if (!openInNewTab) {
+            window.location.href = url;
+            return;
+        }
+        var previewWindow = window.open(url, "_blank", "noopener");
+        if (!previewWindow) {
+            window.location.href = url;
         }
     }
 

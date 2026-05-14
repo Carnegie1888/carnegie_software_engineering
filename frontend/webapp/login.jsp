@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" import="com.example.authlogin.dao.UserDao" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" import="com.example.tarecruitment.auth.dao.UserDao" %>
 <%
     UserDao.getInstance();
     String contextPath = request.getContextPath();
@@ -37,7 +37,7 @@
 
             <div id="form-message" class="form-message hidden" role="alert" aria-live="polite"></div>
 
-            <form id="login-form" class="login-form" method="post" action="<%= contextPath %>/login" novalidate>
+            <form id="login-form" class="login-form" method="post" action="<%= contextPath %>/api/auth/login" novalidate>
                 <div class="field">
                     <div class="field-label-row">
                         <label for="username" data-i18n="login.form.usernameLabel">Username or email</label>
@@ -126,6 +126,7 @@
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js?v=20260513-password-toggle" defer></script>
+    <script src="<%= contextPath %>/js/common/ta-recruitment.js?v=20260514-architecture" defer></script>
     <script src="<%= contextPath %>/js/auth/login.js?v=20260513-password-toggle" defer></script>
 </body>
 </html>

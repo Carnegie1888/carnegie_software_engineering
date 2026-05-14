@@ -189,7 +189,7 @@
         setJobLoading(true);
         hideDetailMessage();
 
-        request(contextPath + "/jobs?id=" + encodeURIComponent(state.jobId), {
+        request(window.TARecruitment.routes.jobs.detail(state.jobId), {
             method: "GET",
             headers: {
                 "X-Requested-With": "XMLHttpRequest"
@@ -310,7 +310,7 @@
             return Promise.resolve();
         }
 
-        return request(contextPath + "/apply?jobId=" + encodeURIComponent(state.jobId), {
+        return request(window.TARecruitment.routes.applications.list({ jobId: state.jobId }), {
             method: "GET",
             headers: {
                 "X-Requested-With": "XMLHttpRequest"
@@ -392,7 +392,7 @@
         formData.set("jobId", state.jobId);
         formData.set("coverLetter", coverLetter);
 
-        request(contextPath + "/apply", {
+        request(window.TARecruitment.routes.applications.create(), {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -608,7 +608,7 @@
         var formData = new URLSearchParams();
         formData.set("jobId", state.jobId);
 
-        return request(contextPath + "/api/ta/job-match-analysis", {
+        return request(window.TARecruitment.routes.ta.jobMatchAnalyses(), {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -982,6 +982,9 @@
     }
 
     function request(url, options) {
+        if (window.TARecruitment && window.TARecruitment.api) {
+            return window.TARecruitment.api.request(url, options, { parser: parseJson });
+        }
         return fetch(url, options).then(function (response) {
             return response.text().then(function (text) {
                 return {

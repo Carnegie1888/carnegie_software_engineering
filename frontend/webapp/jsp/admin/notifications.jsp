@@ -76,6 +76,7 @@
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js"></script>
+    <script src="<%= contextPath %>/js/common/ta-recruitment.js?v=20260514-architecture"></script>
     <script src="<%= contextPath %>/js/admin/admin-notifications.js"></script>
 </body>
 </html>

@@ -80,6 +80,7 @@
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js?v=20260513-workload-stats-row" defer></script>
     <script src="<%= contextPath %>/js/common/portal-i18n.js?v=20260513-workload-stats-row" defer></script>
+    <script src="<%= contextPath %>/js/common/ta-recruitment.js?v=20260514-architecture" defer></script>
     <script src="<%= contextPath %>/js/admin/admin-dashboard.js?v=20260513-workload-search-only" defer></script>
 </body>
 </html>

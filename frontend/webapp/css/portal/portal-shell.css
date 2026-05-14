@@ -274,6 +274,10 @@ body {
     white-space: nowrap;
 }
 
+.sidebar-signout-form {
+    margin: 0;
+}
+
 .sidebar-signout {
     flex-shrink: 0;
     display: inline-flex;
@@ -281,9 +285,13 @@ body {
     justify-content: center;
     width: 30px;
     height: 30px;
+    padding: 0;
     border-radius: var(--ui-radius-control);
     border: 1px solid transparent;
+    background: transparent;
     color: var(--ui-text-secondary);
+    cursor: pointer;
+    font: inherit;
     text-decoration: none;
     transition: color 0.15s, background-color 0.15s, border-color 0.15s;
 }

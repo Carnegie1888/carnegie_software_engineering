@@ -145,7 +145,7 @@
         state.approximateOnly = false;
         showMessage(t("portal.taJobList.aiSearchLoading", "AI is recommending jobs..."), "success");
 
-        request(contextPath + "/api/ta/job-ai-search", {
+        request(window.TARecruitment.routes.ta.jobRecommendations(), {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -210,8 +210,9 @@
         if (keyword) {
             params.set("keyword", keyword);
         }
-        var queryString = params.toString();
-        return contextPath + "/jobs" + (queryString ? "?" + queryString : "");
+        return window.TARecruitment.routes.jobs.list({
+            keyword: keyword
+        });
     }
 
     function renderJobs(jobs) {
@@ -541,6 +542,9 @@
     }
 
     function request(url, options) {
+        if (window.TARecruitment && window.TARecruitment.api) {
+            return window.TARecruitment.api.request(url, options, { parser: parseJson });
+        }
         return fetch(url, options).then(function (response) {
             return response.text().then(function (text) {
                 return {

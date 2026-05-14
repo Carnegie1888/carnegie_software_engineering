@@ -89,7 +89,7 @@
     }
 
     function fetchWorkloadReport() {
-        return request(contextPath + "/api/admin/workload", {
+        return request(window.TARecruitment.routes.admin.workloadStatistics(), {
             method: "GET",
             headers: { "X-Requested-With": "XMLHttpRequest" }
         }).then(function (result) {
@@ -404,6 +404,9 @@
     }
 
     function request(url, options) {
+        if (window.TARecruitment && window.TARecruitment.api) {
+            return window.TARecruitment.api.request(url, options, { parser: parseJson });
+        }
         return fetch(url, options).then(function (response) {
             return response.text().then(function (text) {
                 return {

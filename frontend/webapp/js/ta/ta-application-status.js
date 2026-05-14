@@ -115,10 +115,9 @@
     }
 
     function buildApplyUrl(keyword) {
-        if (!keyword) {
-            return contextPath + "/apply";
-        }
-        return contextPath + "/apply?keyword=" + encodeURIComponent(keyword);
+        return window.TARecruitment.routes.applications.list({
+            keyword: keyword
+        });
     }
 
     function renderList(applications) {
@@ -390,6 +389,9 @@
     }
 
     function request(url, options) {
+        if (window.TARecruitment && window.TARecruitment.api) {
+            return window.TARecruitment.api.request(url, options, { parser: parseJson });
+        }
         return fetch(url, options).then(function (response) {
             return response.text().then(function (text) {
                 return {

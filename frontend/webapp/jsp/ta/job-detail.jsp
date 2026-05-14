@@ -162,6 +162,7 @@
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js" defer></script>
     <script src="<%= contextPath %>/js/common/portal-i18n.js" defer></script>
+    <script src="<%= contextPath %>/js/common/ta-recruitment.js?v=20260514-architecture" defer></script>
     <script src="<%= contextPath %>/js/ta/ta-job-detail.js" defer></script>
 </body>
 </html>

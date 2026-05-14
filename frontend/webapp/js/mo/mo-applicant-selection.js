@@ -140,7 +140,7 @@
                 return Promise.resolve();
             }
 
-            return request(contextPath + "/api/applicants/detail?applicationId=" + encodeURIComponent(applicationId), {
+            return request(window.TARecruitment.routes.applications.applicant(applicationId), {
                 method: "GET",
                 headers: {
                     "X-Requested-With": "XMLHttpRequest"
@@ -161,7 +161,7 @@
     }
 
     function loadJobsCatalog() {
-        return request(contextPath + "/jobs", {
+        return request(window.TARecruitment.routes.jobs.list(), {
             method: "GET",
             headers: {
                 "X-Requested-With": "XMLHttpRequest"
@@ -183,7 +183,7 @@
                 });
             })
             .catch(function () {
-                // course grouping can still work with /apply payload only
+                // course grouping can still work with the applications payload only
             });
     }
 
@@ -219,10 +219,9 @@
     }
 
     function buildApplyUrl(keyword) {
-        if (!keyword) {
-            return contextPath + "/apply";
-        }
-        return contextPath + "/apply?keyword=" + encodeURIComponent(keyword);
+        return window.TARecruitment.routes.applications.list({
+            keyword: keyword
+        });
     }
 
     function renderList(applications) {
@@ -1228,7 +1227,7 @@
         var formData = new URLSearchParams();
         formData.set("applicationId", applicationId);
 
-        return request(contextPath + "/api/mo/application-match-analysis", {
+        return request(window.TARecruitment.routes.mo.applicationMatchAnalyses(), {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -1497,11 +1496,15 @@
         renderList(state.applications);
         hideMessage();
 
-        request(contextPath + "/apply?id=" + encodeURIComponent(applicationId) + "&action=" + encodeURIComponent(action), {
-            method: "PUT",
+        var formData = new URLSearchParams();
+        formData.set("action", action);
+        request(window.TARecruitment.routes.applications.transition(applicationId), {
+            method: "POST",
             headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
                 "X-Requested-With": "XMLHttpRequest"
-            }
+            },
+            body: formData.toString()
         })
             .then(function (result) {
                 var response = result.response;
@@ -1570,8 +1573,7 @@
                     "<span class=\"material-name\">" + escapeHtml(resumeName) + "</span>" +
                     "<span class=\"material-meta\">" + escapeHtml(resumeHint) + "</span>" +
                 "</div>" +
-                "<a class=\"material-view-link\" href=\"" + contextPath + "/api/applicants/resume?applicationId=" +
-                encodeURIComponent(applicationId) + "\" target=\"_blank\" rel=\"noopener\">" +
+                "<a class=\"material-view-link\" href=\"" + window.TARecruitment.routes.applications.applicantResume(applicationId) + "\" target=\"_blank\" rel=\"noopener\">" +
                 escapeHtml(viewResume) +
                 "</a>" +
             "</div>"
@@ -1641,11 +1643,15 @@
         renderList(state.applications);
         hideMessage();
 
-        request(contextPath + "/apply?id=" + encodeURIComponent(applicationId) + "&action=" + encodeURIComponent(action), {
-            method: "PUT",
+        var formData = new URLSearchParams();
+        formData.set("action", action);
+        request(window.TARecruitment.routes.applications.transition(applicationId), {
+            method: "POST",
             headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
                 "X-Requested-With": "XMLHttpRequest"
-            }
+            },
+            body: formData.toString()
         })
             .then(function (result) {
                 var response = result.response;
@@ -1762,6 +1768,9 @@
     }
 
     function request(url, options) {
+        if (window.TARecruitment && window.TARecruitment.api) {
+            return window.TARecruitment.api.request(url, options, { parser: parseJson });
+        }
         return fetch(url, options).then(function (response) {
             return response.text().then(function (text) {
                 return {

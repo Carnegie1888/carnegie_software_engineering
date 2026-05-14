@@ -278,7 +278,7 @@
 
         showJobsLoading();
 
-        request(contextPath + "/jobs?moId=" + encodeURIComponent(currentUserId), {
+        request(window.TARecruitment.routes.jobs.list({ moId: currentUserId }), {
             method: "GET",
             headers: {
                 "X-Requested-With": "XMLHttpRequest"
@@ -574,8 +574,8 @@
 
         setEditSubmitting(true);
 
-        request(contextPath + "/jobs?id=" + encodeURIComponent(state.editingJobId), {
-            method: "POST",
+        request(window.TARecruitment.routes.jobs.detail(state.editingJobId), {
+            method: "PUT",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
                 "X-Requested-With": "XMLHttpRequest"
@@ -693,7 +693,7 @@
 
         setDeleteSubmitting(true);
 
-        request(contextPath + "/jobs?id=" + encodeURIComponent(state.deletingJobId), {
+        request(window.TARecruitment.routes.jobs.detail(state.deletingJobId), {
             method: "DELETE",
             headers: {
                 "X-Requested-With": "XMLHttpRequest"
@@ -794,7 +794,7 @@
 
         setSubmitting(true);
 
-        request(contextPath + "/jobs", {
+        request(window.TARecruitment.routes.jobs.list(), {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -1200,6 +1200,9 @@
     }
 
     function request(url, options) {
+        if (window.TARecruitment && window.TARecruitment.api) {
+            return window.TARecruitment.api.request(url, options, { parser: parseJson });
+        }
         return fetch(url, options).then(function (response) {
             return response.text().then(function (text) {
                 return {
@@ -1448,8 +1451,7 @@
         }
         updateSvSearchControls();
 
-        var url = contextPath + "/apply";
-        if (svState.keyword) url += "?keyword=" + encodeURIComponent(svState.keyword);
+        var url = window.TARecruitment.routes.applications.list({ keyword: svState.keyword });
 
         request(url, { method: "GET", headers: { "X-Requested-With": "XMLHttpRequest" } })
             .then(function (result) {
@@ -1496,7 +1498,7 @@
         params.append("jobId", svState.jobId);
         params.append("query", query);
 
-        request(contextPath + "/api/mo/applicant-ai-search", {
+        request(window.TARecruitment.routes.mo.applicantRecommendations(), {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -1632,7 +1634,7 @@
         var requests = applications.map(function (app) {
             var id = app.applicationId || "";
             if (!id) return Promise.resolve();
-            return request(contextPath + "/api/applicants/detail?applicationId=" + encodeURIComponent(id), {
+            return request(window.TARecruitment.routes.applications.applicant(id), {
                 method: "GET", headers: { "X-Requested-With": "XMLHttpRequest" }
             }).then(function (result) {
                 if (result.response.ok && result.payload && result.payload.success === true) {
@@ -1686,8 +1688,7 @@
             avatarEl.textContent = "";
             avatarEl.appendChild(img);
         };
-        img.src = contextPath + "/api/applicants/photo?applicationId=" +
-                  encodeURIComponent(applicationId) + "&v=" + Date.now();
+        img.src = window.TARecruitment.routes.applications.applicantPhoto(applicationId) + "?v=" + Date.now();
     }
 
     function createSvApplicantItem(application) {
@@ -1879,8 +1880,7 @@
                 "</svg>" +
                 "<div class=\"material-info\"><span class=\"material-name\">" + escapeHtml(t("portal.moApplicantSelection.resumeDocument", "Resume")) + "</span>" +
                 "<span class=\"material-meta\">" + escapeHtml(t("portal.moApplicantSelection.resumeFormatHint", "Uploaded file")) + "</span></div>" +
-                "<a class=\"material-view-link\" href=\"" + contextPath + "/api/applicants/resume?applicationId=" +
-                encodeURIComponent(applicationId) + "\" target=\"_blank\" rel=\"noopener\">" + escapeHtml(t("portal.moApplicantSelection.viewAction", "View")) + "</a>" +
+                "<a class=\"material-view-link\" href=\"" + window.TARecruitment.routes.applications.applicantResume(applicationId) + "\" target=\"_blank\" rel=\"noopener\">" + escapeHtml(t("portal.moApplicantSelection.viewAction", "View")) + "</a>" +
             "</div>"
             : "<p class=\"detail-muted material-empty\">" + escapeHtml(t("portal.moApplicantSelection.resumeNotUploaded", "Resume not uploaded")) + "</p>";
 
@@ -2039,7 +2039,7 @@
 
         var formData = new URLSearchParams();
         formData.set("applicationId", applicationId);
-        request(contextPath + "/api/mo/application-match-analysis", {
+        request(window.TARecruitment.routes.mo.applicationMatchAnalyses(), {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8", "X-Requested-With": "XMLHttpRequest" },
             body: formData.toString()
@@ -2075,8 +2075,12 @@
         svState.reviewingId = applicationId;
         renderSvList();
 
-        request(contextPath + "/apply?id=" + encodeURIComponent(applicationId) + "&action=" + encodeURIComponent(action), {
-            method: "PUT", headers: { "X-Requested-With": "XMLHttpRequest" }
+        var formData = new URLSearchParams();
+        formData.set("action", action);
+        request(window.TARecruitment.routes.applications.transition(applicationId), {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8", "X-Requested-With": "XMLHttpRequest" },
+            body: formData.toString()
         }).then(function (result) {
             if (result.response.status === 401) { handleUnauthorized(); return; }
             if (!result.response.ok || !result.payload || result.payload.success !== true) {

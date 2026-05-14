@@ -40,7 +40,7 @@
                 <p><span data-i18n="adminInvite.contactHint.contactLabel">Contact:</span> <a href="mailto:admin@example.com" data-i18n-href="adminInvite.contactHint.contactEmail"><span data-i18n="adminInvite.contactHint.contactEmail">admin@example.com</span></a></p>
             </div>
 
-            <form id="admin-invite-form" class="register-form" method="post" action="<%= contextPath %>/api/admin/invite/accept" novalidate>
+            <form id="admin-invite-form" class="register-form" method="post" action="<%= contextPath %>/api/admin/invitations/acceptance" novalidate>
 
                 <div class="field">
                     <div class="field-label-row">
@@ -190,6 +190,7 @@
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js?v=20260513-admin-invite-i18n" defer></script>
+    <script src="<%= contextPath %>/js/common/ta-recruitment.js?v=20260514-architecture" defer></script>
     <script src="<%= contextPath %>/js/auth/admin-invite.js?v=20260513-admin-invite-i18n" defer></script>
 </body>
 </html>

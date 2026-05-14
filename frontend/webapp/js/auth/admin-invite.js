@@ -95,7 +95,7 @@
         formData.set("confirmPassword", confirmPasswordInput.value); // no trim for passwords
         formData.set("inviteCode", inviteCode);
 
-        fetch(contextPath + "/api/admin/invite/accept", {
+        fetch(window.TARecruitment.routes.admin.invitationAcceptance(), {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -216,7 +216,7 @@
             checkId = emailCheckId;
         }
 
-        var url = contextPath + "/check-available?type=" + encodeURIComponent(type) + "&value=" + encodeURIComponent(value);
+        var url = window.TARecruitment.routes.auth.availability(type, value);
         fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
             .then(function (res) { return res.json(); })
             .then(function (data) {

@@ -19,7 +19,7 @@
         rotateBtn.addEventListener("click", function () {
             rotateBtn.disabled = true;
             hideError();
-            fetch(contextPath + "/api/admin/invite/current-code", {
+            fetch(window.TARecruitment.routes.admin.currentInvitationCode(), {
                 method: "POST",
                 headers: { "X-Requested-With": "XMLHttpRequest" }
             })
@@ -42,7 +42,7 @@
 
     function fetchCurrentCode() {
         hideError();
-        fetch(contextPath + "/api/admin/invite/current-code", {
+        fetch(window.TARecruitment.routes.admin.currentInvitationCode(), {
             headers: { "X-Requested-With": "XMLHttpRequest" }
         })
             .then(function (res) {

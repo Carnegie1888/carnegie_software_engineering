@@ -40,7 +40,7 @@
 
                             <div id="form-message" class="form-message hidden" role="alert" aria-live="polite"></div>
 
-                            <form id="ta-profile-form" class="profile-form" method="post" action="<%= contextPath %>/applicant" novalidate>
+                            <form id="ta-profile-form" class="profile-form" method="post" action="<%= contextPath %>/api/me/applicant-profile" novalidate>
                                 <section class="form-section" aria-labelledby="section-basic-info">
                                     <div class="form-section-header">
                                         <h3 id="section-basic-info" data-i18n="portal.taDashboard.basicDetails">Basic details</h3>
@@ -327,6 +327,7 @@
                                             id="resume-file-trigger"
                                             class="resume-upload-card"
                                             type="button"
+                                            onclick="if (this.dataset.previewUrl) { window.location.href = this.dataset.previewUrl; return false; }"
                                         >
                                             <span id="resume-empty-state" class="resume-card-empty">
                                                 <span class="resume-card-icon resume-card-icon-upload" aria-hidden="true">
@@ -397,6 +398,7 @@
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js?v=20260326a" defer></script>
     <script src="<%= contextPath %>/js/common/portal-i18n.js?v=20260326a" defer></script>
-    <script src="<%= contextPath %>/js/ta/ta-dashboard.js?v=20260326a" defer></script>
+    <script src="<%= contextPath %>/js/common/ta-recruitment.js?v=20260514-architecture" defer></script>
+    <script src="<%= contextPath %>/js/ta/ta-dashboard.js?v=20260514-profile-fixes3" defer></script>
 </body>
 </html>

@@ -68,7 +68,7 @@
         state.loadingJobs = true;
         hideMessage();
 
-        var url = contextPath + "/jobs";
+        var url = window.TARecruitment.routes.jobs.list();
         if (currentUserId) {
             url += "?moId=" + encodeURIComponent(currentUserId);
         }
@@ -142,7 +142,7 @@
         listSummaryNode.textContent = t("portal.dynamic.loadingMatchResults", "Loading match results...");
         listNode.innerHTML = "";
 
-        var url = contextPath + "/api/mo/skill-match?jobId=" + encodeURIComponent(selectedJobId);
+        var url = window.TARecruitment.routes.mo.skillMatches(selectedJobId);
         return request(url, {
             method: "GET",
             headers: { "X-Requested-With": "XMLHttpRequest" }
@@ -453,6 +453,9 @@
     }
 
     function request(url, options) {
+        if (window.TARecruitment && window.TARecruitment.api) {
+            return window.TARecruitment.api.request(url, options, { parser: parseJson });
+        }
         return fetch(url, options).then(function (response) {
             return response.text().then(function (text) {
                 return {
