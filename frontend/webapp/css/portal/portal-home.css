@@ -1,19 +1,22 @@
-@import url("../auth/login.css");
+@import url("../common/motion.css");
 
 body {
     margin: 0;
     color: var(--ui-text-primary);
     min-height: 100vh;
-    background: #fff;
+    background:
+        radial-gradient(circle at 18px 18px, rgba(30, 95, 122, 0.065) 1px, transparent 1px),
+        var(--ui-bg);
+    background-size: 28px 28px;
 }
 
 .portal-home {
-    width: min(1100px, 100%);
+    width: 100%;
     margin: 0 auto;
-    padding: 106px 20px 44px;
+    padding: 96px 0 44px;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 0;
 }
 
 .portal-home section {
@@ -27,13 +30,13 @@ body {
     right: 0;
     z-index: 40;
     border-bottom: 1px solid rgba(229, 229, 234, 0.95);
-    background: rgba(255, 255, 255, 0.92);
-    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+    background: rgba(255, 253, 248, 0.94);
+    box-shadow: 0 2px 12px rgba(36, 33, 28, 0.08);
     backdrop-filter: blur(10px);
 }
 
 .home-header-inner {
-    width: min(1100px, calc(100% - 40px));
+    width: min(1180px, calc(100% - 40px));
     margin: 0 auto;
     display: flex;
     align-items: center;
@@ -57,11 +60,11 @@ body {
 .home-brand-mark {
     width: 34px;
     height: 34px;
-    border-radius: 10px;
+    border-radius: var(--ui-radius-control);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #0071e3 0%, #439bff 100%);
+    background: linear-gradient(135deg, var(--ui-brand) 0%, #16705c 100%);
     color: #fff;
     font-size: 12px;
     font-weight: 700;
@@ -142,15 +145,23 @@ body {
 .process-section,
 .ai-section,
 .faq-section {
-    border: 1px solid var(--ui-border);
-    border-radius: 24px;
-    background: var(--ui-surface);
-    box-shadow: var(--ui-shadow-card);
+    width: min(1180px, calc(100% - 40px));
+    margin-left: auto;
+    margin-right: auto;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
 }
 
 .home-hero {
-    padding: 40px;
-    text-align: center;
+    min-height: min(690px, calc(100vh - 118px));
+    padding: 42px 0 56px;
+    display: grid;
+    grid-template-columns: minmax(0, 0.92fr) minmax(360px, 1.08fr);
+    align-items: center;
+    gap: 42px;
+    text-align: left;
 }
 
 .hero-badge {
@@ -158,7 +169,7 @@ body {
     margin: 0;
     padding: 6px 12px;
     border-radius: 999px;
-    background: rgba(0, 113, 227, 0.1);
+    background: var(--ui-brand-soft);
     color: var(--ui-brand);
     font-size: 12px;
     font-weight: 600;
@@ -166,16 +177,17 @@ body {
 }
 
 .home-hero h1 {
-    margin: 16px auto 0;
-    max-width: 760px;
-    font-size: clamp(30px, 4.4vw, 52px);
-    line-height: 1.14;
-    letter-spacing: -1.2px;
+    margin: 16px 0 0;
+    max-width: 680px;
+    font-family: var(--ui-font-display);
+    font-size: clamp(40px, 5.2vw, 66px);
+    line-height: 1.02;
+    letter-spacing: 0;
 }
 
 .hero-subtitle {
-    margin: 16px auto 0;
-    max-width: 760px;
+    margin: 18px 0 0;
+    max-width: 620px;
     color: var(--ui-text-secondary);
     font-size: 17px;
     line-height: 1.6;
@@ -185,7 +197,7 @@ body {
     margin-top: 24px;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 10px;
     flex-wrap: wrap;
 }
@@ -206,11 +218,179 @@ body {
     text-decoration: underline;
 }
 
+.hero-console-preview {
+    border: 1px solid var(--ui-border);
+    border-radius: 14px;
+    background:
+        linear-gradient(180deg, rgba(255, 253, 248, 0.94), rgba(247, 245, 239, 0.92)),
+        var(--ui-surface);
+    box-shadow: var(--ui-shadow-float);
+    overflow: hidden;
+}
+
+.preview-window-bar {
+    min-height: 38px;
+    border-bottom: 1px solid var(--ui-border);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 14px;
+    background: rgba(42, 38, 31, 0.04);
+}
+
+.preview-window-bar span {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--ui-border-strong);
+}
+
+.preview-workflow {
+    padding: 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.preview-job-card,
+.preview-review-card,
+.preview-admin-card {
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-card);
+    background: var(--ui-surface);
+    padding: 16px;
+}
+
+.preview-job-card {
+    grid-row: span 2;
+    background:
+        linear-gradient(135deg, var(--role-ta-soft), transparent 55%),
+        var(--ui-surface);
+}
+
+.preview-review-card {
+    background:
+        linear-gradient(135deg, var(--role-mo-soft), transparent 60%),
+        var(--ui-surface);
+}
+
+.preview-admin-card {
+    background:
+        linear-gradient(135deg, var(--role-admin-soft), transparent 58%),
+        var(--ui-surface);
+}
+
+.preview-kicker {
+    margin: 0 0 10px;
+    color: var(--ui-brand);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.preview-job-card h3 {
+    margin: 0;
+    font-size: 24px;
+    line-height: 1.1;
+}
+
+.preview-job-card p:not(.preview-kicker) {
+    margin: 10px 0 0;
+    color: var(--ui-text-secondary);
+    font-size: 13px;
+}
+
+.preview-skill-row {
+    margin-top: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.preview-skill-row span {
+    border-radius: var(--ui-radius-pill);
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-border);
+    padding: 6px 9px;
+    color: var(--ui-text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.preview-candidate-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+}
+
+.preview-candidate-row + .preview-candidate-row {
+    border-top: 1px solid var(--ui-border);
+}
+
+.candidate-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--role-mo);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.preview-candidate-row strong,
+.preview-candidate-row small {
+    display: block;
+}
+
+.preview-candidate-row small,
+.preview-metrics small {
+    color: var(--ui-text-secondary);
+    font-size: 12px;
+}
+
+.preview-candidate-row b {
+    color: var(--role-mo);
+    font-size: 20px;
+}
+
+.preview-meter {
+    height: 10px;
+    border-radius: var(--ui-radius-pill);
+    background: rgba(42, 38, 31, 0.12);
+    overflow: hidden;
+}
+
+.preview-meter span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--role-admin-accent);
+}
+
+.preview-metrics {
+    margin-top: 12px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.preview-metrics strong {
+    font-size: 32px;
+    line-height: 1;
+}
+
 .home-preview,
 .process-section,
 .ai-section,
 .faq-section {
-    padding: 34px;
+    padding: 42px 0;
+    border-top: 1px solid var(--ui-border);
 }
 
 .section-head h2 {
@@ -236,9 +416,10 @@ body {
 
 .preview-card {
     padding: 18px;
-    border-radius: 16px;
-    border: 1px solid rgba(0, 113, 227, 0.14);
-    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    border-radius: var(--ui-radius-card);
+    border: 1px solid var(--ui-border);
+    background: var(--ui-surface);
+    box-shadow: var(--ui-shadow-card);
 }
 
 .preview-card h3 {
@@ -255,7 +436,12 @@ body {
 }
 
 .role-section {
-    padding: 30px;
+    padding: 34px 0;
+    border-top: 1px solid var(--ui-border);
+    display: grid;
+    grid-template-columns: minmax(220px, 0.5fr) minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 26px;
 }
 
 .role-section h2 {
@@ -398,12 +584,14 @@ body {
 
 @media (max-width: 840px) {
     .portal-home {
-        padding: 98px 14px 30px;
-        gap: 12px;
+        padding: 118px 0 30px;
     }
 
     .home-hero {
-        padding: 28px 20px;
+        min-height: auto;
+        grid-template-columns: 1fr;
+        gap: 26px;
+        padding: 28px 0 36px;
     }
 
     .home-preview,
@@ -411,12 +599,22 @@ body {
     .process-section,
     .ai-section,
     .faq-section {
-        padding: 22px 18px;
+        padding: 28px 0;
     }
 
     .preview-grid,
-    .process-grid {
+    .process-grid,
+    .preview-workflow {
         grid-template-columns: 1fr;
+    }
+
+    .preview-job-card {
+        grid-row: auto;
+    }
+
+    .role-section {
+        grid-template-columns: 1fr;
+        gap: 14px;
     }
 }
 
@@ -424,16 +622,44 @@ body {
     .home-header-inner {
         width: calc(100% - 24px);
         padding: 10px 0;
+        justify-content: flex-start;
+        gap: 10px;
+    }
+
+    .home-brand {
+        width: 100%;
     }
 
     .home-header-actions {
         width: 100%;
-        justify-content: center;
+        justify-content: flex-start;
         flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .home-header-actions .locale-switch {
+        order: 3;
+        width: 100%;
+        justify-content: center;
     }
 
     .home-link-btn {
-        width: 100%;
+        flex: 1 1 calc(50% - 4px);
+        width: auto;
+        min-width: 0;
+    }
+
+    .home-nav {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
+
+    .home-hero h1 {
+        font-size: clamp(34px, 10vw, 40px);
+        line-height: 1.06;
+        max-width: 360px;
     }
 
     .hero-subtitle {
