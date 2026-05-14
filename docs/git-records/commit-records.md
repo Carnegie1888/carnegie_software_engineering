@@ -283,3 +283,4 @@
 | `member3`  | #66    | `feat: 支持账号资料与用户名同步更新`            | ✅   | `git commit -m "feat: 支持账号资料与用户名同步更新" --author="member3 <member3@edu.com>"`            |
 | `member6`  | #67    | `refactor: 统一门户壳层与账号资料入口`          | ✅   | `git commit -m "refactor: 统一门户壳层与账号资料入口" --author="member6 <member6@edu.com>"`          |
 | `member6`  | #68    | `style: 抽取通用组件表单与动效样式`             | ✅   | `git commit -m "style: 抽取通用组件表单与动效样式" --author="member6 <member6@edu.com>"`             |
+| `member6`  | #69    | `feat: 补齐全站双语资源与服务端消息映射`        | ✅   | `git commit -m "feat: 补齐全站双语资源与服务端消息映射" --author="member6 <member6@edu.com>"`        |

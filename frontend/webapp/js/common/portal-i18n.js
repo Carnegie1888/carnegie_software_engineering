@@ -236,7 +236,7 @@
             "MO Overview - TA Hiring System": { key: "portal.page.moOverview.title" },
             "Applicant review - TA Hiring System": { key: "portal.page.moApplicantSelection.title" },
             "AI Missing Skills - TA Hiring System": { key: "portal.page.moAiMissingSkills.title" },
-            "Admin Workload Dashboard - TA Hiring System": { key: "portal.page.adminDashboard.title" },
+            "TA Workload - TA Hiring System": { key: "portal.page.adminDashboard.title" },
 
             "Sign Out": { key: "portal.action.signOut" },
             "Switch Roles": { key: "portal.action.switchRoles" },
@@ -247,7 +247,7 @@
             "Profile": { key: "portal.nav.ta.profile" },
             "Applicants": { key: "portal.nav.mo.applicants" },
             "Post Job": { key: "portal.nav.mo.postJob" },
-            "Dashboard": { key: "portal.nav.admin.dashboard" },
+            "TA Workload": { key: "portal.nav.admin.dashboard" },
             "TA Portal": { key: "portal.brand.ta" },
             "MO Portal": { key: "portal.brand.mo" },
             "Admin Portal": { key: "portal.brand.admin" },
@@ -412,7 +412,7 @@
             "Distribution by high / medium / low / none": { key: "portal.moAiMissingSkills.distributionLead" },
             "Choose a job to load missing skills insights.": { key: "portal.moAiMissingSkills.chooseJobHint" },
 
-            "Admin Workload Dashboard": { key: "portal.adminDashboard.title" },
+            "TA Workload": { key: "portal.adminDashboard.title" },
             "Track application volume and module owner review workload in one place.": { key: "portal.adminDashboard.subtitle" },
             "Start": { key: "portal.adminDashboard.start" },
             "End": { key: "portal.adminDashboard.end" },

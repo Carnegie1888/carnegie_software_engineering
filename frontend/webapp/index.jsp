@@ -7,6 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="<%= contextPath %>/js/common/locale-bootstrap.js"></script>
     <title data-i18n="index.page.title">TA Hiring Portal - Home</title>
     <link rel="stylesheet" href="<%= contextPath %>/css/portal/portal-home.css">
 </head>
@@ -42,19 +43,56 @@
     <main class="portal-home">
 
         <section id="overview" class="home-hero">
-            <p class="hero-badge" data-i18n="index.hero.badge">University TA Hiring Platform</p>
-            <h1 data-i18n="index.hero.title">Manage TA hiring in one clear workflow</h1>
-            <p class="hero-subtitle" data-i18n="index.hero.subtitle">
-                A single portal for teaching assistants, module organizers, and admins to register, apply, review, and track outcomes.
-            </p>
-            <div class="hero-actions">
-                <a class="home-link-btn primary" href="<%= contextPath %>/register.jsp" data-i18n="index.hero.primary">Get started</a>
-                <a class="home-link-btn secondary" href="<%= contextPath %>/login.jsp" data-i18n="index.hero.secondary">Sign in</a>
+            <div class="hero-copy">
+                <p class="hero-badge" data-i18n="index.hero.badge">University TA Hiring Platform</p>
+                <h1 data-i18n="index.hero.title">Manage TA hiring in one clear workflow</h1>
+                <p class="hero-subtitle" data-i18n="index.hero.subtitle">
+                    A single portal for teaching assistants, module organizers, and admins to register, apply, review, and track outcomes.
+                </p>
+                <div class="hero-actions">
+                    <a class="home-link-btn primary" href="<%= contextPath %>/register.jsp" data-i18n="index.hero.primary">Get started</a>
+                    <a class="home-link-btn secondary" href="<%= contextPath %>/login.jsp" data-i18n="index.hero.secondary">Sign in</a>
+                </div>
+                <p class="hero-admin">
+                    <span data-i18n="index.hero.adminHint">Need admin access?</span>
+                    <a href="<%= contextPath %>/admin-invite.jsp" data-i18n="index.hero.adminLink">Create admin account</a>
+                </p>
             </div>
-            <p class="hero-admin">
-                <span data-i18n="index.hero.adminHint">Need admin access?</span>
-                <a href="<%= contextPath %>/admin-invite.jsp" data-i18n="index.hero.adminLink">Create admin account</a>
-            </p>
+            <div class="hero-console-preview" aria-label="TA hiring workflow preview" data-i18n-aria-label="index.preview.workflowAriaLabel">
+                <div class="preview-window-bar" aria-hidden="true">
+                    <span></span><span></span><span></span>
+                </div>
+                <div class="preview-workflow">
+                    <article class="preview-job-card">
+                        <p class="preview-kicker" data-i18n="index.preview.jobKicker">Open TA role</p>
+                        <h3>EBU6304 Software Engineering</h3>
+                        <p data-i18n="index.preview.jobMeta">2 positions · 8 hours / week</p>
+                        <div class="preview-skill-row">
+                            <span>Java</span>
+                            <span>JSP</span>
+                            <span>SQL</span>
+                        </div>
+                    </article>
+                    <article class="preview-review-card">
+                        <p class="preview-kicker" data-i18n="index.preview.reviewKicker">MO review queue</p>
+                        <div class="preview-candidate-row">
+                            <span class="candidate-avatar">L</span>
+                            <div><strong>Li Ming</strong><small data-i18n="index.preview.candidateStrong">Strong match</small></div>
+                            <b>91</b>
+                        </div>
+                        <div class="preview-candidate-row">
+                            <span class="candidate-avatar">A</span>
+                            <div><strong>Ava Chen</strong><small data-i18n="index.preview.candidateReview">Needs review</small></div>
+                            <b>76</b>
+                        </div>
+                    </article>
+                    <article class="preview-admin-card">
+                        <p class="preview-kicker" data-i18n="index.preview.adminKicker">Admin workload</p>
+                        <div class="preview-meter"><span style="width: 72%"></span></div>
+                        <div class="preview-metrics"><strong>38</strong><small data-i18n="index.preview.activeApplications">active applications</small></div>
+                    </article>
+                </div>
+            </div>
         </section>
 
         <section class="home-preview">
