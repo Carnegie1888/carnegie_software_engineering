@@ -7,6 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="<%= contextPath %>/js/common/locale-bootstrap.js"></script>
     <title data-i18n="adminRegister.page.title">Admin Register - TA Hiring System</title>
     <link rel="stylesheet" href="<%= contextPath %>/css/auth/register.css">
 </head>

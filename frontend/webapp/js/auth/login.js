@@ -12,30 +12,41 @@
     var usernameInput = document.getElementById("username");
     var passwordInput = document.getElementById("password");
     var roleInput = document.getElementById("login-role");
-    var loginButtons = form.querySelectorAll(".login-action-btn");
+    var roleButtons = form.querySelectorAll(".role-option");
+    var loginSubmitButton = document.getElementById("login-submit");
     var messageBox = document.getElementById("form-message");
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
     var i18n = window.AppI18n && typeof window.AppI18n.t === "function" ? window.AppI18n : null;
-    var selectedRole = getNormalizedRole(roleInput ? roleInput.value : "") || "MO";
+    var selectedRole = getNormalizedRole(roleInput ? roleInput.value : "") || "TA";
 
-    setSelectedRole(selectedRole, false);
+    setupPasswordToggles();
+    setSelectedRole(selectedRole);
 
-    Array.prototype.forEach.call(loginButtons, function (button) {
+    Array.prototype.forEach.call(roleButtons, function (button) {
         button.addEventListener("click", function () {
-            setSelectedRole(button.getAttribute("data-role"), true);
+            setSelectedRole(button.getAttribute("data-role"));
             hideMessage();
+        });
+    });
+
+    // Enter key: username → password → submit
+    var loginFieldOrder = [usernameInput, passwordInput];
+    Array.prototype.forEach.call(loginFieldOrder, function (input, idx) {
+        if (!input) return;
+        input.addEventListener("keydown", function (event) {
+            if (event.key !== "Enter" || event.isComposing) return;
+            event.preventDefault();
+            var next = loginFieldOrder[idx + 1];
+            if (next) {
+                next.focus();
+            } else {
+                handleLogin(selectedRole);
+            }
         });
     });
 
     form.addEventListener("submit", function (event) {
         event.preventDefault();
-
-        var submitter = event.submitter || document.activeElement;
-        var submitterRole = getNormalizedRole(submitter && submitter.getAttribute ? submitter.getAttribute("data-role") : "");
-        if (submitterRole) {
-            setSelectedRole(submitterRole, true);
-        }
-
         handleLogin(selectedRole);
     });
 
@@ -66,11 +77,12 @@
                 var payload = result.payload;
 
                 if (!payload || payload.success !== true || !response.ok) {
-                    var errorMessage = t("login.msg.failed", "Login failed. Please check your username and password.");
-                    if (payload && typeof payload.message === "string" && payload.message.trim()) {
-                        errorMessage = payload.message.trim();
+                    var status = response.status;
+                    if (status === 400 || status === 403) {
+                        showMessage(t("login.msg.roleError", "Role selection error."), "error");
+                    } else {
+                        showMessage(t("login.msg.credentialError", "Username/email or password is incorrect."), "error");
                     }
-                    showMessage(errorMessage, "error");
                     return;
                 }
 
@@ -91,73 +103,47 @@
     }
 
     function setSubmitting(submitting) {
-        Array.prototype.forEach.call(loginButtons, function (button) {
+        Array.prototype.forEach.call(roleButtons, function (button) {
             button.disabled = submitting;
         });
+        if (loginSubmitButton) {
+            loginSubmitButton.disabled = submitting;
+            loginSubmitButton.textContent = submitting
+                ? t("login.msg.loggingIn", "Logging in...")
+                : t("login.form.submit", "Log in");
+        }
     }
 
     function handleLogin(role) {
         hideMessage();
 
+        var normalizedRole = getNormalizedRole(role);
+        if (!normalizedRole) {
+            showMessage(t("login.msg.roleError", "Role selection error."), "error");
+            return;
+        }
+
         var identifier = getTrimmedValue(usernameInput);
         var password = getTrimmedValue(passwordInput);
 
-        if (!identifier) {
-            showMessage(t("login.msg.enterIdentifier", "Please enter your username or email."), "error");
-            usernameInput.focus();
-            return;
-        }
+        var credentialInvalid =
+            !identifier ||
+            identifier.length > LOGIN_IDENTIFIER_MAX_LENGTH ||
+            containsControlChars(identifier) ||
+            containsDangerousMarkup(identifier) ||
+            (identifier.indexOf("@") >= 0 ? !isValidEmailAddress(identifier) : !USERNAME_PATTERN.test(identifier)) ||
+            !password ||
+            password.length < PASSWORD_MIN_LENGTH ||
+            password.length > PASSWORD_MAX_LENGTH ||
+            containsControlChars(password);
 
-        if (identifier.length > LOGIN_IDENTIFIER_MAX_LENGTH) {
-            showMessage(t("login.msg.identifierTooLong", "Username or email is too long."), "error");
-            usernameInput.focus();
-            return;
-        }
-
-        if (containsControlChars(identifier) || containsDangerousMarkup(identifier)) {
-            showMessage(t("login.msg.identifierUnsupported", "Username or email contains unsupported characters."), "error");
-            usernameInput.focus();
-            return;
-        }
-
-        if (identifier.indexOf("@") >= 0) {
-            if (!isValidEmailAddress(identifier)) {
-                showMessage(t("login.msg.invalidEmail", "Please enter a valid email address."), "error");
-                usernameInput.focus();
-                return;
-            }
-        } else if (!USERNAME_PATTERN.test(identifier)) {
-            showMessage(t("login.msg.invalidUsername", "Username must start with a letter and contain 3-20 letters, numbers, or underscores."), "error");
-            usernameInput.focus();
-            return;
-        }
-
-        if (!password) {
-            showMessage(t("login.msg.enterPassword", "Please enter your password."), "error");
-            passwordInput.focus();
-            return;
-        }
-
-        if (password.length < PASSWORD_MIN_LENGTH) {
-            showMessage(t("login.msg.passwordTooShort", "Password must be at least 6 characters."), "error");
-            passwordInput.focus();
-            return;
-        }
-
-        if (password.length > PASSWORD_MAX_LENGTH) {
-            showMessage(t("login.msg.passwordTooLong", "Password is too long."), "error");
-            passwordInput.focus();
-            return;
-        }
-
-        if (containsControlChars(password)) {
-            showMessage(t("login.msg.passwordUnsupported", "Password contains unsupported characters."), "error");
-            passwordInput.focus();
+        if (credentialInvalid) {
+            showMessage(t("login.msg.credentialError", "Username/email or password is incorrect."), "error");
             return;
         }
 
         setSubmitting(true);
-        submitLogin(identifier, password, role)
+        submitLogin(identifier, password, normalizedRole)
             .catch(function () {
                 showMessage(t("login.msg.networkError", "Network error. Please try again."), "error");
             })
@@ -166,7 +152,7 @@
             });
     }
 
-    function setSelectedRole(role, shouldHighlight) {
+    function setSelectedRole(role) {
         var normalizedRole = getNormalizedRole(role);
         if (!normalizedRole) {
             return;
@@ -177,10 +163,11 @@
             roleInput.value = normalizedRole;
         }
 
-        Array.prototype.forEach.call(loginButtons, function (button) {
+        Array.prototype.forEach.call(roleButtons, function (button) {
             var buttonRole = getNormalizedRole(button.getAttribute("data-role"));
-            var isSelected = Boolean(shouldHighlight) && buttonRole === normalizedRole;
+            var isSelected = buttonRole === normalizedRole;
             button.classList.toggle("is-selected", isSelected);
+            button.setAttribute("aria-pressed", isSelected ? "true" : "false");
         });
     }
 
@@ -256,6 +243,30 @@
 
     function parseLoginResponse(bodyText) {
         return JSON.parse(bodyText);
+    }
+
+    function setupPasswordToggles() {
+        var buttons = form.querySelectorAll("[data-password-toggle]");
+        Array.prototype.forEach.call(buttons, function (button) {
+            var wrapper = button.closest(".password-input-wrap");
+            var input = wrapper ? wrapper.querySelector("input") : null;
+            if (!input) return;
+
+            button.addEventListener("click", function () {
+                var shouldShow = input.type === "password";
+                input.type = shouldShow ? "text" : "password";
+                button.setAttribute("aria-label", shouldShow
+                    ? t("common.password.hide", "Hide password")
+                    : t("common.password.show", "Show password"));
+
+                var eye = button.querySelector(".password-toggle-eye");
+                var eyeOff = button.querySelector(".password-toggle-eye-off");
+                if (eye) eye.hidden = shouldShow;
+                if (eyeOff) eyeOff.hidden = !shouldShow;
+
+                input.focus({ preventScroll: true });
+            });
+        });
     }
 
     function t(key, fallback) {

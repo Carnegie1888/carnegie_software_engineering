@@ -7,8 +7,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="<%= contextPath %>/js/common/locale-bootstrap.js?v=20260513-password-toggle"></script>
     <title data-i18n="register.page.title">Register - TA Hiring System</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/auth/register.css">
+    <link rel="stylesheet" href="<%= contextPath %>/css/auth/register.css?v=20260513-password-toggle">
 </head>
 <body>
     <main class="register-page">
@@ -38,6 +39,10 @@
                 <div class="field">
                     <div class="field-label-row">
                         <label for="username" data-i18n="register.form.usernameLabel">Username</label>
+                        <button type="button" class="field-info-btn" aria-label="Username rules" data-i18n-aria-label="register.form.usernameInfoAria">
+                            <span aria-hidden="true">i</span>
+                            <span class="field-tooltip" data-i18n="register.form.usernameTooltip">3-20 characters, start with a letter, letters/numbers/underscore only.</span>
+                        </button>
                     </div>
                     <input
                         id="username"
@@ -49,12 +54,16 @@
                         maxlength="20"
                         required
                     >
-                    <p class="field-hint" data-i18n="register.form.usernameHint">3-20 characters, start with a letter, and use only letters, numbers, or underscores.</p>
+                    <p class="field-error" id="username-error" role="alert" aria-live="polite"></p>
                 </div>
 
                 <div class="field">
                     <div class="field-label-row">
                         <label for="email" data-i18n="register.form.emailLabel">Email address</label>
+                        <button type="button" class="field-info-btn" aria-label="Email rules" data-i18n-aria-label="register.form.emailInfoAria">
+                            <span aria-hidden="true">i</span>
+                            <span class="field-tooltip" data-i18n="register.form.emailTooltip">Enter a valid email address (e.g. name@university.edu).</span>
+                        </button>
                     </div>
                     <input
                         id="email"
@@ -67,39 +76,77 @@
                         inputmode="email"
                         required
                     >
+                    <p class="field-error" id="email-error" role="alert" aria-live="polite"></p>
                 </div>
 
                 <div class="field">
                     <div class="field-label-row">
                         <label for="password" data-i18n="register.form.passwordLabel">Password</label>
+                        <button type="button" class="field-info-btn" aria-label="Password rules" data-i18n-aria-label="register.form.passwordInfoAria">
+                            <span aria-hidden="true">i</span>
+                            <span class="field-tooltip" data-i18n="register.form.passwordTooltip">At least 6 characters.</span>
+                        </button>
                     </div>
-                    <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        placeholder="Create a password"
-                        data-i18n-placeholder="register.form.passwordPlaceholder"
-                        autocomplete="new-password"
-                        maxlength="100"
-                        required
-                    >
-                    <p class="field-hint" data-i18n="register.form.passwordHint">Use at least 6 characters.</p>
+                    <div class="password-input-wrap">
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            placeholder="Create a password"
+                            data-i18n-placeholder="register.form.passwordPlaceholder"
+                            autocomplete="new-password"
+                            maxlength="100"
+                            required
+                        >
+                        <button type="button" class="password-toggle" data-password-toggle aria-label="Show password" data-i18n-aria-label="common.password.show">
+                            <svg class="password-toggle-eye" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M2.75 12s3.25-6 9.25-6s9.25 6 9.25 6-3.25 6-9.25 6-9.25-6-9.25-6z"></path>
+                                <circle cx="12" cy="12" r="2.6"></circle>
+                            </svg>
+                            <svg class="password-toggle-eye-off" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden>
+                                <path d="M3 3l18 18"></path>
+                                <path d="M10.6 10.6A2.6 2.6 0 0 0 12 14.6c.7 0 1.35-.28 1.82-.74"></path>
+                                <path d="M7.1 7.6C4.28 9.22 2.75 12 2.75 12s3.25 6 9.25 6c1.7 0 3.18-.48 4.43-1.18"></path>
+                                <path d="M12 6c6 0 9.25 6 9.25 6a16.3 16.3 0 0 1-2.54 3.3"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="field-error" id="password-error" role="alert" aria-live="polite"></p>
                 </div>
 
                 <div class="field">
                     <div class="field-label-row">
                         <label for="confirm-password" data-i18n="register.form.confirmLabel">Confirm password</label>
+                        <button type="button" class="field-info-btn" aria-label="Confirm password rules" data-i18n-aria-label="register.form.confirmInfoAria">
+                            <span aria-hidden="true">i</span>
+                            <span class="field-tooltip" data-i18n="register.form.confirmTooltip">Re-enter the password you created above.</span>
+                        </button>
                     </div>
-                    <input
-                        id="confirm-password"
-                        name="confirmPassword"
-                        type="password"
-                        placeholder="Re-enter your password"
-                        data-i18n-placeholder="register.form.confirmPlaceholder"
-                        autocomplete="new-password"
-                        maxlength="100"
-                        required
-                    >
+                    <div class="password-input-wrap">
+                        <input
+                            id="confirm-password"
+                            name="confirmPassword"
+                            type="password"
+                            placeholder="Re-enter your password"
+                            data-i18n-placeholder="register.form.confirmPlaceholder"
+                            autocomplete="new-password"
+                            maxlength="100"
+                            required
+                        >
+                        <button type="button" class="password-toggle" data-password-toggle aria-label="Show password" data-i18n-aria-label="common.password.show">
+                            <svg class="password-toggle-eye" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M2.75 12s3.25-6 9.25-6s9.25 6 9.25 6-3.25 6-9.25 6-9.25-6-9.25-6z"></path>
+                                <circle cx="12" cy="12" r="2.6"></circle>
+                            </svg>
+                            <svg class="password-toggle-eye-off" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden>
+                                <path d="M3 3l18 18"></path>
+                                <path d="M10.6 10.6A2.6 2.6 0 0 0 12 14.6c.7 0 1.35-.28 1.82-.74"></path>
+                                <path d="M7.1 7.6C4.28 9.22 2.75 12 2.75 12s3.25 6 9.25 6c1.7 0 3.18-.48 4.43-1.18"></path>
+                                <path d="M12 6c6 0 9.25 6 9.25 6a16.3 16.3 0 0 1-2.54 3.3"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="field-error" id="confirm-password-error" role="alert" aria-live="polite"></p>
                 </div>
 
                 <div class="field role-field">
@@ -148,7 +195,7 @@
     <script>
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
-    <script src="<%= contextPath %>/js/common/i18n.js" defer></script>
-    <script src="<%= contextPath %>/js/auth/register.js" defer></script>
+    <script src="<%= contextPath %>/js/common/i18n.js?v=20260513-password-toggle" defer></script>
+    <script src="<%= contextPath %>/js/auth/register.js?v=20260513-password-toggle" defer></script>
 </body>
 </html>
