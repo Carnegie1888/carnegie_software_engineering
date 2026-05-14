@@ -34,12 +34,24 @@
     var MAX_RESUME_SIZE = 10 * 1024 * 1024;
     var ALLOWED_PHOTO_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
     var MAX_PHOTO_SIZE = 5 * 1024 * 1024;
+    var SKILL_SEPARATOR_PATTERN = /[,，]/;
+    var UNSUPPORTED_SKILL_SEPARATOR_PATTERN = /[;；、|]/;
 
     function localizeText(key, fallback) {
         if (window.AppI18n && typeof window.AppI18n.t === "function") {
             return window.AppI18n.t(key, fallback || key);
         }
         return fallback || key;
+    }
+
+    function localizeServerMessage(message, fallbackKey, fallbackText) {
+        if (window.AppI18n && typeof window.AppI18n.localizeServerMessage === "function") {
+            return window.AppI18n.localizeServerMessage(message, fallbackKey, fallbackText);
+        }
+        if (typeof message === "string" && message.trim()) {
+            return message.trim();
+        }
+        return fallbackKey ? localizeText(fallbackKey, fallbackText) : (fallbackText || "");
     }
 
     var inputs = {
@@ -142,7 +154,11 @@
             if (resumeFileTrigger.disabled) {
                 return;
             }
-            resumeFileInput.click();
+            if (resumeUploadShell && resumeUploadShell.classList.contains("is-filled")) {
+                openResumePreview();
+            } else {
+                resumeFileInput.click();
+            }
         });
     }
 
@@ -163,7 +179,11 @@
             if (photoFileTrigger.disabled) {
                 return;
             }
-            photoFileInput.click();
+            if (photoUploadShell && photoUploadShell.classList.contains("is-filled")) {
+                openPhotoLightbox();
+            } else {
+                photoFileInput.click();
+            }
         });
     }
 
@@ -175,6 +195,7 @@
         });
     }
 
+    setupSharedRealNameSync();
     refreshResumeArea();
     refreshPhotoArea();
     loadExistingProfile({ silentWhenMissing: true });
@@ -190,7 +211,7 @@
 
         var validationError = validateForm();
         if (validationError) {
-            showMessage(localizeText("portal.dynamic.fixHighlightedFields", "Please fix the highlighted fields and try again."), "error");
+            showValidationSummaryMessage();
             if (validationError.field && typeof validationError.field.focus === "function") {
                 validationError.field.focus();
             }
@@ -199,13 +220,13 @@
 
         validationError = validateResumeRequirement();
         if (validationError) {
-            showMessage(validationError.message, "error");
+            showMessage(validationError.message, "error", true);
             return;
         }
 
         validationError = validatePhotoSelection();
         if (validationError) {
-            showMessage(validationError.message, "error");
+            showMessage(validationError.message, "error", true);
             return;
         }
 
@@ -229,7 +250,7 @@
                 if (!response.ok || !payload || payload.success !== true) {
                     var errorMessage = localizeText("portal.dynamic.unableCreateProfile", "Unable to create your profile. Please review the form and try again.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
-                        errorMessage = payload.message.trim();
+                        errorMessage = localizeServerMessage(payload.message, "portal.dynamic.unableCreateProfile", errorMessage);
                     }
                     showMessage(errorMessage, "error");
                     return;
@@ -284,7 +305,7 @@
                     enableCreateMode();
                     var errorMessage = localizeText("portal.dynamic.unableCheckProfile", "Unable to load your current profile. You can still create one below.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
-                        errorMessage = payload.message.trim();
+                        errorMessage = localizeServerMessage(payload.message, "portal.dynamic.unableCheckProfile", errorMessage);
                     }
                     showMessage(errorMessage, "error");
                     return;
@@ -309,7 +330,7 @@
 
         var validationError = validateForm();
         if (validationError) {
-            showMessage(localizeText("portal.dynamic.fixHighlightedFields", "Please fix the highlighted fields and try again."), "error");
+            showValidationSummaryMessage();
             if (validationError.field && typeof validationError.field.focus === "function") {
                 validationError.field.focus();
             }
@@ -318,13 +339,13 @@
 
         validationError = validateResumeRequirement();
         if (validationError) {
-            showMessage(validationError.message, "error");
+            showMessage(validationError.message, "error", true);
             return;
         }
 
         validationError = validatePhotoSelection();
         if (validationError) {
-            showMessage(validationError.message, "error");
+            showMessage(validationError.message, "error", true);
             return;
         }
 
@@ -349,7 +370,7 @@
                 if (!response.ok || !payload || payload.success !== true) {
                     var errorMessage = localizeText("portal.dynamic.unableUpdateProfile", "Unable to update your profile. Please review the form and try again.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
-                        errorMessage = payload.message.trim();
+                        errorMessage = localizeServerMessage(payload.message, "portal.dynamic.unableUpdateProfile", errorMessage);
                     }
                     showMessage(errorMessage, "error");
                     return;
@@ -453,6 +474,7 @@
         syncResumeDraftState(payload);
 
         setFieldValue(inputs.fullName, payload.fullName);
+        announceTaProfileRealName(payload.fullName || "");
         setFieldValue(inputs.studentId, payload.studentId);
         setFieldValue(inputs.department, payload.department);
         setSelectValue(inputs.program, payload.program);
@@ -731,13 +753,13 @@
                 if (status === 401) {
                     handleUnauthorized();
                     var unauthorizedError = new Error("Unauthorized.");
-                    unauthorizedError.userMessage = "Your session has expired. Redirecting to login...";
+                    unauthorizedError.userMessage = localizeText("portal.dynamic.sessionExpiredRedirect", "Your session has expired. Redirecting to login...");
                     throw unauthorizedError;
                 }
 
                 if (status < 200 || status >= 300 || !payload || payload.success !== true) {
                     var serverMessage = payload && typeof payload.message === "string" && payload.message.trim()
-                        ? payload.message.trim()
+                        ? localizeServerMessage(payload.message, "portal.dynamic.resumeUploadFailed", localizeText("portal.dynamic.resumeUploadFailed", "Resume upload failed. Please try again."))
                         : localizeText("portal.dynamic.resumeUploadFailed", "Resume upload failed. Please try again.");
                     var uploadError = new Error(serverMessage);
                     uploadError.userMessage = serverMessage;
@@ -872,7 +894,7 @@
         var activeResumeCard = buildActiveResumeCard();
 
         if (resumeFileTrigger) {
-            resumeFileTrigger.disabled = !resumeSectionEditable;
+            resumeFileTrigger.disabled = !resumeSectionEditable && !activeResumeCard;
         }
         if (resumeFileInput) {
             resumeFileInput.disabled = !resumeSectionEditable;
@@ -1055,7 +1077,7 @@
         var activePhotoCard = buildActivePhotoCard();
 
         if (photoFileTrigger) {
-            photoFileTrigger.disabled = !photoSectionEditable;
+            photoFileTrigger.disabled = !photoSectionEditable && !activePhotoCard;
         }
         if (photoFileInput) {
             photoFileInput.disabled = !photoSectionEditable;
@@ -1081,7 +1103,7 @@
                 if (photoPreviewImage.getAttribute("src") !== activePhotoCard.previewUrl) {
                     photoPreviewImage.src = activePhotoCard.previewUrl;
                 }
-                photoPreviewImage.alt = activePhotoCard.name || "Profile photo";
+                photoPreviewImage.alt = activePhotoCard.name || localizeText("portal.taDashboard.profilePhotoAlt", "Profile photo");
             } else {
                 photoPreviewImage.removeAttribute("src");
                 photoPreviewImage.alt = "";
@@ -1101,6 +1123,8 @@
             photoRemoveButton.classList.toggle("hidden", !canRemoveCurrentPhoto);
             photoRemoveButton.disabled = !canRemoveCurrentPhoto;
         }
+
+        syncNavAvatar();
     }
 
     function buildActivePhotoCard() {
@@ -1187,13 +1211,13 @@
             if (response.status === 401) {
                 handleUnauthorized();
                 var unauthorizedError = new Error("Unauthorized.");
-                unauthorizedError.userMessage = "Your session has expired. Redirecting to login...";
+                unauthorizedError.userMessage = localizeText("portal.dynamic.sessionExpiredRedirect", "Your session has expired. Redirecting to login...");
                 throw unauthorizedError;
             }
 
             if (!response.ok || !payload || payload.success !== true) {
                 var errorMessage = payload && typeof payload.message === "string" && payload.message.trim()
-                    ? payload.message.trim()
+                    ? localizeServerMessage(payload.message, "portal.dynamic.resumeDiscardFailed", localizeText("portal.dynamic.resumeDiscardFailed", "Unable to discard the pending resume. Please try again."))
                     : localizeText("portal.dynamic.resumeDiscardFailed", "Unable to discard the pending resume. Please try again.");
                 var discardError = new Error(errorMessage);
                 discardError.userMessage = errorMessage;
@@ -1238,13 +1262,13 @@
     function validateForm() {
         var firstError = null;
 
-        Object.keys(inputs).forEach(function (key) {
+        orderedInputKeys.forEach(function (key) {
             if (!inputs[key]) {
                 return;
             }
 
             fieldValidationState.touchedByKey[key] = true;
-            var result = validateSingleField(key, { forceRequired: true });
+            var result = validateSingleField(key, { forceRequired: true, animate: true });
             if (!firstError && result && result.message) {
                 firstError = buildValidationError(result.message, result.field);
             }
@@ -1264,16 +1288,18 @@
             fieldValidationState.touchedByKey[key] = false;
 
             field.addEventListener("blur", function () {
-                if (state.hasExistingProfile || field.disabled) {
+                if (!canValidateField(field)) {
                     return;
                 }
+                var value = typeof field.value === "string" ? field.value.trim() : "";
+                if (!value) return;
                 fieldValidationState.touchedByKey[key] = true;
                 validateSingleField(key, { forceRequired: true });
             });
 
             if (field.tagName === "SELECT") {
                 field.addEventListener("change", function () {
-                    if (state.hasExistingProfile || field.disabled) {
+                    if (!canValidateField(field)) {
                         return;
                     }
                     validateSingleField(key, {
@@ -1284,7 +1310,7 @@
             }
 
             field.addEventListener("input", function () {
-                if (state.hasExistingProfile || field.disabled) {
+                if (!canValidateField(field)) {
                     return;
                 }
                 validateSingleField(key, {
@@ -1293,7 +1319,7 @@
             });
 
             field.addEventListener("change", function () {
-                if (state.hasExistingProfile || field.disabled) {
+                if (!canValidateField(field)) {
                     return;
                 }
                 validateSingleField(key, {
@@ -1314,8 +1340,8 @@
                 return;
             }
 
-            // Keep native Enter behavior for multiline input.
-            if (target.tagName === "TEXTAREA") {
+            // Shift+Enter keeps native multiline editing; Enter alone moves forward.
+            if (target.tagName === "TEXTAREA" && event.shiftKey) {
                 return;
             }
 
@@ -1327,21 +1353,22 @@
             // Avoid accidental submit from Enter while filling fields.
             event.preventDefault();
 
-            if (state.hasExistingProfile || state.isLoading || state.isSubmitting || target.disabled) {
+            if (!isProfileFormEditable() || target.disabled) {
                 return;
             }
 
-            var key = getFieldKeyByElement(target);
-            if (key) {
-                fieldValidationState.touchedByKey[key] = true;
-                var result = validateSingleField(key, { forceRequired: true });
-                if (result && result.message) {
-                    return;
-                }
+            if (!focusNextFormControl(target)) {
+                submitFormFromEnter();
             }
-
-            focusNextFormControl(target);
         });
+    }
+
+    function isProfileFormEditable() {
+        return (!state.hasExistingProfile || state.isEditing) && !state.isLoading && !state.isSubmitting;
+    }
+
+    function canValidateField(field) {
+        return !!field && isProfileFormEditable() && !field.disabled;
     }
 
     function getFieldKeyByElement(element) {
@@ -1363,13 +1390,10 @@
                 orderedControls.push(inputs[key]);
             }
         });
-        if (submitButton) {
-            orderedControls.push(submitButton);
-        }
 
         var currentIndex = orderedControls.indexOf(current);
         if (currentIndex < 0) {
-            return;
+            return false;
         }
 
         var next;
@@ -1380,8 +1404,23 @@
                 continue;
             }
             next.focus();
+            return true;
+        }
+
+        return false;
+    }
+
+    function submitFormFromEnter() {
+        if (!submitButton || submitButton.disabled) {
             return;
         }
+
+        if (typeof form.requestSubmit === "function") {
+            form.requestSubmit(submitButton);
+            return;
+        }
+
+        submitButton.click();
     }
 
     function ensureFieldFeedbackNode(key, field) {
@@ -1430,7 +1469,7 @@
         });
     }
 
-    function setFieldValidationResult(key, message) {
+    function setFieldValidationResult(key, message, animate) {
         var field = inputs[key];
         var feedback = fieldValidationState.feedbackByKey[key];
         if (!field || !feedback) {
@@ -1442,12 +1481,20 @@
             feedback.classList.add("is-visible");
             field.classList.add("is-invalid");
             field.setAttribute("aria-invalid", "true");
+            if (animate) {
+                field.classList.remove("is-flashing");
+                requestAnimationFrame(function () {
+                    requestAnimationFrame(function () {
+                        field.classList.add("is-flashing");
+                    });
+                });
+            }
             return;
         }
 
         feedback.textContent = "";
         feedback.classList.remove("is-visible");
-        field.classList.remove("is-invalid");
+        field.classList.remove("is-invalid", "is-flashing");
         field.removeAttribute("aria-invalid");
     }
 
@@ -1467,14 +1514,19 @@
 
         var settings = options || {};
         var forceRequired = settings.forceRequired === true;
+        var animate = settings.animate === true;
         var value = typeof field.value === "string" ? field.value.trim() : "";
         var message = getFieldValidationMessage(key, value, forceRequired);
-        setFieldValidationResult(key, message);
+        setFieldValidationResult(key, message, animate);
 
         return {
             field: field,
             message: message
         };
+    }
+
+    function tv(key, fallback) {
+        return localizeText("portal.taDashboard.validation." + key, fallback);
     }
 
     function getFieldValidationMessage(key, value, forceRequired) {
@@ -1489,30 +1541,30 @@
             || key === "motivation";
         if (isRequired && forceRequired && !value) {
             if (key === "fullName") {
-                return "Please enter your full name.";
+                return tv("fullName.required", "Please enter your full name.");
             }
             if (key === "studentId") {
-                return "Please enter your student ID.";
+                return tv("studentId.required", "Please enter your student ID.");
             }
             if (key === "department") {
-                return "Please enter your department.";
+                return tv("department.required", "Please enter your department.");
             }
             if (key === "program") {
-                return "Please select your program.";
+                return tv("program.required", "Please select your program.");
             }
             if (key === "gpa") {
-                return "Please enter your GPA.";
+                return tv("gpa.required", "Please enter your GPA.");
             }
             if (key === "phone") {
-                return "Please enter your phone number.";
+                return tv("phone.required", "Please enter your phone number.");
             }
             if (key === "skills") {
-                return "Please enter at least one skill.";
+                return tv("skills.required", "Please enter at least one skill.");
             }
             if (key === "experience") {
-                return "Please describe your related experience.";
+                return tv("experience.required", "Please describe your related experience.");
             }
-            return "Please explain your motivation.";
+            return tv("motivation.required", "Please explain your motivation.");
         }
 
         if (!value) {
@@ -1521,102 +1573,102 @@
 
         if (key === "fullName") {
             if (value.length > 100) {
-                return "Full name must be 100 characters or fewer.";
+                return tv("fullName.tooLong", "Full name must be 100 characters or fewer.");
             }
             if (value.length < 2) {
-                return "Full name must be at least 2 characters.";
+                return tv("fullName.tooShort", "Full name must be at least 2 characters.");
             }
             if (!hasLetterOrCjk(value)) {
-                return "Full name must include at least one letter.";
+                return tv("fullName.noLetter", "Full name must include at least one letter.");
             }
             if (!/^[A-Za-z\u00C0-\u024F\u4E00-\u9FFF\s.'-]+$/.test(value)) {
-                return "Full name may only include letters, spaces, apostrophes, periods, and hyphens.";
+                return tv("fullName.invalidChars", "Full name may only include letters, spaces, apostrophes, periods, and hyphens.");
             }
             if (hasExcessiveRepeatedChars(value, 4)) {
-                return "Full name contains too many repeated characters.";
+                return tv("fullName.tooManyRepeated", "Full name contains too many repeated characters.");
             }
             return "";
         }
 
         if (key === "studentId") {
             if (!/^\d{10}$/.test(value)) {
-                return "Student ID must be exactly 10 digits, for example 2023213039.";
+                return tv("studentId.notTenDigits", "Student ID must be exactly 10 digits, for example 2023213039.");
             }
             if (!/^20\d{8}$/.test(value)) {
-                return "Student ID should start with 20, for example 2023213051.";
+                return tv("studentId.notStartWith20", "Student ID should start with 20, for example 2023213051.");
             }
             var intakeYear = parseInt(value.substring(0, 4), 10);
             if (isNaN(intakeYear) || intakeYear < 2010 || intakeYear > 2099) {
-                return "Student ID year appears invalid. Please check the first 4 digits.";
+                return tv("studentId.invalidYear", "Student ID year appears invalid. Please check the first 4 digits.");
             }
             if (/^(\d)\1{9}$/.test(value)) {
-                return "Student ID appears invalid. Please check your official 10-digit student number.";
+                return tv("studentId.allSameDigit", "Student ID appears invalid. Please check your official 10-digit student number.");
             }
             return "";
         }
 
         if (key === "department") {
             if (value.length > 100) {
-                return "Department must be 100 characters or fewer.";
+                return tv("department.tooLong", "Department must be 100 characters or fewer.");
             }
             if (value.length < 2) {
-                return "Department must be at least 2 characters.";
+                return tv("department.tooShort", "Department must be at least 2 characters.");
             }
             if (!hasLetterOrCjk(value)) {
-                return "Department should include letters.";
+                return tv("department.noLetter", "Department should include letters.");
             }
             if (!/^[A-Za-z0-9\u00C0-\u024F\u4E00-\u9FFF\s&(),./'-]+$/.test(value)) {
-                return "Department contains unsupported characters.";
+                return tv("department.invalidChars", "Department contains unsupported characters.");
             }
             if (hasExcessiveRepeatedChars(value, 6)) {
-                return "Department contains too many repeated characters.";
+                return tv("department.tooManyRepeated", "Department contains too many repeated characters.");
             }
             return "";
         }
 
         if (key === "program") {
             if (["Undergraduate", "Master", "PhD"].indexOf(value) === -1) {
-                return "Please select a valid program option.";
+                return tv("program.invalidOption", "Please select a valid program option.");
             }
             return "";
         }
 
         if (key === "gpa") {
             if (value.length > 20) {
-                return "GPA must be 20 characters or fewer.";
+                return tv("gpa.tooLong", "GPA must be 20 characters or fewer.");
             }
             if (!/^[0-9.,/\s]+$/.test(value)) {
-                return "GPA may only include digits, spaces, decimal separators, and '/'.";
+                return tv("gpa.invalidChars", "GPA may only include digits, spaces, decimal separators, and '/'.");
             }
 
             var normalized = value.replace(/\s+/g, "").replace(/,/g, ".");
             if (normalized.split("/").length > 2) {
-                return "GPA format is invalid. Use one optional '/'.";
+                return tv("gpa.multipleSlash", "GPA format is invalid. Use one optional '/'.");
             }
             var parts = normalized.split("/");
             if (!/^\d{1,3}(\.\d{1,2})?$/.test(parts[0])) {
-                return "GPA value supports up to 2 decimal places.";
+                return tv("gpa.invalidValue", "GPA value supports up to 2 decimal places.");
             }
 
             var actual = parseFloat(parts[0]);
             if (isNaN(actual) || actual < 0) {
-                return "GPA cannot be negative.";
+                return tv("gpa.negative", "GPA cannot be negative.");
             }
 
             if (parts.length === 2) {
                 if (!/^\d{1,3}(\.\d{1,2})?$/.test(parts[1])) {
-                    return "GPA scale supports up to 2 decimal places.";
+                    return tv("gpa.invalidScale", "GPA scale supports up to 2 decimal places.");
                 }
                 var scale = parseFloat(parts[1]);
                 if (isNaN(scale) || scale < 4 || scale > 100) {
-                    return "GPA scale should be between 4 and 100.";
+                    return tv("gpa.scaleOutOfRange", "GPA scale should be between 4 and 100.");
                 }
                 if (actual > scale) {
-                    return "GPA value cannot be greater than the GPA scale.";
+                    return tv("gpa.valueExceedsScale", "GPA value cannot be greater than the GPA scale.");
                 }
             } else {
                 if (actual > 4.3) {
-                    return "For GPA above 4.3, please include scale (for example 85/100).";
+                    return tv("gpa.tooHighWithoutScale", "For GPA above 4.3, please include scale (for example 85/100).");
                 }
             }
             return "";
@@ -1624,13 +1676,16 @@
 
         if (key === "skills") {
             if (value.length > 300) {
-                return "Skills must be 300 characters or fewer.";
+                return tv("skills.tooLong", "Skills must be 300 characters or fewer.");
             }
-            if (/(^[;,]|[;,]\s*[;,]|[;,]\s*$)/.test(value)) {
-                return "Please remove empty skill items between separators.";
+            if (UNSUPPORTED_SKILL_SEPARATOR_PATTERN.test(value)) {
+                return tv("skills.useCommaSeparator", "Use English commas or Chinese commas to separate skills.");
+            }
+            if (/(^[,，]|[,，]\s*[,，]|[,，]\s*$)/.test(value)) {
+                return tv("skills.emptyItems", "Please remove empty skill items between commas.");
             }
 
-            var items = value.split(/[;,]/).map(function (item) {
+            var items = value.split(SKILL_SEPARATOR_PATTERN).map(function (item) {
                 return item.trim();
             }).filter(function (item) {
                 return item.length > 0;
@@ -1640,7 +1695,7 @@
                 return "";
             }
             if (items.length > 12) {
-                return "Please list up to 12 skills.";
+                return tv("skills.tooManySkills", "Please list up to 12 skills.");
             }
 
             var seen = {};
@@ -1648,20 +1703,20 @@
             for (i = 0; i < items.length; i += 1) {
                 var skill = items[i];
                 if (skill.length < 2 || skill.length > 40) {
-                    return "Each skill should be 2 to 40 characters.";
+                    return tv("skills.skillLength", "Each skill should be 2 to 40 characters.");
                 }
                 if (!hasLetterOrCjk(skill)) {
-                    return "Each skill should include letters.";
+                    return tv("skills.noLetter", "Each skill should include letters.");
                 }
                 if (!/^[A-Za-z0-9\u00C0-\u024F\u4E00-\u9FFF+#&./\-\s]+$/.test(skill)) {
-                    return "Skills contain unsupported characters.";
+                    return tv("skills.invalidChars", "Skills contain unsupported characters.");
                 }
                 if (hasExcessiveRepeatedChars(skill, 5)) {
-                    return "A skill item has too many repeated characters.";
+                    return tv("skills.tooManyRepeated", "A skill item has too many repeated characters.");
                 }
                 var normalizedSkill = skill.toLowerCase().replace(/\s+/g, " ");
                 if (seen[normalizedSkill]) {
-                    return "Duplicate skills found. Please keep each skill only once.";
+                    return tv("skills.duplicate", "Duplicate skills found. Please keep each skill only once.");
                 }
                 seen[normalizedSkill] = true;
             }
@@ -1670,42 +1725,42 @@
 
         if (key === "phone") {
             if (value.length > 30) {
-                return "Phone number must be 30 characters or fewer.";
+                return tv("phone.tooLong", "Phone number must be 30 characters or fewer.");
             }
             if (!/^[\d+\-()./\s]+$/.test(value)) {
-                return "Phone number may only include digits, spaces, and + - ( ) . /.";
+                return tv("phone.invalidChars", "Phone number may only include digits, spaces, and + - ( ) . /.");
             }
 
             var plusMatches = value.match(/\+/g);
             if (plusMatches && plusMatches.length > 1) {
-                return "Phone number can contain only one '+'.";
+                return tv("phone.multiplePlus", "Phone number can contain only one '+'.");
             }
             if (value.indexOf("+") > 0) {
-                return "If used, '+' must be at the beginning.";
+                return tv("phone.plusNotAtStart", "If used, '+' must be at the beginning.");
             }
             if (!hasBalancedParentheses(value)) {
-                return "Phone number parentheses are not balanced.";
+                return tv("phone.unbalancedParens", "Phone number parentheses are not balanced.");
             }
 
             var digits = value.replace(/\D/g, "");
             if (digits.length < 8 || digits.length > 15) {
-                return "Phone number should contain 8 to 15 digits.";
+                return tv("phone.digitCount", "Phone number should contain 8 to 15 digits.");
             }
             if (/^(\d)\1+$/.test(digits)) {
-                return "Phone number appears invalid. Please check repeated digits.";
+                return tv("phone.allSameDigit", "Phone number appears invalid. Please check repeated digits.");
             }
             if (value.charAt(0) === "+" && digits.length < 10) {
-                return "International format should usually contain at least 10 digits.";
+                return tv("phone.internationalTooShort", "International format should usually contain at least 10 digits.");
             }
             return "";
         }
 
         if (key === "experience") {
-            return validateLongTextField(value, "Related experience");
+            return validateLongTextField(value, "experience");
         }
 
         if (key === "motivation") {
-            return validateLongTextField(value, "Motivation");
+            return validateLongTextField(value, "motivation");
         }
 
         return "";
@@ -1752,21 +1807,21 @@
         return cjkChars.length + latinWords.length;
     }
 
-    function validateLongTextField(value, label) {
+    function validateLongTextField(value, keyPrefix) {
         if (value.length > 1200) {
-            return label + " must be 1200 characters or fewer.";
+            return tv(keyPrefix + ".tooLong", "Must be 1200 characters or fewer.");
         }
         if (!value) {
             return "";
         }
         if (value.length < 20) {
-            return label + " should be at least 20 characters if provided.";
+            return tv(keyPrefix + ".tooShort", "Should be at least 20 characters if provided.");
         }
         if (getTextContentUnits(value) < 10) {
-            return label + " should contain more detail (about 10 words/characters).";
+            return tv(keyPrefix + ".notEnoughDetail", "Please provide more detail (about 10 words/characters).");
         }
         if (hasExcessiveRepeatedChars(value, 8)) {
-            return label + " contains too many repeated characters.";
+            return tv(keyPrefix + ".tooManyRepeated", "Contains too many repeated characters.");
         }
         return "";
     }
@@ -1809,7 +1864,7 @@
         }
 
         return value
-            .split(/[;,]/)
+            .split(SKILL_SEPARATOR_PATTERN)
             .map(function (item) {
                 return item.trim();
             })
@@ -1825,7 +1880,7 @@
         }
 
         return value
-            .split(/[;,]/)
+            .split(/[;,，]/)
             .map(function (item) {
                 return item.trim();
             })
@@ -1866,15 +1921,30 @@
         field.value = normalizedValue;
     }
 
-    function showMessage(message, type) {
+    function showValidationSummaryMessage() {
+        showMessage(
+            localizeText("portal.dynamic.fixHighlightedFields", "Please fix the highlighted fields and try again."),
+            "error",
+            true
+        );
+    }
+
+    function showMessage(message, type, animate) {
         messageBox.textContent = message;
-        messageBox.classList.remove("hidden", "error", "success");
+        messageBox.classList.remove("hidden", "error", "success", "is-flashing");
         messageBox.classList.add(type === "success" ? "success" : "error");
+        if (animate) {
+            requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
+                    messageBox.classList.add("is-flashing");
+                });
+            });
+        }
     }
 
     function hideMessage() {
         messageBox.textContent = "";
-        messageBox.classList.remove("error", "success");
+        messageBox.classList.remove("error", "success", "is-flashing");
         messageBox.classList.add("hidden");
     }
 
@@ -1883,6 +1953,119 @@
         window.setTimeout(function () {
             window.location.href = contextPath + "/login.jsp";
         }, 1000);
+    }
+
+    function setupSharedRealNameSync() {
+        if (inputs.fullName) {
+            inputs.fullName.addEventListener("input", function () {
+                announceTaProfileRealName(inputs.fullName.value || "");
+            });
+        }
+
+        document.addEventListener("account-profile-updated", function (event) {
+            var detail = event && event.detail ? event.detail : {};
+            var realName = typeof detail.realName === "string" ? detail.realName : "";
+            if (!inputs.fullName || inputs.fullName.value === realName) {
+                return;
+            }
+            setFieldValue(inputs.fullName, realName);
+            if (canValidateField(inputs.fullName)) {
+                validateSingleField("fullName", { forceRequired: true });
+            }
+        });
+    }
+
+    function announceTaProfileRealName(realName) {
+        if (typeof window.CustomEvent !== "function") {
+            return;
+        }
+        document.dispatchEvent(new CustomEvent("ta-profile-real-name-updated", {
+            detail: {
+                realName: typeof realName === "string" ? realName : ""
+            }
+        }));
+    }
+
+    function syncNavAvatar() {
+        // Sidebar avatar is account-level; TA profile photo is application-facing.
+    }
+
+    function openResumePreview() {
+        var url = "";
+        if (state.selectedResumeFile) {
+            url = URL.createObjectURL(state.selectedResumeFile);
+            window.open(url, "_blank");
+            return;
+        }
+        if (state.pendingResumePath) {
+            url = contextPath + state.pendingResumePath;
+        } else if (hasSavedResume()) {
+            url = contextPath + "/applicant?asset=resume";
+        }
+        if (url) {
+            window.open(url, "_blank");
+        }
+    }
+
+    function openPhotoLightbox() {
+        var url = "";
+        if (state.selectedPhotoFile && state.photoObjectUrl) {
+            url = state.photoObjectUrl;
+        } else if (hasSavedPhoto()) {
+            url = buildSavedPhotoPreviewUrl();
+        }
+        if (!url) {
+            return;
+        }
+
+        var overlay = document.createElement("div");
+        overlay.className = "photo-lightbox-overlay";
+        overlay.setAttribute("role", "dialog");
+        overlay.setAttribute("aria-modal", "true");
+        overlay.setAttribute("aria-label", localizeText("portal.taDashboard.photoUploadTitle", "Photo preview"));
+
+        var img = document.createElement("img");
+        img.src = url;
+        img.className = "photo-lightbox-image";
+        img.alt = localizeText("portal.taDashboard.profilePhotoAlt", "Profile photo");
+
+        var closeBtn = document.createElement("button");
+        closeBtn.className = "photo-lightbox-close";
+        closeBtn.setAttribute("type", "button");
+        closeBtn.setAttribute("aria-label", localizeText("portal.common.close", "Close"));
+        closeBtn.innerHTML = '<svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="m7 7 10 10"/><path d="M17 7 7 17"/></svg>';
+
+        overlay.appendChild(closeBtn);
+        overlay.appendChild(img);
+        document.body.appendChild(overlay);
+
+        requestAnimationFrame(function () {
+            overlay.classList.add("is-visible");
+        });
+
+        function closeLightbox() {
+            overlay.classList.remove("is-visible");
+            setTimeout(function () {
+                if (overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+            }, 220);
+        }
+
+        closeBtn.addEventListener("click", closeLightbox);
+        overlay.addEventListener("click", function (e) {
+            if (e.target === overlay) {
+                closeLightbox();
+            }
+        });
+
+        function escHandler(e) {
+            if (e.key === "Escape") {
+                closeLightbox();
+                document.removeEventListener("keydown", escHandler);
+            }
+        }
+        document.addEventListener("keydown", escHandler);
     }
 
 })();

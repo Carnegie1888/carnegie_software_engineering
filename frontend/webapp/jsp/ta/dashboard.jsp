@@ -13,70 +13,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="<%= contextPath %>/js/common/locale-bootstrap.js"></script>
     <title data-i18n="portal.page.taDashboard.title">TA Profile Setup - TA Hiring System</title>
     <link rel="stylesheet" href="<%= contextPath %>/css/ta/ta-dashboard.css?v=20260326a">
 </head>
 <body>
     <div class="portal-shell portal-shell-ta">
-        <aside class="portal-sidebar" data-i18n-aria-label="portal.nav.ta.aria">
-            <p class="portal-brand" data-i18n="portal.brand.ta">TA Portal</p>
-            <nav class="portal-nav">
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/ta/job-list.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M3 7.5h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                        <path d="M9 7.5V6A1.5 1.5 0 0 1 10.5 4.5h3A1.5 1.5 0 0 1 15 6v1.5" />
-                        <path d="M3 12h18" />
-                    </svg>
-                    <span data-i18n="portal.nav.ta.jobs">Job List</span>
-                </a>
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/ta/application-status.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <circle cx="12" cy="12" r="8"></circle>
-                        <path d="m8.5 12.5 2.2 2.2L15.5 10"></path>
-                    </svg>
-                    <span data-i18n="portal.nav.ta.status">My Applications</span>
-                </a>
-                <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/ta/dashboard.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <circle cx="12" cy="8" r="3"></circle>
-                        <path d="M6 18c1.2-2 3.2-3 6-3s4.8 1 6 3"></path>
-                    </svg>
-                    <span data-i18n="portal.taDashboard.profileLabel">Personal Profile</span>
-                </a>
-            </nav>
-        </aside>
+        <% String portalRole = "ta"; String activeNav = "profile"; String pageTitleKey = "portal.taDashboard.profileLabel"; String pageTitleFallback = "Personal Profile"; %>
+        <%@ include file="/WEB-INF/jsp/fragments/portal-sidebar.jspf" %>
 
         <section class="portal-main">
-            <header class="portal-topbar">
-                <div class="portal-topbar-menu">
-                    <span class="portal-topbar-role" data-i18n="portal.brand.ta">TA Portal</span>
-                    <span class="portal-topbar-divider" aria-hidden="true"></span>
-                    <span class="portal-topbar-page" data-i18n="portal.taDashboard.profileLabel">Personal Profile</span>
-                </div>
-                <div class="portal-topbar-right">
-                    <div class="portal-user">
-                        <span class="portal-user-avatar"><%= userInitial %></span>
-                        <span class="portal-user-name"><%= username == null || username.isEmpty() ? "TA User" : username %></span>
-                    </div>
-                    <div class="portal-topbar-actions">
-                        <div class="locale-switch" role="group" data-i18n-aria-label="common.locale.switchAria">
-                            <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">中文</button>
-                            <span class="locale-divider">/</span>
-                            <button class="locale-btn" type="button" data-locale-switch data-locale="en" data-i18n="common.locale.en">English</button>
-                        </div>
-                        <a class="portal-topbar-link" href="<%= contextPath %>/logout" data-i18n="portal.action.signOut">Sign Out</a>
-                    </div>
-                </div>
-            </header>
+            <%@ include file="/WEB-INF/jsp/fragments/portal-topbar.jspf" %>
 
             <div class="portal-content">
                 <main class="profile-page">
                     <section class="profile-hero" aria-labelledby="profile-page-title">
                         <h1 id="profile-page-title" class="portal-page-title" data-i18n="portal.taDashboard.profileLabel">Personal Profile</h1>
-                        <p class="subtitle">Manage your personal information and academic background.</p>
+                        <p class="subtitle" data-i18n="portal.taDashboard.subtitle">Manage your personal information and academic background.</p>
                     </section>
 
-                    <section class="profile-layout" aria-label="TA applicant profile setup">
+                    <section class="profile-layout" aria-label="TA applicant profile setup" data-i18n-aria-label="portal.taDashboard.profileLayoutAria">
                         <section class="profile-card">
                             <div class="section-heading">
                                 <h2 data-i18n="portal.taDashboard.createProfileTitle">Create your TA profile</h2>
@@ -90,17 +46,72 @@
                                         <h3 id="section-basic-info" data-i18n="portal.taDashboard.basicDetails">Basic details</h3>
                                     </div>
 
+                                    <div class="avatar-upload-area">
+                                        <label class="sr-only" for="photo-file-input" data-i18n="portal.taDashboard.chooseFile">Choose file</label>
+                                        <input
+                                            id="photo-file-input"
+                                            class="upload-file-input"
+                                            type="file"
+                                            name="photo"
+                                            accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                                        >
+                                        <div id="photo-upload-shell" class="photo-upload-shell is-empty">
+                                            <button
+                                                id="photo-file-trigger"
+                                                class="avatar-trigger"
+                                                type="button"
+                                                aria-label="Upload profile photo"
+                                                data-i18n-aria-label="portal.taDashboard.photoUploadTitle"
+                                            >
+                                                <span id="photo-empty-state" class="avatar-empty-state">
+                                                    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M12 15.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+                                                        <path d="M5.25 8.75h2l1.1-1.65h7.3l1.1 1.65h2a1.25 1.25 0 0 1 1.25 1.25v7a1.25 1.25 0 0 1-1.25 1.25H5.25A1.25 1.25 0 0 1 4 16.75V10a1.25 1.25 0 0 1 1.25-1.25Z"/>
+                                                    </svg>
+                                                </span>
+                                                <span id="photo-filled-state" class="avatar-filled-state hidden" hidden>
+                                                    <img id="photo-preview-image" class="avatar-preview-image" alt="Profile photo" data-i18n-alt="portal.taDashboard.profilePhotoAlt">
+                                                </span>
+                                            </button>
+                                            <button
+                                                id="photo-remove-btn"
+                                                class="avatar-remove-btn hidden"
+                                                type="button"
+                                                data-i18n-aria-label="portal.taDashboard.photoRemoveAria"
+                                                aria-label="Remove photo"
+                                                hidden
+                                            >
+                                                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                                    <path d="m7 7 10 10"></path>
+                                                    <path d="M17 7 7 17"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="avatar-upload-meta">
+                                            <p class="avatar-upload-label" data-i18n="portal.taDashboard.photoUploadTitle">Photo upload</p>
+                                            <p class="avatar-upload-hint" data-i18n="portal.taDashboard.photoCardEmptyHint">JPG, PNG, or WEBP. Maximum size is 5MB.</p>
+                                            <div id="photo-upload-message" class="upload-message hidden" role="status" aria-live="polite"></div>
+                                        </div>
+                                    </div>
+
                                     <div class="field-grid">
                                         <div class="field">
                                             <div class="field-label-row">
                                                 <label for="full-name" data-i18n="portal.taDashboard.fullName">Full name</label>
-                                                <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="Full name format" data-i18n-aria-label="portal.taDashboard.fullNameInfoAria">
+                                                        i
+                                                        <span class="field-tooltip" data-i18n="portal.taDashboard.fullNameTooltip">Letters, spaces, hyphens, apostrophes, and periods. At least 2 characters.</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                </span>
                                             </div>
                                             <input
                                                 id="full-name"
                                                 name="fullName"
                                                 type="text"
                                                 placeholder="Your full name"
+                                                data-i18n-placeholder="portal.taDashboard.fullNamePlaceholder"
                                                 autocomplete="name"
                                                 maxlength="100"
                                                 required
@@ -110,13 +121,20 @@
                                         <div class="field">
                                             <div class="field-label-row">
                                                 <label for="student-id" data-i18n="portal.taDashboard.studentId">Student ID</label>
-                                                <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="Student ID format" data-i18n-aria-label="portal.taDashboard.studentIdInfoAria">
+                                                        i
+                                                        <span class="field-tooltip" data-i18n="portal.taDashboard.studentIdTooltip">10-digit number starting with 20, e.g. 2023213039.</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                </span>
                                             </div>
                                             <input
                                                 id="student-id"
                                                 name="studentId"
                                                 type="text"
                                                 placeholder="e.g. 2023213039"
+                                                data-i18n-placeholder="portal.taDashboard.studentIdPlaceholder"
                                                 inputmode="numeric"
                                                 maxlength="10"
                                                 required
@@ -126,13 +144,20 @@
                                         <div class="field">
                                             <div class="field-label-row">
                                                 <label for="department" data-i18n="portal.taDashboard.department">Department</label>
-                                                <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="Department format" data-i18n-aria-label="portal.taDashboard.departmentInfoAria">
+                                                        i
+                                                        <span class="field-tooltip" data-i18n="portal.taDashboard.departmentTooltip">Your school or department name, 2–100 characters.</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                </span>
                                             </div>
                                             <input
                                                 id="department"
                                                 name="department"
                                                 type="text"
                                                 placeholder="School or department"
+                                                data-i18n-placeholder="portal.taDashboard.departmentPlaceholder"
                                                 maxlength="100"
                                                 required
                                             >
@@ -141,7 +166,13 @@
                                         <div class="field">
                                             <div class="field-label-row">
                                                 <label for="program" data-i18n="portal.taDashboard.program">Program</label>
-                                                <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="Program info" data-i18n-aria-label="portal.taDashboard.programInfoAria">
+                                                        i
+                                                        <span class="field-tooltip" data-i18n="portal.taDashboard.programTooltip">Select the level that matches your current enrollment.</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                </span>
                                             </div>
                                             <select id="program" name="program" required>
                                                 <option value="" data-i18n="portal.taDashboard.selectProgram">Select your program</option>
@@ -158,13 +189,20 @@
                                         <div class="field">
                                             <div class="field-label-row">
                                                 <label for="gpa" data-i18n="portal.taDashboard.gpa">GPA</label>
-                                                <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="GPA format" data-i18n-aria-label="portal.taDashboard.gpaInfoAria">
+                                                        i
+                                                        <span class="field-tooltip" data-i18n="portal.taDashboard.gpaTooltip">Enter your GPA, e.g. 3.85 or 3.85/4.00 (value/scale).</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                </span>
                                             </div>
                                             <input
                                                 id="gpa"
                                                 name="gpa"
                                                 type="text"
                                                 placeholder="e.g. 3.85 / 4.00"
+                                                data-i18n-placeholder="portal.taDashboard.gpaPlaceholder"
                                                 inputmode="decimal"
                                                 maxlength="20"
                                                 required
@@ -174,13 +212,20 @@
                                         <div class="field">
                                             <div class="field-label-row">
                                                 <label for="phone" data-i18n="portal.taDashboard.phone">Phone number</label>
-                                                <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="Phone number format" data-i18n-aria-label="portal.taDashboard.phoneInfoAria">
+                                                        i
+                                                        <span class="field-tooltip" data-i18n="portal.taDashboard.phoneTooltip">8–15 digits, international format accepted, e.g. +86 138 0000 0000.</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                </span>
                                             </div>
                                             <input
                                                 id="phone"
                                                 name="phone"
                                                 type="tel"
                                                 placeholder="+86 138 0000 0000"
+                                                data-i18n-placeholder="portal.taDashboard.phonePlaceholder"
                                                 autocomplete="tel"
                                                 maxlength="30"
                                                 required
@@ -190,13 +235,20 @@
                                         <div class="field field-full">
                                             <div class="field-label-row">
                                                 <label for="skills" data-i18n="portal.taDashboard.skills">Skills</label>
-                                                <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="Skills format" data-i18n-aria-label="portal.taDashboard.skillsInfoAria">
+                                                        i
+                                                        <span class="field-tooltip" data-i18n="portal.taDashboard.skillsTooltip">Comma or semicolon-separated, up to 12 skills, e.g. Java, SQL, Python.</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                </span>
                                             </div>
                                             <input
                                                 id="skills"
                                                 name="skills"
                                                 type="text"
                                                 placeholder="Separate skills with commas, for example Java, JSP, SQL"
+                                                data-i18n-placeholder="portal.taDashboard.skillsPlaceholder"
                                                 maxlength="300"
                                                 required
                                             >
@@ -206,7 +258,13 @@
                                         <div class="field field-full">
                                             <div class="field-label-row">
                                                 <label for="experience" data-i18n="portal.taDashboard.experience">Related experience</label>
-                                                <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="Related experience info" data-i18n-aria-label="portal.taDashboard.experienceInfoAria">
+                                                        i
+                                                        <span class="field-tooltip" data-i18n="portal.taDashboard.experienceTooltip">Describe relevant teaching or tutoring experience. At least 10 words.</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                </span>
                                             </div>
                                             <textarea
                                                 id="experience"
@@ -214,6 +272,7 @@
                                                 rows="5"
                                                 maxlength="1200"
                                                 placeholder="Describe tutoring, teaching, grading, or project experience relevant to a TA role."
+                                                data-i18n-placeholder="portal.taDashboard.experiencePlaceholder"
                                                 required
                                             ></textarea>
                                         </div>
@@ -221,7 +280,13 @@
                                         <div class="field field-full">
                                             <div class="field-label-row">
                                                 <label for="motivation" data-i18n="portal.taDashboard.motivation">Motivation</label>
-                                                <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                <span class="field-label-end">
+                                                    <button type="button" class="field-info-btn" aria-label="Motivation info" data-i18n-aria-label="portal.taDashboard.motivationInfoAria">
+                                                        i
+                                                        <span class="field-tooltip" data-i18n="portal.taDashboard.motivationTooltip">Explain your motivation for this TA role. At least 10 words.</span>
+                                                    </button>
+                                                    <span class="field-tag" data-i18n="portal.taDashboard.required">Required</span>
+                                                </span>
                                             </div>
                                             <textarea
                                                 id="motivation"
@@ -229,6 +294,7 @@
                                                 rows="5"
                                                 maxlength="1200"
                                                 placeholder="Explain why you want this TA opportunity and what value you can bring."
+                                                data-i18n-placeholder="portal.taDashboard.motivationPlaceholder"
                                                 required
                                             ></textarea>
                                         </div>
@@ -236,68 +302,6 @@
                                 </section>
 
                             </form>
-
-                            <div class="profile-card-divider" aria-hidden="true"></div>
-
-                            <section class="upload-card" aria-labelledby="photo-upload-title">
-                                <div class="form-section-header">
-                                    <div class="section-header-row">
-                                        <h3 id="photo-upload-title" data-i18n="portal.taDashboard.photoUploadTitle">Photo upload</h3>
-                                    </div>
-                                </div>
-
-                                <div class="upload-file-panel">
-                                    <label class="sr-only" for="photo-file-input" data-i18n="portal.taDashboard.chooseFile">Choose file</label>
-                                    <input
-                                        id="photo-file-input"
-                                        class="upload-file-input"
-                                        type="file"
-                                        name="photo"
-                                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-                                    >
-                                    <div id="photo-upload-shell" class="photo-upload-shell is-empty">
-                                        <button
-                                            id="photo-file-trigger"
-                                            class="photo-upload-card"
-                                            type="button"
-                                        >
-                                            <span id="photo-empty-state" class="photo-card-empty">
-                                                <span class="photo-card-icon" aria-hidden="true">
-                                                    <svg viewBox="0 0 24 24" focusable="false">
-                                                        <path d="M4.75 7.75h3.15l1.2-1.8h5.8l1.2 1.8h3.15a1.5 1.5 0 0 1 1.5 1.5v8.5a1.5 1.5 0 0 1-1.5 1.5H4.75a1.5 1.5 0 0 1-1.5-1.5v-8.5a1.5 1.5 0 0 1 1.5-1.5Z"></path>
-                                                        <circle cx="12" cy="13" r="3.2"></circle>
-                                                    </svg>
-                                                </span>
-                                                <span class="photo-card-title" data-i18n="portal.taDashboard.photoCardEmptyTitle">Upload your photo</span>
-                                                <span class="photo-card-subtitle" data-i18n="portal.taDashboard.photoCardEmptyHint">JPG, PNG, or WEBP. Maximum size is 5MB.</span>
-                                            </span>
-                                            <span id="photo-filled-state" class="photo-card-filled hidden" hidden>
-                                                <span class="photo-preview-frame">
-                                                    <img id="photo-preview-image" class="photo-preview-image" alt="Profile photo preview">
-                                                </span>
-                                                <span class="photo-card-file-meta">
-                                                    <span id="photo-file-display-name" class="photo-card-file-name">photo.jpg</span>
-                                                    <span id="photo-file-display-detail" class="photo-card-file-detail">0 KB</span>
-                                                </span>
-                                            </span>
-                                        </button>
-                                        <button
-                                            id="photo-remove-btn"
-                                            class="resume-remove-btn hidden"
-                                            type="button"
-                                            data-i18n-aria-label="portal.taDashboard.photoRemoveAria"
-                                            aria-label="Remove photo"
-                                            hidden
-                                        >
-                                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                                                <path d="m7 7 10 10"></path>
-                                                <path d="M17 7 7 17"></path>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div id="photo-upload-message" class="upload-message hidden" role="status" aria-live="polite"></div>
-                            </section>
 
                             <div class="profile-card-divider" aria-hidden="true"></div>
 

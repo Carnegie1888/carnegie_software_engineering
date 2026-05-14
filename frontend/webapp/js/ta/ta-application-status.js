@@ -17,7 +17,8 @@
         loadError: false,
         approximateOnly: false,
         lastKeyword: "",
-        keywordSearchTriggered: false
+        keywordSearchTriggered: false,
+        currentApplications: []
     };
 
     searchForm.addEventListener("submit", function (event) {
@@ -32,6 +33,11 @@
         if (state.lastKeyword !== "" || state.keywordSearchTriggered) {
             loadApplications("", false);
         }
+    });
+
+    document.addEventListener("app:locale-changed", function () {
+        renderList(state.currentApplications);
+        setLoading(state.loading);
     });
 
     loadApplications("", false);
@@ -74,6 +80,7 @@
                 if (response.status === 403) {
                     showMessage(t("portal.dynamic.taOnlyPage", "This page is available for TA accounts only."), "error");
                     state.loadError = true;
+                    state.currentApplications = [];
                     renderList([]);
                     return;
                 }
@@ -81,21 +88,25 @@
                 if (!response.ok || !payload || payload.success !== true) {
                     var errorMessage = t("portal.dynamic.unableLoadApplications", "Unable to load your applications.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
-                        errorMessage = payload.message.trim();
+                        errorMessage = localizeServerMessage(payload.message, "portal.dynamic.unableLoadApplications", errorMessage);
                     }
                     showMessage(errorMessage, "error");
                     state.loadError = true;
+                    state.currentApplications = [];
                     renderList([]);
                     return;
                 }
 
                 var data = getPayloadDataObject(payload);
+                var applications = getPayloadDataArray(payload, "applications");
                 state.approximateOnly = !!data.approximateOnly;
-                renderList(getPayloadDataArray(payload, "applications"));
+                state.currentApplications = applications;
+                renderList(applications);
             })
             .catch(function () {
                 showMessage(t("portal.dynamic.networkErrorTryAgain", "Network error. Please try again."), "error");
                 state.loadError = true;
+                state.currentApplications = [];
                 renderList([]);
             })
             .finally(function () {
@@ -167,6 +178,7 @@
                 "<div class=\"application-heading\">" +
                     "<h3>" + escapeHtml(title) + "</h3>" +
                     "<p class=\"application-subtitle\">" + subtitle + "</p>" +
+                    buildApplicationTimeline(statusClass) +
                 "</div>" +
             "</div>" +
             "<div class=\"application-side\">" +
@@ -187,6 +199,37 @@
         });
 
         return card;
+    }
+
+    function buildApplicationTimeline(statusClass) {
+        var isPending = statusClass === "pending";
+        var isAccepted = statusClass === "accepted";
+        var isRejected = statusClass === "rejected";
+        var isWithdrawn = statusClass === "withdrawn";
+        var reviewState = isPending ? "current" : "done";
+        var decisionState = isAccepted || isRejected || isWithdrawn ? "current" : "";
+        var decisionLabel = isAccepted
+            ? t("portal.common.accepted", "Accepted")
+            : isRejected
+                ? t("portal.common.rejected", "Rejected")
+                : isWithdrawn
+                    ? t("portal.common.withdrawn", "Withdrawn")
+                    : t("portal.dynamic.decision", "Decision");
+
+        return "<ol class=\"application-timeline\" aria-label=\"" + escapeHtml(t("portal.dynamic.applicationTimeline", "Application timeline")) + "\">" +
+            "<li class=\"timeline-step is-done\">" +
+                "<span class=\"timeline-dot\" aria-hidden=\"true\"></span>" +
+                "<span>" + escapeHtml(t("portal.dynamic.applied", "Applied")) + "</span>" +
+            "</li>" +
+            "<li class=\"timeline-step is-" + reviewState + "\">" +
+                "<span class=\"timeline-dot\" aria-hidden=\"true\"></span>" +
+                "<span>" + escapeHtml(t("portal.dynamic.review", "Review")) + "</span>" +
+            "</li>" +
+            "<li class=\"timeline-step" + (decisionState ? " is-" + decisionState : "") + "\">" +
+                "<span class=\"timeline-dot\" aria-hidden=\"true\"></span>" +
+                "<span>" + escapeHtml(decisionLabel) + "</span>" +
+            "</li>" +
+        "</ol>";
     }
 
     function buildApplicationSubtitle(courseCode, appliedAt) {
@@ -404,6 +447,16 @@
             return window.AppI18n.t(key, fallback || key);
         }
         return fallback || key;
+    }
+
+    function localizeServerMessage(message, fallbackKey, fallbackText) {
+        if (window.AppI18n && typeof window.AppI18n.localizeServerMessage === "function") {
+            return window.AppI18n.localizeServerMessage(message, fallbackKey, fallbackText);
+        }
+        if (typeof message === "string" && message.trim()) {
+            return message.trim();
+        }
+        return fallbackKey ? t(fallbackKey, fallbackText) : (fallbackText || "");
     }
 
     function safeText(value, fallback) {

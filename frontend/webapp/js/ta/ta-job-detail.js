@@ -9,6 +9,16 @@
         return fallback || key;
     }
 
+    function localizeServerMessage(message, fallbackKey, fallbackText) {
+        if (window.AppI18n && typeof window.AppI18n.localizeServerMessage === "function") {
+            return window.AppI18n.localizeServerMessage(message, fallbackKey, fallbackText);
+        }
+        if (typeof message === "string" && message.trim()) {
+            return message.trim();
+        }
+        return fallbackKey ? t(fallbackKey, fallbackText) : (fallbackText || "");
+    }
+
     var titleNode = document.getElementById("job-title");
     var courseNode = document.getElementById("job-course");
     var statusNode = document.getElementById("job-status");
@@ -203,7 +213,7 @@
                 if (!response.ok || !payload || payload.success !== true) {
                     var errorMessage = t("portal.dynamic.unableLoadJobDetailsNow", "Unable to load job details right now.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
-                        errorMessage = payload.message.trim();
+                        errorMessage = localizeServerMessage(payload.message, "portal.dynamic.unableLoadJobDetailsNow", errorMessage);
                     }
                     showDetailMessage(errorMessage, "error");
                     setApplyDisabled(true);
@@ -402,7 +412,7 @@
                 if (!response.ok || !payload || payload.success !== true) {
                     var errorMessage = t("portal.dynamic.failedSubmitApplication", "Failed to submit application. Please try again.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
-                        errorMessage = payload.message.trim();
+                        errorMessage = localizeServerMessage(payload.message, "portal.dynamic.failedSubmitApplication", errorMessage);
                     }
                     showApplyStatus(errorMessage, "error");
                     return;
@@ -618,7 +628,7 @@
                 if (!response.ok || !payload || payload.success !== true) {
                     var errorMessage = t("portal.dynamic.aiAnalysisFailed", "Unable to generate AI analysis right now.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
-                        errorMessage = payload.message.trim();
+                        errorMessage = localizeServerMessage(payload.message, "portal.dynamic.aiAnalysisFailed", errorMessage);
                     }
                     showAiMatchStatus(errorMessage, "error");
                     return;
@@ -942,12 +952,7 @@
     }
 
     function applicationStatusMessage(status) {
-        return t("portal.dynamic.applicationAlreadySubmitted", "Application already submitted.") +
-            " " +
-            t("portal.dynamic.applicationStatusPrefix", "Application status:") +
-            " " +
-            statusLabel(status || "PENDING") +
-            ".";
+        return statusLabel(status || "PENDING");
     }
 
     function statusLabel(status) {

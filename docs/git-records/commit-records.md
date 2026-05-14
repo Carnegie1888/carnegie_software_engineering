@@ -285,3 +285,4 @@
 | `member6`  | #68    | `style: 抽取通用组件表单与动效样式`             | ✅   | `git commit -m "style: 抽取通用组件表单与动效样式" --author="member6 <member6@edu.com>"`             |
 | `member6`  | #69    | `feat: 补齐全站双语资源与服务端消息映射`        | ✅   | `git commit -m "feat: 补齐全站双语资源与服务端消息映射" --author="member6 <member6@edu.com>"`        |
 | `member5`  | #70    | `feat: 优化登录注册与账号资料交互`              | ✅   | `git commit -m "feat: 优化登录注册与账号资料交互" --author="member5 <member5@edu.com>"`              |
+| `member5`  | #71    | `feat: 优化 TA 职位与申请页面体验`              | ✅   | `git commit -m "feat: 优化 TA 职位与申请页面体验" --author="member5 <member5@edu.com>"`              |

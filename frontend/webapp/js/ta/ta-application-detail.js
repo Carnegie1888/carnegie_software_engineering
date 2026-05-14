@@ -8,21 +8,28 @@
         return fallback || key;
     }
 
+    function localizeServerMessage(message, fallbackKey, fallbackText) {
+        if (window.AppI18n && typeof window.AppI18n.localizeServerMessage === "function") {
+            return window.AppI18n.localizeServerMessage(message, fallbackKey, fallbackText);
+        }
+        if (typeof message === "string" && message.trim()) {
+            return message.trim();
+        }
+        return fallbackKey ? t(fallbackKey, fallbackText) : (fallbackText || "");
+    }
+
     var teaserTrigger = document.getElementById("job-teaser-trigger");
-    var jobModal = document.getElementById("job-modal");
-    var jobModalDialog = document.getElementById("job-modal-dialog");
-    var jobModalClose = document.getElementById("job-modal-close");
     var messageNode = document.getElementById("detail-message");
+    var withdrawButton = document.getElementById("withdraw-application-btn");
 
     var state = {
         applicationId: "",
         application: null,
         applicant: null,
-        job: null,
-        lastFocus: null
+        job: null
     };
 
-    if (!teaserTrigger || !jobModal) {
+    if (!teaserTrigger) {
         return;
     }
 
@@ -38,8 +45,12 @@
         state.applicationId = getApplicationIdFromLocation();
         if (!state.applicationId) {
             showMessage(t("portal.taApplicationDetail.missingId", "Missing application ID. Return to the list and try again."), "error");
-            teaserTrigger.disabled = true;
+            disableJobTeaser();
             return;
+        }
+
+        if (withdrawButton) {
+            withdrawButton.addEventListener("click", handleWithdrawClick);
         }
 
         loadAll()
@@ -50,27 +61,6 @@
                 /* errors handled in loadAll */
             });
 
-        teaserTrigger.addEventListener("click", function () {
-            openModal();
-        });
-
-        if (jobModalClose) {
-            jobModalClose.addEventListener("click", function () {
-                closeModal();
-            });
-        }
-
-        jobModal.addEventListener("click", function (event) {
-            if (event.target && event.target.getAttribute("data-close-modal") !== null) {
-                closeModal();
-            }
-        });
-
-        document.addEventListener("keydown", function (event) {
-            if (event.key === "Escape" && !jobModal.classList.contains("hidden")) {
-                closeModal();
-            }
-        });
     }
 
     function getApplicationIdFromLocation() {
@@ -98,7 +88,7 @@
                 if (!response.ok || !payload || payload.success !== true) {
                     var msg = t("portal.taApplicationDetail.loadAppFailed", "Unable to load application.");
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
-                        msg = payload.message.trim();
+                        msg = localizeServerMessage(payload.message, "portal.taApplicationDetail.loadAppFailed", msg);
                     }
                     showMessage(msg, "error");
                     throw new Error("app");
@@ -186,7 +176,96 @@
         renderCoverLetter(app, detail);
         renderProfileGuidance(detail);
         renderJobTeaser(job);
-        renderJobModal(job);
+        renderWithdrawAction(app);
+    }
+
+    function renderWithdrawAction(app) {
+        if (!withdrawButton) {
+            return;
+        }
+        var status = safeText(app && app.status, "PENDING").toUpperCase();
+        var canWithdraw = status === "PENDING";
+        withdrawButton.hidden = !canWithdraw;
+        withdrawButton.disabled = false;
+        withdrawButton.textContent = t("portal.taApplicationDetail.withdrawAction", "Withdraw application");
+        withdrawButton.setAttribute("aria-label", t("portal.taApplicationDetail.withdrawAction", "Withdraw application"));
+    }
+
+    function handleWithdrawClick() {
+        if (!state.applicationId || !state.application) {
+            return;
+        }
+        var status = safeText(state.application.status, "PENDING").toUpperCase();
+        if (status !== "PENDING") {
+            showMessage(t("portal.taApplicationDetail.withdrawUnavailable", "This application cannot be withdrawn."), "error");
+            renderWithdrawAction(state.application);
+            return;
+        }
+
+        var confirmed = window.confirm(t(
+            "portal.taApplicationDetail.withdrawConfirm",
+            "Withdraw this application? The MO will see it as withdrawn."
+        ));
+        if (!confirmed) {
+            return;
+        }
+
+        setWithdrawSubmitting(true);
+        request(contextPath + "/apply?id=" + encodeURIComponent(state.applicationId) + "&action=withdraw", {
+            method: "PUT",
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        })
+            .then(function (result) {
+                var response = result.response;
+                var payload = result.payload;
+                if (response.status === 401) {
+                    handleUnauthorized();
+                    return;
+                }
+                if (!response.ok || !payload || payload.success !== true) {
+                    var msg = t("portal.taApplicationDetail.withdrawFailed", "Unable to withdraw this application.");
+                    if (payload && typeof payload.message === "string" && payload.message.trim()) {
+                        msg = localizeServerMessage(payload.message, "portal.taApplicationDetail.withdrawFailed", msg);
+                    }
+                    showMessage(msg, "error");
+                    return;
+                }
+
+                var updated = getPayloadDataObject(payload);
+                if (updated) {
+                    state.application = updated;
+                } else {
+                    state.application.status = "WITHDRAWN";
+                }
+                renderAll();
+                showMessage(
+                    localizeServerMessage(
+                        payload.message,
+                        "portal.taApplicationDetail.withdrawSuccess",
+                        "Application withdrawn successfully."
+                    ),
+                    "success"
+                );
+            })
+            .catch(function () {
+                showMessage(t("portal.taApplicationDetail.withdrawNetworkError", "Network error while withdrawing application."), "error");
+            })
+            .finally(function () {
+                setWithdrawSubmitting(false);
+                if (state.application) {
+                    renderWithdrawAction(state.application);
+                }
+            });
+    }
+
+    function setWithdrawSubmitting(isSubmitting) {
+        if (!withdrawButton) {
+            return;
+        }
+        withdrawButton.disabled = !!isSubmitting;
+        withdrawButton.textContent = isSubmitting
+            ? t("portal.taApplicationDetail.withdrawing", "Withdrawing...")
+            : t("portal.taApplicationDetail.withdrawAction", "Withdraw application");
     }
 
     function courseBadgeText(courseCode, title) {
@@ -308,10 +387,10 @@
         meta.innerHTML = "";
         if (!job) {
             meta.textContent = t("portal.taApplicationDetail.jobUnavailable", "Job details unavailable.");
-            teaserTrigger.disabled = true;
+            disableJobTeaser();
             return;
         }
-        teaserTrigger.disabled = false;
+        enableJobTeaser(job);
 
         var workload = safeText(job.workload, "—");
         var applicants =
@@ -327,6 +406,26 @@
         meta.appendChild(teaserMetaItem("workload", t("portal.taApplicationDetail.workload", "Workload"), workload));
         meta.appendChild(teaserMetaItem("applicants", t("portal.taApplicationDetail.applicants", "Applicants"), applicants));
         meta.appendChild(teaserMetaItem("deadline", t("portal.taApplicationDetail.deadline", "Deadline"), deadlineText));
+    }
+
+    function enableJobTeaser(job) {
+        var jobId = safeText(job.jobId, "");
+        if (!jobId && state.application) {
+            jobId = safeText(state.application.jobId, "");
+        }
+        if (!jobId) {
+            disableJobTeaser();
+            return;
+        }
+        teaserTrigger.href = contextPath + "/jsp/ta/job-detail.jsp?id=" + encodeURIComponent(jobId);
+        teaserTrigger.removeAttribute("aria-disabled");
+        teaserTrigger.classList.remove("is-disabled");
+    }
+
+    function disableJobTeaser() {
+        teaserTrigger.removeAttribute("href");
+        teaserTrigger.setAttribute("aria-disabled", "true");
+        teaserTrigger.classList.add("is-disabled");
     }
 
     function teaserMetaItem(iconType, label, value) {
@@ -373,135 +472,6 @@
                 "</svg>" +
             "</span>"
         );
-    }
-
-    function renderJobModal(job) {
-        if (!job) {
-            return;
-        }
-        var courseCode = safeText(job.courseCode, "");
-        var title = safeText(job.title, "—");
-
-        var badge = document.getElementById("job-modal-badge");
-        var titleEl = document.getElementById("job-modal-title");
-        var subEl = document.getElementById("job-modal-subtitle");
-        if (badge) {
-            badge.textContent = courseBadgeText(courseCode, title);
-        }
-        if (titleEl) {
-            titleEl.textContent = title;
-        }
-        if (subEl) {
-            var parts = [];
-            var cn = safeText(job.courseName, "");
-            if (cn) {
-                parts.push(cn);
-            }
-            var mo = safeText(job.moName, "");
-            if (mo) {
-                parts.push(mo);
-            }
-            subEl.textContent = parts.join(" · ") || "—";
-        }
-
-        var metrics = document.getElementById("job-modal-metrics");
-        if (metrics) {
-            metrics.innerHTML = "";
-            metrics.appendChild(
-                modalMetric(
-                    t("portal.taApplicationDetail.workload", "Workload"),
-                    safeText(job.workload, "—")
-                )
-            );
-            var ac =
-                typeof job.applicantCount === "number"
-                    ? String(job.applicantCount)
-                    : safeText(job.applicantCount, "0");
-            metrics.appendChild(
-                modalMetric(t("portal.taApplicationDetail.applicants", "Applicants"), ac)
-            );
-            metrics.appendChild(
-                modalMetric(
-                    t("portal.taApplicationDetail.deadline", "Deadline"),
-                    formatDisplayDate(job.deadline)
-                )
-            );
-        }
-
-        var desc = document.getElementById("job-modal-description");
-        if (desc) {
-            desc.textContent = safeText(job.description, t("portal.taApplicationDetail.noDescription", "No description."));
-        }
-
-        var skillsWrap = document.getElementById("job-modal-skills");
-        if (skillsWrap) {
-            skillsWrap.innerHTML = "";
-            var skills = normalizeSkills(job.requiredSkills);
-            if (skills.length === 0) {
-                var s = document.createElement("span");
-                s.className = "skill-chip muted";
-                s.textContent = t("portal.taApplicationDetail.noSkills", "No skills listed");
-                skillsWrap.appendChild(s);
-            } else {
-                skills.forEach(function (sk) {
-                    var chip = document.createElement("span");
-                    chip.className = "skill-chip";
-                    chip.textContent = sk;
-                    skillsWrap.appendChild(chip);
-                });
-            }
-        }
-    }
-
-    function modalMetric(label, value) {
-        var div = document.createElement("div");
-        div.className = "job-modal-metric";
-        div.innerHTML =
-            "<p class=\"job-modal-metric-label\">" +
-            escapeHtml(label) +
-            "</p>" +
-            "<p class=\"job-modal-metric-value\">" +
-            escapeHtml(value) +
-            "</p>";
-        return div;
-    }
-
-    function openModal() {
-        if (!state.job || teaserTrigger.disabled) {
-            return;
-        }
-        state.lastFocus = document.activeElement;
-        jobModal.classList.remove("hidden");
-        jobModal.setAttribute("aria-hidden", "false");
-        teaserTrigger.setAttribute("aria-expanded", "true");
-        if (jobModalDialog) {
-            jobModalDialog.focus();
-        }
-    }
-
-    function closeModal() {
-        jobModal.classList.add("hidden");
-        jobModal.setAttribute("aria-hidden", "true");
-        teaserTrigger.setAttribute("aria-expanded", "false");
-        if (state.lastFocus && typeof state.lastFocus.focus === "function") {
-            state.lastFocus.focus();
-        } else {
-            teaserTrigger.focus();
-        }
-    }
-
-    function normalizeSkills(raw) {
-        if (typeof raw !== "string" || !raw.trim()) {
-            return [];
-        }
-        return raw
-            .split(/[;,]/)
-            .map(function (item) {
-                return item.trim();
-            })
-            .filter(function (item) {
-                return item.length > 0;
-            });
     }
 
     function formatDisplayDate(value) {
