@@ -281,3 +281,4 @@
 | `member2`  | #64    | `feat: 接入 DeepSeek 推荐搜索服务`              | ✅   | `git commit -m "feat: 接入 DeepSeek 推荐搜索服务" --author="member2 <member2@edu.com>"`              |
 | `member4`  | #65    | `feat: 新增通知与管理员邀请码服务`              | ✅   | `git commit -m "feat: 新增通知与管理员邀请码服务" --author="member4 <member4@edu.com>"`              |
 | `member3`  | #66    | `feat: 支持账号资料与用户名同步更新`            | ✅   | `git commit -m "feat: 支持账号资料与用户名同步更新" --author="member3 <member3@edu.com>"`            |
+| `member6`  | #67    | `refactor: 统一门户壳层与账号资料入口`          | ✅   | `git commit -m "refactor: 统一门户壳层与账号资料入口" --author="member6 <member6@edu.com>"`          |
