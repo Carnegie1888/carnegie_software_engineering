@@ -6,68 +6,99 @@
 - **MO**：发布职位、筛选候选人、推进审核流程、查看申请 AI 分析面板
 - **Admin**：查看工作量统计、发送管理员邀请
 
+
 ## 技术栈
 
 | 层次 | 技术 |
 |---|---|
-| 后端 | Java 17+、Jakarta Servlet 6 |
-| 容器 | Apache Tomcat 11.x |
+| 后端 | Java 17+、Jakarta Servlet |
+| 容器 | Apache Tomcat 10.1+ 或 11.x |
 | 前端 | JSP、HTML、CSS、原生 JavaScript |
-| 构建 | Maven / 脚本 |
+| 构建/运行 | `scripts/dev.sh` / `scripts/dev.bat` |
 | 持久化 | CSV 文件 + 本地文件目录 |
 | AI | DashScope 兼容配置 + 可选 HTTP Skill Match 客户端 |
+
+## 目录结构
+
+| 路径 | 作用 |
+|---|---|
+| `backend/src/` | 后端 Java 源码 |
+| `frontend/webapp/` | JSP、CSS、JavaScript 和 `WEB-INF/web.xml` |
+| `scripts/dev.sh` | macOS / Linux 一键编译、部署、启动 |
+| `scripts/dev.bat` | Windows 一键编译、部署、启动 |
+| `scripts/config.example.sh` | macOS / Linux 配置模板 |
+| `scripts/config.example.bat` | Windows 配置模板 |
+| `docs/` | 项目文档和课程交付资料 |
+| `test/` | 手工测试资料 |
 
 ## 环境要求
 
 | 工具 | 要求 | 说明 |
 |---|---|---|
-| JDK | `17+` | 推荐 JDK 21 |
-| Tomcat | `11.x` | 项目使用 Jakarta Servlet 6 |
-| Maven | `3.9+` | 可选，用于 WAR 打包 |
+| JDK | `17+` | 需要能直接使用 `javac` |
+| Tomcat | `10.1+` 或 `11.x` | 项目使用 Jakarta Servlet API |
 
 ## 快速启动
 
-### 1. 配置
-
-编辑 `scripts/config.bat`（Windows）或 `scripts/config.sh`（macOS/Linux），设置 Tomcat 路径：
+### Windows
 
 ```bat
-REM Windows 示例
-set CATALINA_HOME=D:\path\to\apache-tomcat-11.0.7
-set APP_NAME=groupproject
-```
-
-```bash
-# macOS / Linux 示例
-export CATALINA_HOME="/path/to/apache-tomcat-11.0.7"
-export APP_NAME="groupproject"
-```
-
-### 2. 启动
-
-**Windows**：
-```cmd
 cd scripts
+copy config.example.bat config.bat
+```
+
+编辑 `scripts\config.bat`：
+
+```bat
+set CATALINA_HOME=D:\path\to\apache-tomcat-11.0.7
+set TOMCAT_HOME=%CATALINA_HOME%
+set APP_NAME=groupproject
+set TA_HIRING_DATA_DIR=%CATALINA_HOME%\data
+```
+
+启动：
+
+```bat
 dev.bat
 ```
 
-**macOS / Linux**：
+### macOS / Linux
+
 ```bash
 cd scripts
+cp config.example.sh config.sh
 chmod +x dev.sh
+```
+
+编辑 `scripts/config.sh`：
+
+```bash
+export CATALINA_HOME="/path/to/apache-tomcat-11.0.7"
+export TOMCAT_HOME="${CATALINA_HOME}"
+export APP_NAME="groupproject"
+export TA_HIRING_DATA_DIR="${CATALINA_HOME}/data"
+```
+
+启动：
+
+```bash
 ./dev.sh
 ```
 
-这会自动完成：编译 → 部署到 Tomcat → 启动服务。
+`dev.sh` / `dev.bat` 会自动完成：
 
-### 3. 访问地址
+```text
+编译 backend/src -> 复制 frontend/webapp -> 部署到 Tomcat webapps -> 启动 Tomcat
+```
+
+## 访问地址
 
 | 页面 | URL |
 |---|---|
 | 门户首页 | http://localhost:8080/groupproject/ |
 | 登录页 | http://localhost:8080/groupproject/login.jsp |
 
-### 4. 演示账号
+## 演示账号
 
 | Role | Username | Password |
 |---|---|---|
@@ -75,67 +106,21 @@ chmod +x dev.sh
 | MO | `mo_demo` | `Pass1234` |
 | Admin | `admin_demo` | `Pass1234` |
 
-## 其他启动方式
+## 运行数据和日志
 
-### Maven 打包
+运行时数据由 `TA_HIRING_DATA_DIR` 指定，目录下会保存用户、职位、申请、邀请、简历等 CSV/文件数据。建议本地开发时设置为 Tomcat 目录下的 `data/`。
 
-```bash
-./scripts/package-war.sh      # macOS / Linux
-scripts\package-war.bat       # Windows
+后端日志文件位于项目根目录：
+
+```text
+logs/app.log
 ```
-
-生成 `target/groupproject.war`，可部署到任意 Tomcat。
-
-### 脚本说明
-
-| 脚本 | 用途 |
-|---|---|
-| `dev.bat` / `dev.sh` | 一键：编译 + 部署 + 启动 |
-| `build.bat` / `build.sh` | 仅编译 |
-| `deploy.bat` / `deploy.sh` | 仅部署 |
-| `startup.bat` / `startup.sh` | 仅启动 Tomcat |
-| `package-war.bat` / `package-war.sh` | Maven WAR 打包 |
-
-## 详细文档
-
-项目文档已迁移至 `docs/technical/`：
-
-```
-docs/technical/
-├── README.md                      # 文档总览
-├── architecture/
-│   ├── system-architecture.md     # 系统架构
-│   ├── data-architecture.md       # 数据架构
-│   └── security-architecture.md   # 安全架构
-├── modules/
-│   ├── authentication.md          # 认证模块
-│   ├── ta-profile.md              # TA 档案模块
-│   ├── job-management.md          # 职位管理模块
-│   ├── application.md             # 申请流程模块
-│   ├── ai-matching.md            # AI 匹配模块
-│   ├── admin-workload.md          # 管理员工作量模块
-│   └── admin-invite.md           # 管理员邀请模块
-├── api/
-│   └── servlet-api.md             # Servlet API 文档
-└── deployment/
-    └── deployment-guide.md        # 部署指南
-```
-
-## 数据目录
-
-运行时数据存储在 Tomcat 下的 `data/` 目录。**必须**在 `scripts/config.bat` 中配置 `TA_HIRING_DATA_DIR` 环境变量：
-
-```bat
-set TA_HIRING_DATA_DIR=%CATALINA_HOME%\data
-```
-
-## 日志
-
-后端日志文件位于项目根目录 `logs/app.log`，记录所有接口的请求和错误信息。
 
 ## 常见问题
 
-- **端口 8080 被占用**：先关闭已运行的 Tomcat 实例
-- **数据"消失"**：检查是否指定了正确的数据目录
-- **页面能打开但无数据**：确认使用同一 Tomcat 实例
-- **邮件邀请未发送**：本地开发环境无 sendmail 时，系统会返回邀请链接供手动复制
+- **提示找不到 Tomcat**：检查 `CATALINA_HOME` / `TOMCAT_HOME` 是否指向真实 Tomcat 根目录。
+- **提示数据目录未配置**：检查 `TA_HIRING_DATA_DIR` 是否已写入 `config.sh` 或 `config.bat`。
+- **端口 8080 被占用**：先关闭已有 Tomcat 或其他占用 8080 的服务。
+- **脚本显示启动但页面打不开**：查看 Tomcat 日志，确认 8080/8005 没有端口冲突。
+- **页面能打开但无数据**：确认本次运行使用的是同一个 `TA_HIRING_DATA_DIR`。
+- **邮件邀请未发送**：本地开发环境无 sendmail 时，系统会返回邀请链接供手动复制。

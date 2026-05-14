@@ -385,6 +385,6 @@ rm -rf ${DATA_DIR}
 ## 12. 联系方式
 
 如有问题，请查看:
-- 项目 README: `docs/README.md`
-- 开发计划: `docs/plan-and-handout/development_plan.md`
-- 技术文档: `docs/technical/README.md`
+- 项目 README: `README.md`
+- Git 提交记录: `docs/git-records/commit-records.md`
+- 技术文档: `docs/technical/index.md`

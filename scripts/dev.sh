@@ -58,7 +58,8 @@ javac -encoding UTF-8 -d "$BUILD_DIR/WEB-INF/classes" -cp "$CLASSPATH" \
     "$SRC_DIR/com/example/authlogin/model/AdminInvite.java" \
     "$SRC_DIR/com/example/authlogin/model/Applicant.java" \
     "$SRC_DIR/com/example/authlogin/model/Job.java" \
-    "$SRC_DIR/com/example/authlogin/model/Application.java"
+    "$SRC_DIR/com/example/authlogin/model/Application.java" \
+    "$SRC_DIR/com/example/authlogin/model/Notification.java"
 
 if [ $? -ne 0 ]; then
     echo "[ERROR] Model compilation failed!"
@@ -85,7 +86,8 @@ javac -encoding UTF-8 -d "$BUILD_DIR/WEB-INF/classes" -cp "$CLASSPATH" \
     "$SRC_DIR/com/example/authlogin/dao/AdminInviteDao.java" \
     "$SRC_DIR/com/example/authlogin/dao/ApplicantDao.java" \
     "$SRC_DIR/com/example/authlogin/dao/JobDao.java" \
-    "$SRC_DIR/com/example/authlogin/dao/ApplicationDao.java"
+    "$SRC_DIR/com/example/authlogin/dao/ApplicationDao.java" \
+    "$SRC_DIR/com/example/authlogin/dao/NotificationDao.java"
 
 if [ $? -ne 0 ]; then
     echo "[ERROR] DAO compilation failed!"
@@ -97,6 +99,9 @@ echo "  Compiling service, filter, bootstrap and servlet classes..."
 # Compile service/ai classes first
 javac -encoding UTF-8 -d "$BUILD_DIR/WEB-INF/classes" -cp "$CLASSPATH" \
     "$SRC_DIR/com/example/authlogin/service/ai/AiSkillMatchClient.java" \
+    "$SRC_DIR/com/example/authlogin/service/ai/DeepSeekAiConfig.java" \
+    "$SRC_DIR/com/example/authlogin/service/ai/DeepSeekApplicantSearchClient.java" \
+    "$SRC_DIR/com/example/authlogin/service/ai/DeepSeekTaJobSearchClient.java" \
     "$SRC_DIR/com/example/authlogin/service/ai/TaJobMatchAiConfig.java" \
     "$SRC_DIR/com/example/authlogin/service/ai/HttpAiSkillMatchClient.java" \
     "$SRC_DIR/com/example/authlogin/service/ai/TongyiXiaomiAnalysisClient.java"
@@ -109,8 +114,11 @@ fi
 # Compile service classes
 javac -encoding UTF-8 -d "$BUILD_DIR/WEB-INF/classes" -cp "$CLASSPATH" \
     "$SRC_DIR/com/example/authlogin/service/SkillMatchService.java" \
+    "$SRC_DIR/com/example/authlogin/service/MoApplicantAiSearchService.java" \
+    "$SRC_DIR/com/example/authlogin/service/TaJobAiSearchService.java" \
     "$SRC_DIR/com/example/authlogin/service/TaJobMatchAnalysisService.java" \
     "$SRC_DIR/com/example/authlogin/service/WorkloadStatsService.java" \
+    "$SRC_DIR/com/example/authlogin/service/InviteCodeService.java" \
     "$SRC_DIR/com/example/authlogin/service/AdminInviteEmailService.java"
 
 if [ $? -ne 0 ]; then
@@ -142,16 +150,21 @@ javac -encoding UTF-8 -d "$BUILD_DIR/WEB-INF/classes" -cp "$CLASSPATH" \
     "$SRC_DIR/com/example/authlogin/servlet/LoginServlet.java" \
     "$SRC_DIR/com/example/authlogin/servlet/RegisterServlet.java" \
     "$SRC_DIR/com/example/authlogin/servlet/LogoutServlet.java" \
+    "$SRC_DIR/com/example/authlogin/servlet/AccountProfileServlet.java" \
     "$SRC_DIR/com/example/authlogin/servlet/ApplicantServlet.java" \
     "$SRC_DIR/com/example/authlogin/servlet/ApplicantAccessServlet.java" \
     "$SRC_DIR/com/example/authlogin/servlet/JobServlet.java" \
     "$SRC_DIR/com/example/authlogin/servlet/ApplyServlet.java" \
+    "$SRC_DIR/com/example/authlogin/servlet/MoApplicantAiSearchServlet.java" \
+    "$SRC_DIR/com/example/authlogin/servlet/TaJobAiSearchServlet.java" \
     "$SRC_DIR/com/example/authlogin/servlet/SkillMatchServlet.java" \
     "$SRC_DIR/com/example/authlogin/servlet/TaJobMatchAnalysisServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/MoApplicationMatchAnalysisServlet.java" \
     "$SRC_DIR/com/example/authlogin/servlet/WorkloadStatsServlet.java" \
     "$SRC_DIR/com/example/authlogin/servlet/AdminInviteServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/AdminInviteAcceptServlet.java"
+    "$SRC_DIR/com/example/authlogin/servlet/AdminInviteAcceptServlet.java" \
+    "$SRC_DIR/com/example/authlogin/servlet/AdminCurrentInviteCodeServlet.java" \
+    "$SRC_DIR/com/example/authlogin/servlet/CheckAvailableServlet.java" \
+    "$SRC_DIR/com/example/authlogin/servlet/NotificationServlet.java"
 
 if [ $? -ne 0 ]; then
     echo "[ERROR] Servlet compilation failed!"
@@ -175,7 +188,7 @@ echo ""
 
 # Check build directory
 if [ ! -d "$BUILD_DIR" ]; then
-    echo "[ERROR] Build directory not found. Run build first."
+    echo "[ERROR] Build directory not found after build step."
     exit 1
 fi
 
@@ -187,7 +200,9 @@ if [ ! -d "$CATALINA_HOME" ]; then
 fi
 
 echo "  Stopping Tomcat (if running)..."
-"$CATALINA_HOME/bin/shutdown.sh"
+if ! "$CATALINA_HOME/bin/shutdown.sh" >/dev/null 2>&1; then
+    echo "  Tomcat was not running."
+fi
 
 sleep 2
 
@@ -198,6 +213,8 @@ if [ -d "$TARGET_DIR" ]; then
     echo "  Removing old version..."
     rm -rf "$TARGET_DIR"
 fi
+
+mkdir -p "$TARGET_DIR"
 
 # Copy build to Tomcat
 cp -r "$BUILD_DIR/"* "$TARGET_DIR/"

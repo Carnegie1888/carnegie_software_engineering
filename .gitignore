@@ -10,7 +10,12 @@ scripts/config.sh
 author.md
 /nul
 .cursor/rules/
+.codex/
+AGENTS.md
 data/logs/
+logs/
+.playwright/
+.playwright-cli/
 /shelf/
 docs/proto/TADesign/
 frontend/webapp/WEB-INF/ai/*.local.properties

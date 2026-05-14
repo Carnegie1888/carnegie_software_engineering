@@ -52,7 +52,8 @@ javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%CLASSPATH%" ^
     "%SRC_DIR%\com\example\authlogin\model\AdminInvite.java" ^
     "%SRC_DIR%\com\example\authlogin\model\Applicant.java" ^
     "%SRC_DIR%\com\example\authlogin\model\Job.java" ^
-    "%SRC_DIR%\com\example\authlogin\model\Application.java"
+    "%SRC_DIR%\com\example\authlogin\model\Application.java" ^
+    "%SRC_DIR%\com\example\authlogin\model\Notification.java"
 
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Model compilation failed!
@@ -79,7 +80,8 @@ javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%CLASSPATH%" ^
     "%SRC_DIR%\com\example\authlogin\dao\AdminInviteDao.java" ^
     "%SRC_DIR%\com\example\authlogin\dao\ApplicantDao.java" ^
     "%SRC_DIR%\com\example\authlogin\dao\JobDao.java" ^
-    "%SRC_DIR%\com\example\authlogin\dao\ApplicationDao.java"
+    "%SRC_DIR%\com\example\authlogin\dao\ApplicationDao.java" ^
+    "%SRC_DIR%\com\example\authlogin\dao\NotificationDao.java"
 
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] DAO compilation failed!
@@ -91,6 +93,9 @@ echo   Compiling service, filter, bootstrap and servlet classes...
 REM Compile service/ai classes first
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%CLASSPATH%" ^
     "%SRC_DIR%\com\example\authlogin\service\ai\AiSkillMatchClient.java" ^
+    "%SRC_DIR%\com\example\authlogin\service\ai\DeepSeekAiConfig.java" ^
+    "%SRC_DIR%\com\example\authlogin\service\ai\DeepSeekApplicantSearchClient.java" ^
+    "%SRC_DIR%\com\example\authlogin\service\ai\DeepSeekTaJobSearchClient.java" ^
     "%SRC_DIR%\com\example\authlogin\service\ai\TaJobMatchAiConfig.java" ^
     "%SRC_DIR%\com\example\authlogin\service\ai\HttpAiSkillMatchClient.java" ^
     "%SRC_DIR%\com\example\authlogin\service\ai\TongyiXiaomiAnalysisClient.java"
@@ -103,8 +108,11 @@ if %ERRORLEVEL% NEQ 0 (
 REM Compile service classes
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%CLASSPATH%" ^
     "%SRC_DIR%\com\example\authlogin\service\SkillMatchService.java" ^
+    "%SRC_DIR%\com\example\authlogin\service\MoApplicantAiSearchService.java" ^
+    "%SRC_DIR%\com\example\authlogin\service\TaJobAiSearchService.java" ^
     "%SRC_DIR%\com\example\authlogin\service\TaJobMatchAnalysisService.java" ^
     "%SRC_DIR%\com\example\authlogin\service\WorkloadStatsService.java" ^
+    "%SRC_DIR%\com\example\authlogin\service\InviteCodeService.java" ^
     "%SRC_DIR%\com\example\authlogin\service\AdminInviteEmailService.java"
 
 if %ERRORLEVEL% NEQ 0 (
@@ -136,16 +144,21 @@ javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%CLASSPATH%" ^
     "%SRC_DIR%\com\example\authlogin\servlet\LoginServlet.java" ^
     "%SRC_DIR%\com\example\authlogin\servlet\RegisterServlet.java" ^
     "%SRC_DIR%\com\example\authlogin\servlet\LogoutServlet.java" ^
+    "%SRC_DIR%\com\example\authlogin\servlet\AccountProfileServlet.java" ^
     "%SRC_DIR%\com\example\authlogin\servlet\ApplicantServlet.java" ^
     "%SRC_DIR%\com\example\authlogin\servlet\ApplicantAccessServlet.java" ^
     "%SRC_DIR%\com\example\authlogin\servlet\JobServlet.java" ^
     "%SRC_DIR%\com\example\authlogin\servlet\ApplyServlet.java" ^
+    "%SRC_DIR%\com\example\authlogin\servlet\MoApplicantAiSearchServlet.java" ^
+    "%SRC_DIR%\com\example\authlogin\servlet\TaJobAiSearchServlet.java" ^
     "%SRC_DIR%\com\example\authlogin\servlet\SkillMatchServlet.java" ^
     "%SRC_DIR%\com\example\authlogin\servlet\TaJobMatchAnalysisServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\MoApplicationMatchAnalysisServlet.java" ^
     "%SRC_DIR%\com\example\authlogin\servlet\WorkloadStatsServlet.java" ^
     "%SRC_DIR%\com\example\authlogin\servlet\AdminInviteServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\AdminInviteAcceptServlet.java"
+    "%SRC_DIR%\com\example\authlogin\servlet\AdminInviteAcceptServlet.java" ^
+    "%SRC_DIR%\com\example\authlogin\servlet\AdminCurrentInviteCodeServlet.java" ^
+    "%SRC_DIR%\com\example\authlogin\servlet\CheckAvailableServlet.java" ^
+    "%SRC_DIR%\com\example\authlogin\servlet\NotificationServlet.java"
 
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Servlet compilation failed!
@@ -169,7 +182,7 @@ echo.
 
 REM Check build directory
 if not exist "%BUILD_DIR%" (
-    echo [ERROR] Build directory not found. Run build.bat first.
+    echo [ERROR] Build directory not found after build step.
     exit /b 1
 )
 

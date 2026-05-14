@@ -25,7 +25,7 @@
 | [authentication.md](./modules/authentication.md) | 认证与权限模块 |
 | [ta-profile.md](./modules/ta-profile.md) | TA 档案管理模块 |
 | [job-management.md](./modules/job-management.md) | 职位管理模块 |
-| [application.md](./modules/application.md) | 申请审核模块 |
+| [application-review.md](./modules/application-review.md) | 申请审核模块 |
 | [ai-matching.md](./modules/ai-matching.md) | AI 技能匹配模块 |
 | [admin-workload.md](./modules/admin-workload.md) | 管理员工作量统计模块 |
 | [admin-invite.md](./modules/admin-invite.md) | 管理员邀请模块 |
@@ -46,7 +46,7 @@
 | 后端 | Java 17+, Jakarta Servlet 6 |
 | 容器 | Apache Tomcat 11.x |
 | 前端 | JSP, HTML5, CSS3, Vanilla JavaScript |
-| 构建 | Maven WAR |
+| 构建/运行 | 脚本直跑 |
 | 持久化 | CSV 文件存储 |
 | AI | DashScope 兼容 API (可选) |
 | 多语言 | 中英文双语 |
