@@ -3,171 +3,93 @@
     var i18n = window.AppI18n && typeof window.AppI18n.t === "function" ? window.AppI18n : null;
 
     var filterForm = document.getElementById("workload-filter-form");
-    var startInput = document.getElementById("start-time");
-    var endInput = document.getElementById("end-time");
-    var clearButton = document.getElementById("clear-filter-btn");
-    var refreshButton = document.getElementById("refresh-btn");
-    var exportButton = document.getElementById("export-btn");
+    var searchInput = document.getElementById("workload-search-input");
     var applyButton = document.getElementById("apply-filter-btn");
     var messageNode = document.getElementById("dashboard-message");
-    var moSummaryNode = document.getElementById("mo-summary");
-    var moListNode = document.getElementById("mo-list");
     var taSummaryNode = document.getElementById("ta-summary");
     var taListNode = document.getElementById("ta-list");
+    var paginationNode = document.getElementById("workload-pagination");
 
-    var summaryNodes = {
-        total: document.getElementById("summary-total"),
-        pending: document.getElementById("summary-pending"),
-        accepted: document.getElementById("summary-accepted"),
-        rejected: document.getElementById("summary-rejected"),
-        withdrawn: document.getElementById("summary-withdrawn")
-    };
-    var chartNodes = {
-        statusChart: document.getElementById("status-chart"),
-        moChart: document.getElementById("mo-chart"),
-        taChart: document.getElementById("ta-chart")
-    };
-    var EMPTY_COUNTS = {
-        total: 0,
-        pending: 0,
-        accepted: 0,
-        rejected: 0,
-        withdrawn: 0
-    };
-    var STATUS_CHART_ROWS = [
-        { key: "pending", label: "Pending", style: "pending" },
-        { key: "accepted", label: "Accepted", style: "accepted" },
-        { key: "rejected", label: "Rejected", style: "rejected" },
-        { key: "withdrawn", label: "Withdrawn", style: "withdrawn" }
-    ];
-
-    if (!filterForm || !startInput || !endInput || !moSummaryNode || !moListNode || !taSummaryNode || !taListNode) {
+    if (!filterForm || !searchInput || !taSummaryNode || !taListNode) {
         return;
     }
 
+    var PAGE_SIZE = 5;
+
+    var EMPTY_REPORT = {
+        taWorkloads: [],
+        invalidJobs: [],
+        totalTaCount: 0,
+        totalAcceptedJobs: 0,
+        totalWorkWeeks: 0,
+        totalWorkHours: 0
+    };
+
     var state = {
         loading: false,
-        exporting: false
+        report: EMPTY_REPORT,
+        expandedTaIds: {},
+        searchQuery: "",
+        currentPage: 1
     };
+
+    searchInput.addEventListener("keydown", function (event) {
+        if (event.key !== "Enter" || event.isComposing) return;
+        event.preventDefault();
+        applySearch();
+    });
 
     filterForm.addEventListener("submit", function (event) {
         event.preventDefault();
-        loadDashboard();
+        applySearch();
     });
 
-    if (clearButton) {
-        clearButton.addEventListener("click", function () {
-            startInput.value = "";
-            endInput.value = "";
-            loadDashboard();
-        });
-    }
-
-    if (refreshButton) {
-        refreshButton.addEventListener("click", function () {
-            loadDashboard();
-        });
-    }
-
-    if (exportButton) {
-        exportButton.addEventListener("click", function () {
-            exportCsv();
-        });
-    }
+    document.addEventListener("app:locale-changed", function () {
+        renderDashboard(state.report);
+        setLoadingState(state.loading);
+    });
 
     loadDashboard();
 
     function loadDashboard() {
-        if (state.loading) {
-            return Promise.resolve();
-        }
-
-        var validationError = validateTimeRange();
-        if (validationError) {
-            showMessage(validationError, "error");
-            return Promise.resolve();
-        }
+        if (state.loading) return Promise.resolve();
 
         state.loading = true;
         setLoadingState(true);
         hideMessage();
-        moSummaryNode.textContent = "Loading workload...";
-        moListNode.innerHTML = "";
-        taSummaryNode.textContent = "Loading workload...";
+        taSummaryNode.textContent = t("portal.adminDashboard.loadingWorkload", "Loading workload...");
         taListNode.innerHTML = "";
 
-        return Promise.all([
-            fetchCounts(),
-            fetchMoWorkloads(),
-            fetchTaWorkloads()
-        ]).then(function (values) {
-            var countsResult = values[0];
-            var moResult = values[1];
-            var taResult = values[2];
-
-            if (countsResult.unauthorized || moResult.unauthorized || taResult.unauthorized) {
+        return fetchWorkloadReport().then(function (result) {
+            if (result.unauthorized) {
                 handleUnauthorized();
                 return;
             }
-
-            if (!countsResult.ok) {
-                showMessage(countsResult.message || "Failed to load application totals.", "error");
+            if (!result.ok) {
+                showMessage(localizeServerMessage(result.message, "portal.dynamic.failedLoadTaWorkloads", "Failed to load TA workloads."), "error");
+                state.report = EMPTY_REPORT;
+            } else {
+                state.report = normalizeReport(result.payload);
             }
-            renderSummary(countsResult.ok ? countsResult.payload : EMPTY_COUNTS);
-
-            if (!moResult.ok) {
-                showMessage(moResult.message || "Failed to load MO workloads.", "error");
-            }
-            var moWorkloads = moResult.ok && Array.isArray(getPayloadDataArray(moResult.payload, "moWorkloads"))
-                ? getPayloadDataArray(moResult.payload, "moWorkloads")
-                : [];
-            renderMoList(moWorkloads);
-            renderMoChart(moWorkloads);
-
-            if (!taResult.ok) {
-                showMessage(taResult.message || "Failed to load TA workloads.", "error");
-            }
-            var taWorkloads = taResult.ok && Array.isArray(getPayloadDataArray(taResult.payload, "taWorkloads"))
-                ? getPayloadDataArray(taResult.payload, "taWorkloads")
-                : [];
-            renderTaList(taWorkloads);
-            renderTaChart(taWorkloads);
+            renderDashboard(state.report);
         }).catch(function () {
-            showMessage("Network error while loading dashboard.", "error");
-            renderSummary(EMPTY_COUNTS);
-            renderMoList([]);
-            renderMoChart([]);
-            renderTaList([]);
-            renderTaChart([]);
+            showMessage(t("portal.dynamic.networkErrorLoadingDashboard", "Network error while loading dashboard."), "error");
+            state.report = EMPTY_REPORT;
+            renderDashboard(state.report);
         }).finally(function () {
             state.loading = false;
             setLoadingState(false);
         });
     }
 
-    function fetchCounts() {
-        var url = contextPath + "/api/admin/workload" + buildQueryString(null);
-        return request(url, {
-            method: "GET",
-            headers: { "X-Requested-With": "XMLHttpRequest" }
-        }).then(function (result) {
-            return normalizeApiResult(result, "Application totals request failed.");
-        });
+    function applySearch() {
+        state.searchQuery = searchInput.value.trim();
+        state.currentPage = 1;
+        renderDashboard(state.report);
     }
 
-    function fetchMoWorkloads() {
-        var url = contextPath + "/api/admin/workload" + buildQueryString({ mode: "mo" });
-        return request(url, {
-            method: "GET",
-            headers: { "X-Requested-With": "XMLHttpRequest" }
-        }).then(function (result) {
-            return normalizeApiResult(result, "MO workload request failed.");
-        });
-    }
-
-    function fetchTaWorkloads() {
-        var url = contextPath + "/api/admin/workload" + buildQueryString({ mode: "ta" });
-        return request(url, {
+    function fetchWorkloadReport() {
+        return request(contextPath + "/api/admin/workload", {
             method: "GET",
             headers: { "X-Requested-With": "XMLHttpRequest" }
         }).then(function (result) {
@@ -175,329 +97,310 @@
         });
     }
 
-    function exportCsv() {
-        if (state.exporting) {
+    function renderDashboard(report) {
+        renderTaCards(report.taWorkloads);
+    }
+
+    function renderTaCards(taWorkloads) {
+        taListNode.innerHTML = "";
+        hidePagination();
+        if (!Array.isArray(taWorkloads) || taWorkloads.length === 0) {
+            taSummaryNode.textContent = t("portal.dynamic.noTaWorkloadSelectedRange", "No TA workload data in selected work range.");
+            taListNode.appendChild(createEmptyState(t("portal.dynamic.adjustWorkRangeHint", "Adjust the work range or add structured work-hour fields to accepted jobs.")));
             return;
         }
 
-        var validationError = validateTimeRange();
-        if (validationError) {
-            showMessage(validationError, "error");
+        var filtered = filterTaWorkloads(taWorkloads, state.searchQuery);
+        if (filtered.length === 0) {
+            taSummaryNode.textContent = t("portal.adminDashboard.noWorkloadMatches", "No TA workload matches your keyword.");
+            taListNode.appendChild(createEmptyState(t("portal.adminDashboard.noWorkloadMatchesHint", "Try another TA name, job title, or course code.")));
             return;
         }
 
-        state.exporting = true;
-        if (exportButton) {
-            exportButton.disabled = true;
-            exportButton.textContent = "Exporting...";
-        }
-
-        var url = contextPath + "/api/admin/workload" + buildQueryString({
-            mode: "mo",
-            export: "csv"
+        var sorted = filtered.slice().sort(function (a, b) {
+            return toNumber(b.totalWorkHours) - toNumber(a.totalWorkHours);
         });
-        fetch(url, {
-            method: "GET",
-            headers: { "X-Requested-With": "XMLHttpRequest" }
-        }).then(function (response) {
-            if (response.status === 401) {
-                handleUnauthorized();
-                return null;
+        var maxValue = sorted.reduce(function (max, item) {
+            return Math.max(max, toNumber(item.totalWorkHours));
+        }, 0);
+        pruneExpandedState(sorted);
+
+        var totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+        if (state.currentPage > totalPages) {
+            state.currentPage = totalPages;
+        }
+        if (state.currentPage < 1) {
+            state.currentPage = 1;
+        }
+        var pageStart = (state.currentPage - 1) * PAGE_SIZE;
+        var pageItems = sorted.slice(pageStart, pageStart + PAGE_SIZE);
+
+        taSummaryNode.textContent = buildWorkloadSummary(pageItems.length, sorted.length, taWorkloads.length);
+        pageItems.forEach(function (item) {
+            taListNode.appendChild(createTaCard(item, maxValue));
+        });
+        renderPagination(totalPages);
+    }
+
+    function createTaCard(item, maxValue) {
+        var taId = safeText(item.taId, safeText(item.taName, ""));
+        var isExpanded = !!state.expandedTaIds[taId];
+        var totalHours = toNumber(item.totalWorkHours);
+        var percent = maxValue > 0 ? Math.round((totalHours * 100) / maxValue) : 0;
+
+        var element = document.createElement("article");
+        element.className = "ta-workload-card" + (isExpanded ? " is-expanded" : "");
+        element.innerHTML =
+            "<button class=\"ta-summary-card\" type=\"button\" aria-expanded=\"" + (isExpanded ? "true" : "false") + "\">" +
+                "<span class=\"ta-summary-main\">" +
+                    "<strong>" + escapeHtml(safeText(item.taName, "TA User")) + "</strong>" +
+                    "<small>" + escapeHtml(t("portal.adminDashboard.acceptedJobs", "Accepted Jobs")) + " " + escapeHtml(String(toNumber(item.acceptedJobCount))) + "</small>" +
+                "</span>" +
+                "<span class=\"ta-summary-meter\" aria-hidden=\"true\">" +
+                    "<i style=\"width:" + escapeHtml(String(percent)) + "%\"></i>" +
+                "</span>" +
+                "<span class=\"ta-summary-hours\">" +
+                    "<strong>" + escapeHtml(formatNumber(totalHours)) + "</strong>" +
+                    "<small>" + escapeHtml(t("portal.adminDashboard.hours", "hours")) + "</small>" +
+                "</span>" +
+                "<span class=\"ta-summary-action\">" + escapeHtml(isExpanded ? t("portal.adminDashboard.collapseDetails", "Hide details") : t("portal.adminDashboard.viewDetails", "View details")) + "</span>" +
+            "</button>";
+
+        var button = element.querySelector("button");
+        button.addEventListener("click", function () {
+            if (isExpanded) {
+                delete state.expandedTaIds[taId];
+            } else {
+                state.expandedTaIds[taId] = true;
             }
-            if (!response.ok) {
-                throw new Error("Failed to export CSV.");
+            renderTaCards(state.report.taWorkloads);
+        });
+
+        if (isExpanded) {
+            element.appendChild(createTaDetail(item));
+        }
+        return element;
+    }
+
+    function createTaDetail(item) {
+        var jobs = Array.isArray(item.jobs) ? item.jobs : [];
+        var jobRows = jobs.map(function (job) {
+            return "<li class=\"ta-job-row\">" +
+                "<div>" +
+                    "<strong>" + escapeHtml(safeText(job.jobTitle, "Untitled job")) + "</strong>" +
+                    "<span>" + escapeHtml(safeText(job.courseCode, "-")) + "</span>" +
+                "</div>" +
+                "<p>" +
+                    escapeHtml(formatNumber(job.weeklyHours)) + " " + escapeHtml(t("portal.adminDashboard.hoursPerWeek", "hours/week")) +
+                    " · " + escapeHtml(String(toNumber(job.countedWeeks))) + " " + escapeHtml(t("portal.adminDashboard.weeks", "weeks")) +
+                    " · " + escapeHtml(formatNumber(job.countedHours)) + " " + escapeHtml(t("portal.adminDashboard.hours", "hours")) +
+                "</p>" +
+                "<small>" + escapeHtml(safeText(job.workStartDate, "-")) + " - " + escapeHtml(safeText(job.workEndDate, "-")) + "</small>" +
+            "</li>";
+        }).join("");
+
+        var element = document.createElement("div");
+        element.className = "ta-workload-detail";
+        element.innerHTML =
+            "<div class=\"ta-item-stats\">" +
+                "<p><span>" + escapeHtml(t("portal.adminDashboard.acceptedJobs", "Accepted Jobs")) + "</span><strong>" + escapeHtml(String(toNumber(item.acceptedJobCount))) + "</strong></p>" +
+                "<p><span>" + escapeHtml(t("portal.adminDashboard.totalWorkWeeks", "Work Weeks")) + "</span><strong>" + escapeHtml(String(toNumber(item.totalWorkWeeks))) + "</strong></p>" +
+                "<p><span>" + escapeHtml(t("portal.adminDashboard.totalWorkHours", "Total Work Hours")) + "</span><strong>" + escapeHtml(formatNumber(item.totalWorkHours)) + "</strong></p>" +
+            "</div>" +
+            "<ul class=\"ta-job-list\">" + jobRows + "</ul>";
+        return element;
+    }
+
+    function filterTaWorkloads(taWorkloads, query) {
+        var normalizedQuery = normalizeSearchText(query);
+        if (!normalizedQuery) {
+            return taWorkloads;
+        }
+        return taWorkloads.filter(function (item) {
+            return buildSearchText(item).indexOf(normalizedQuery) !== -1;
+        });
+    }
+
+    function buildSearchText(item) {
+        var parts = [
+            safeText(item.taName, ""),
+            safeText(item.taId, ""),
+            String(toNumber(item.acceptedJobCount)),
+            formatNumber(item.totalWorkHours),
+            formatNumber(item.totalWorkWeeks)
+        ];
+        var jobs = Array.isArray(item.jobs) ? item.jobs : [];
+        jobs.forEach(function (job) {
+            parts.push(
+                safeText(job.jobTitle, ""),
+                safeText(job.courseCode, ""),
+                safeText(job.jobId, ""),
+                formatNumber(job.weeklyHours),
+                formatNumber(job.countedWeeks),
+                formatNumber(job.countedHours),
+                safeText(job.workStartDate, ""),
+                safeText(job.workEndDate, "")
+            );
+        });
+        return normalizeSearchText(parts.join(" "));
+    }
+
+    function normalizeSearchText(value) {
+        return safeText(value, "").toLowerCase().replace(/\s+/g, " ").trim();
+    }
+
+    function pruneExpandedState(items) {
+        var visibleIds = {};
+        items.forEach(function (item) {
+            visibleIds[safeText(item.taId, safeText(item.taName, ""))] = true;
+        });
+        Object.keys(state.expandedTaIds).forEach(function (taId) {
+            if (!visibleIds[taId]) {
+                delete state.expandedTaIds[taId];
             }
-            return response.text();
-        }).then(function (csvText) {
-            if (typeof csvText !== "string") {
+        });
+    }
+
+    function buildWorkloadSummary(pageCount, filteredCount, totalCount) {
+        var summary = formatLoadedSummary(filteredCount, "portal.dynamic.taWorkloadItemUnit", "TA workload item");
+        if (state.searchQuery) {
+            summary += " " + t("portal.adminDashboard.filteredSummary", "Filtered from") + " " + totalCount + ".";
+        }
+        if (filteredCount > PAGE_SIZE) {
+            summary += " " + t("portal.adminDashboard.pageSummaryPrefix", "Showing") + " " + pageCount + " / " + filteredCount + ".";
+        }
+        return summary;
+    }
+
+    function renderPagination(totalPages) {
+        if (!paginationNode) {
+            return;
+        }
+        paginationNode.innerHTML = "";
+        if (totalPages <= 1) {
+            hidePagination();
+            return;
+        }
+        paginationNode.classList.remove("hidden");
+
+        var pages = buildPaginationPages(totalPages, state.currentPage);
+        pages.forEach(function (page) {
+            if (page === "...") {
+                appendPageEllipsis();
+            } else {
+                appendPageButton(page);
+            }
+        });
+    }
+
+    function buildPaginationPages(totalPages, currentPage) {
+        if (totalPages <= 7) {
+            var simplePages = [];
+            for (var page = 1; page <= totalPages; page++) {
+                simplePages.push(page);
+            }
+            return simplePages;
+        }
+        var pages = [1, 2];
+        var start = Math.max(3, currentPage - 1);
+        var end = Math.min(totalPages - 1, currentPage + 1);
+        if (start > 3) {
+            pages.push("...");
+        }
+        for (var middle = start; middle <= end; middle++) {
+            pages.push(middle);
+        }
+        if (end < totalPages - 1) {
+            pages.push("...");
+        }
+        pages.push(totalPages);
+        return pages;
+    }
+
+    function appendPageButton(page) {
+        if (!paginationNode) {
+            return;
+        }
+        var button = document.createElement("button");
+        button.type = "button";
+        button.className = "workload-page-btn" + (page === state.currentPage ? " is-active" : "");
+        button.textContent = String(page);
+        button.setAttribute("aria-label", t("portal.adminDashboard.pageButtonAria", "Page") + " " + page);
+        if (page === state.currentPage) {
+            button.setAttribute("aria-current", "page");
+        }
+        button.addEventListener("click", function () {
+            if (state.currentPage === page) {
                 return;
             }
-            downloadCsv(csvText);
-            showMessage("CSV exported successfully.", "success");
-        }).catch(function () {
-            showMessage("Unable to export CSV.", "error");
-        }).finally(function () {
-            state.exporting = false;
-            if (exportButton) {
-                exportButton.disabled = false;
-                exportButton.textContent = "Export CSV";
-            }
+            state.currentPage = page;
+            renderTaCards(state.report.taWorkloads);
         });
+        paginationNode.appendChild(button);
+    }
+
+    function appendPageEllipsis() {
+        if (!paginationNode) {
+            return;
+        }
+        var ellipsis = document.createElement("span");
+        ellipsis.className = "workload-page-ellipsis";
+        ellipsis.textContent = "...";
+        paginationNode.appendChild(ellipsis);
+    }
+
+    function hidePagination() {
+        if (!paginationNode) {
+            return;
+        }
+        paginationNode.innerHTML = "";
+        paginationNode.classList.add("hidden");
+    }
+
+    function createEmptyState(copy) {
+        var empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.innerHTML =
+            "<p class=\"empty-title\">" + escapeHtml(t("portal.dynamic.noWorkloadDataYetTitle", "No workload data yet")) + "</p>" +
+            "<p class=\"empty-copy\">" + escapeHtml(copy || t("portal.dynamic.adjustWorkRangeHint", "Adjust the work range or wait for accepted jobs to appear.")) + "</p>";
+        return empty;
+    }
+
+    function normalizeReport(payload) {
+        var data = payload && payload.data && typeof payload.data === "object" ? payload.data : payload;
+        if (!data || typeof data !== "object") return EMPTY_REPORT;
+        return {
+            taWorkloads: Array.isArray(data.taWorkloads) ? data.taWorkloads : [],
+            invalidJobs: Array.isArray(data.invalidJobs) ? data.invalidJobs : [],
+            totalTaCount: toNumber(data.totalTaCount),
+            totalAcceptedJobs: toNumber(data.totalAcceptedJobs),
+            totalWorkWeeks: toNumber(data.totalWorkWeeks),
+            totalWorkHours: toNumber(data.totalWorkHours)
+        };
     }
 
     function normalizeApiResult(result, fallbackMessage) {
         var response = result.response;
         var payload = result.payload;
-
         if (response.status === 401) {
-            return { unauthorized: true, ok: false, payload: null, message: "Please login first." };
+            return { unauthorized: true, ok: false, payload: null, message: localizeServerMessage("Please login first.", "portal.dynamic.sessionExpiredRedirect", "Session expired. Redirecting to login...") };
         }
         if (!response.ok || !payload || payload.success !== true) {
             return {
                 unauthorized: false,
                 ok: false,
                 payload: payload || null,
-                message: payload && payload.message ? String(payload.message) : fallbackMessage
+                message: localizeServerMessage(payload && payload.message, "", fallbackMessage)
             };
         }
         return { unauthorized: false, ok: true, payload: payload, message: "" };
     }
 
-    function renderSummary(payload) {
-        var counts = normalizeCounts(payload);
-        setSummaryCounts(counts);
-        renderStatusChart(counts);
-    }
-
-    function resetSummary() {
-        setSummaryCounts(EMPTY_COUNTS);
-    }
-
-    function normalizeCounts(payload) {
-        if (!payload || typeof payload !== "object") {
-            return EMPTY_COUNTS;
-        }
-        var data = payload && payload.data && typeof payload.data === "object" ? payload.data : payload;
-        return {
-            total: toNumber(data.total),
-            pending: toNumber(data.pending),
-            accepted: toNumber(data.accepted),
-            rejected: toNumber(data.rejected),
-            withdrawn: toNumber(data.withdrawn)
-        };
-    }
-
-    function setSummaryCounts(counts) {
-        summaryNodes.total.textContent = String(toNumber(counts.total));
-        summaryNodes.pending.textContent = String(toNumber(counts.pending));
-        summaryNodes.accepted.textContent = String(toNumber(counts.accepted));
-        summaryNodes.rejected.textContent = String(toNumber(counts.rejected));
-        summaryNodes.withdrawn.textContent = String(toNumber(counts.withdrawn));
-    }
-
-    function renderMoList(moWorkloads) {
-        moListNode.innerHTML = "";
-        if (!Array.isArray(moWorkloads) || moWorkloads.length === 0) {
-            moSummaryNode.textContent = "No MO workload data in selected range.";
-            moListNode.appendChild(createEmptyState());
-            return;
-        }
-
-        moSummaryNode.textContent = "Loaded " + moWorkloads.length + " MO workload item" + (moWorkloads.length > 1 ? "s" : "") + ".";
-        moWorkloads.forEach(function (item) {
-            moListNode.appendChild(createMoItem(item));
-        });
-    }
-
-    function renderStatusChart(counts) {
-        if (!chartNodes.statusChart) {
-            return;
-        }
-        chartNodes.statusChart.innerHTML = "";
-
-        var total = toNumber(counts.total);
-        if (total <= 0) {
-            chartNodes.statusChart.innerHTML = "<p class=\"empty-copy\">No status data available.</p>";
-            return;
-        }
-
-        STATUS_CHART_ROWS.forEach(function (row) {
-            var value = toNumber(counts[row.key]);
-            var percent = Math.round((value * 100) / total);
-            chartNodes.statusChart.appendChild(buildChartRow(row.label, percent, value, row.style));
-        });
-    }
-
-    function renderMoChart(moWorkloads) {
-        if (!chartNodes.moChart) {
-            return;
-        }
-        chartNodes.moChart.innerHTML = "";
-
-        if (!Array.isArray(moWorkloads) || moWorkloads.length === 0) {
-            chartNodes.moChart.innerHTML = "<p class=\"empty-copy\">No MO workload data available.</p>";
-            return;
-        }
-
-        var sorted = moWorkloads.slice().sort(function (a, b) {
-            return toNumber(b.totalApplications) - toNumber(a.totalApplications);
-        }).slice(0, 6);
-
-        var maxValue = 0;
-        sorted.forEach(function (item) {
-            maxValue = Math.max(maxValue, toNumber(item.totalApplications));
-        });
-
-        sorted.forEach(function (item) {
-            var total = toNumber(item.totalApplications);
-            var percent = maxValue > 0 ? Math.round((total * 100) / maxValue) : 0;
-            chartNodes.moChart.appendChild(
-                buildChartRow(safeText(item.moName, "MO"), percent, total, "mo")
-            );
-        });
-    }
-
-    function renderTaChart(taWorkloads) {
-        if (!chartNodes.taChart) {
-            return;
-        }
-        chartNodes.taChart.innerHTML = "";
-
-        if (!Array.isArray(taWorkloads) || taWorkloads.length === 0) {
-            chartNodes.taChart.innerHTML = "<p class=\"empty-copy\">No TA workload data available.</p>";
-            return;
-        }
-
-        var sorted = taWorkloads.slice().sort(function (a, b) {
-            return toNumber(b.totalApplications) - toNumber(a.totalApplications);
-        }).slice(0, 6);
-
-        var maxValue = 0;
-        sorted.forEach(function (item) {
-            maxValue = Math.max(maxValue, toNumber(item.totalApplications));
-        });
-
-        sorted.forEach(function (item) {
-            var total = toNumber(item.totalApplications);
-            var percent = maxValue > 0 ? Math.round((total * 100) / maxValue) : 0;
-            chartNodes.taChart.appendChild(
-                buildChartRow(safeText(item.taName, "TA"), percent, total, "ta")
-            );
-        });
-    }
-
-    function renderTaList(taWorkloads) {
-        taListNode.innerHTML = "";
-        if (!Array.isArray(taWorkloads) || taWorkloads.length === 0) {
-            taSummaryNode.textContent = "No TA workload data in selected range.";
-            taListNode.appendChild(createEmptyState());
-            return;
-        }
-
-        taSummaryNode.textContent = "Loaded " + taWorkloads.length + " TA workload item" + (taWorkloads.length > 1 ? "s" : "") + ".";
-        taWorkloads.forEach(function (item) {
-            taListNode.appendChild(createTaItem(item));
-        });
-    }
-
-    function createTaItem(item) {
-        var element = document.createElement("article");
-        element.className = "ta-item";
-        element.innerHTML =
-            `<div class="ta-item-header">` +
-                `<h3>` + escapeHtml(safeText(item.taName, "TA User")) + `</h3>` +
-                `<span class="ta-item-id">` + escapeHtml(safeText(item.taId, "-")) + `</span>` +
-            `</div>` +
-            `<div class="ta-item-stats">` +
-                `<p><span>Total</span><strong>` + escapeHtml(String(toNumber(item.totalApplications))) + `</strong></p>` +
-                `<p><span>Pending</span><strong>` + escapeHtml(String(toNumber(item.pending))) + `</strong></p>` +
-                `<p><span>Accepted</span><strong>` + escapeHtml(String(toNumber(item.accepted))) + `</strong></p>` +
-                `<p><span>Rejected</span><strong>` + escapeHtml(String(toNumber(item.rejected))) + `</strong></p>` +
-                `<p><span>Withdrawn</span><strong>` + escapeHtml(String(toNumber(item.withdrawn))) + `</strong></p>` +
-            `</div>`;
-        return element;
-    }
-
-    function buildChartRow(label, percent, value, styleClass) {
-        var row = document.createElement("div");
-        row.className = "chart-row";
-        row.innerHTML =
-            "<span class=\"chart-label\">" + escapeHtml(label) + "</span>" +
-            "<div class=\"chart-track\"><i class=\"chart-fill " + escapeHtml(styleClass) + "\" style=\"width:" + escapeHtml(String(percent)) + "%\"></i></div>" +
-            "<strong class=\"chart-value\">" + escapeHtml(String(value)) + "</strong>";
-        return row;
-    }
-
-    function createMoItem(item) {
-        var element = document.createElement("article");
-        element.className = "mo-item";
-        element.innerHTML =
-            "<div class=\"mo-item-header\">" +
-                "<h3>" + escapeHtml(safeText(item.moName, "MO User")) + "</h3>" +
-                "<span class=\"mo-item-id\">" + escapeHtml(safeText(item.moId, "-")) + "</span>" +
-            "</div>" +
-            "<div class=\"mo-item-stats\">" +
-                "<p><span>Total</span><strong>" + escapeHtml(String(toNumber(item.totalApplications))) + "</strong></p>" +
-                "<p><span>Pending</span><strong>" + escapeHtml(String(toNumber(item.pending))) + "</strong></p>" +
-                "<p><span>Processed</span><strong>" + escapeHtml(String(toNumber(item.processed))) + "</strong></p>" +
-                "<p><span>Accepted</span><strong>" + escapeHtml(String(toNumber(item.accepted))) + "</strong></p>" +
-            "</div>";
-        return element;
-    }
-
-    function createEmptyState() {
-        var empty = document.createElement("div");
-        empty.className = "empty-state";
-        empty.innerHTML =
-            "<p class=\"empty-title\">No workload data yet</p>" +
-            "<p class=\"empty-copy\">Adjust time range or wait for application activity to appear.</p>";
-        return empty;
-    }
-
     function setLoadingState(loading) {
         if (applyButton) {
             applyButton.disabled = loading;
-            applyButton.textContent = loading ? "Loading..." : "Apply range";
+            applyButton.textContent = loading ? t("portal.common.loading", "Loading...") : t("portal.common.search", "Search");
         }
-        if (clearButton) {
-            clearButton.disabled = loading;
-        }
-        if (refreshButton) {
-            refreshButton.disabled = loading;
-        }
-        if (exportButton) {
-            exportButton.disabled = loading || state.exporting;
-        }
-    }
-
-    function buildQueryString(staticParams) {
-        var params = new URLSearchParams();
-        if (staticParams && typeof staticParams === "object") {
-            Object.keys(staticParams).forEach(function (key) {
-                var value = staticParams[key];
-                if (value !== null && value !== undefined && String(value).trim() !== "") {
-                    params.set(key, String(value));
-                }
-            });
-        }
-        var startValue = normalizeDateTime(startInput.value);
-        var endValue = normalizeDateTime(endInput.value);
-        if (startValue) {
-            params.set("start", startValue);
-        }
-        if (endValue) {
-            params.set("end", endValue);
-        }
-        var query = params.toString();
-        return query ? "?" + query : "";
-    }
-
-    function validateTimeRange() {
-        var startValue = normalizeDateTime(startInput.value);
-        var endValue = normalizeDateTime(endInput.value);
-        if (!startValue || !endValue) {
-            return "";
-        }
-        var startTime = Date.parse(startValue);
-        var endTime = Date.parse(endValue);
-        if (isNaN(startTime) || isNaN(endTime)) {
-            return "Invalid datetime format.";
-        }
-        if (startTime > endTime) {
-            return "Start time cannot be after end time.";
-        }
-        return "";
-    }
-
-    function normalizeDateTime(value) {
-        if (typeof value !== "string") {
-            return "";
-        }
-        var trimmed = value.trim();
-        if (!trimmed) {
-            return "";
-        }
-        return trimmed.length === 16 ? trimmed + ":00" : trimmed;
     }
 
     function request(url, options) {
@@ -512,66 +415,40 @@
     }
 
     function parseJson(text) {
-        return JSON.parse(text);
-    }
-
-    function getPayloadDataArray(payload, key) {
-        if (!payload || typeof payload !== "object") {
-            return [];
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            return {};
         }
-        if (payload.data && Array.isArray(payload.data[key])) {
-            return payload.data[key];
-        }
-        if (Array.isArray(payload[key])) {
-            return payload[key];
-        }
-        return [];
-    }
-
-    function decodeEscapedText(value) {
-        return value
-            .replace(/\\"/g, "\"")
-            .replace(/\\\\/g, "\\")
-            .replace(/\\n/g, "\n")
-            .replace(/\\r/g, "\r")
-            .replace(/\\t/g, "\t");
     }
 
     function showMessage(message, type) {
-        if (!messageNode) {
-            return;
-        }
+        if (!messageNode) return;
         messageNode.textContent = message;
         messageNode.classList.remove("hidden", "error", "success");
         messageNode.classList.add(type === "success" ? "success" : "error");
     }
 
     function hideMessage() {
-        if (!messageNode) {
-            return;
-        }
+        if (!messageNode) return;
         messageNode.textContent = "";
         messageNode.classList.remove("error", "success");
         messageNode.classList.add("hidden");
     }
 
     function handleUnauthorized() {
-        showMessage("Session expired. Redirecting to login...", "error");
+        showMessage(t("portal.dynamic.sessionExpiredRedirect", "Session expired. Redirecting to login..."), "error");
         window.setTimeout(function () {
             window.location.href = contextPath + "/login.jsp";
         }, 900);
     }
 
-    function downloadCsv(csvText) {
-        var blob = new Blob([csvText], { type: "text/csv;charset=UTF-8" });
-        var url = window.URL.createObjectURL(blob);
-        var link = document.createElement("a");
-        link.href = url;
-        link.download = "mo-workload-stats.csv";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
+    function formatLoadedSummary(count, unitKey, fallbackUnit) {
+        var summary = t("portal.dynamic.loaded", "Loaded") + " " + count + " " + t(unitKey, fallbackUnit);
+        if (window.AppI18n && window.AppI18n.getLocale && window.AppI18n.getLocale() === "en" && count !== 1) {
+            summary += "s";
+        }
+        return summary + ".";
     }
 
     function toNumber(value) {
@@ -579,28 +456,22 @@
         return isFinite(number) ? number : 0;
     }
 
-    function trimText(value) {
-        return typeof value === "string" ? value.trim() : "";
-    }
-
-    function isValidEmail(value) {
-        return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimText(value));
+    function formatNumber(value) {
+        var number = toNumber(value);
+        if (Math.abs(number - Math.round(number)) < 0.0001) {
+            return String(Math.round(number));
+        }
+        return String(Math.round(number * 10) / 10);
     }
 
     function safeText(value, fallback) {
-        if (typeof value === "string" && value.trim()) {
-            return value.trim();
-        }
-        if (typeof value === "number") {
-            return String(value);
-        }
+        if (typeof value === "string" && value.trim()) return value.trim();
+        if (typeof value === "number") return formatNumber(value);
         return typeof fallback === "string" ? fallback : "";
     }
 
     function escapeHtml(value) {
-        if (typeof value !== "string") {
-            return "";
-        }
+        if (typeof value !== "string") return "";
         return value
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
@@ -610,9 +481,15 @@
     }
 
     function t(key, fallback) {
-        if (i18n) {
-            return i18n.t(key, fallback);
-        }
+        if (i18n) return i18n.t(key, fallback);
         return fallback || key;
+    }
+
+    function localizeServerMessage(message, fallbackKey, fallbackText) {
+        if (window.AppI18n && typeof window.AppI18n.localizeServerMessage === "function") {
+            return window.AppI18n.localizeServerMessage(message, fallbackKey, fallbackText);
+        }
+        if (typeof message === "string" && message.trim()) return message.trim();
+        return fallbackKey ? t(fallbackKey, fallbackText) : (fallbackText || "");
     }
 })();

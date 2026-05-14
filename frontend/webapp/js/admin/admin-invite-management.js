@@ -2,221 +2,125 @@
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
     var i18n = window.AppI18n && typeof window.AppI18n.t === "function" ? window.AppI18n : null;
 
-    var inviteForm = document.getElementById("admin-invite-form");
-    if (!inviteForm) {
-        return;
-    }
+    var codeDisplay = document.getElementById("code-display");
+    var countdownBar = document.getElementById("countdown-bar");
+    var countdownLabel = document.getElementById("countdown-label");
+    var rotateBtn = document.getElementById("rotate-btn");
+    var codeError = document.getElementById("code-error");
 
-    var inviteEmailInput = document.getElementById("invite-email");
-    var inviteExpireHoursInput = document.getElementById("invite-expire-hours");
-    var inviteSubmitButton = document.getElementById("send-invite-btn");
-    var inviteMessageNode = document.getElementById("invite-message");
-    var inviteResultNode = document.getElementById("invite-result");
-    var state = {
-        inviteSubmitting: false
-    };
+    if (!codeDisplay) return;
 
-    inviteForm.addEventListener("submit", function (event) {
-        event.preventDefault();
-        createAdminInvite();
-    });
+    var countdownInterval = null;
+    var currentSeconds = 30;
 
-    function createAdminInvite() {
-        if (state.inviteSubmitting) {
-            return;
-        }
+    fetchCurrentCode();
 
-        hideInviteMessage();
-        clearInviteResult();
-
-        var email = trimText(inviteEmailInput ? inviteEmailInput.value : "").toLowerCase();
-        var expireHoursText = trimText(inviteExpireHoursInput ? inviteExpireHoursInput.value : "");
-        var expireHours = Number(expireHoursText || "48");
-
-        if (!email || !isValidEmail(email)) {
-            showInviteMessage(t("portal.dynamic.inviteInvalidEmail", "Please enter a valid invitee email address."), "error");
-            if (inviteEmailInput) {
-                inviteEmailInput.focus();
-            }
-            return;
-        }
-        if (!isFinite(expireHours) || expireHours < 1 || expireHours > 168) {
-            showInviteMessage(t("portal.dynamic.inviteHoursRange", "Expiry hours must be between 1 and 168."), "error");
-            if (inviteExpireHoursInput) {
-                inviteExpireHoursInput.focus();
-            }
-            return;
-        }
-
-        state.inviteSubmitting = true;
-        setInviteSubmitting(true);
-
-        var formData = new URLSearchParams();
-        formData.set("email", email);
-        formData.set("expireHours", String(Math.round(expireHours)));
-
-        fetch(contextPath + "/api/admin/invite", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-                "X-Requested-With": "XMLHttpRequest"
-            },
-            body: formData.toString()
-        }).then(function (response) {
-            return response.text().then(function (text) {
-                return {
-                    response: response,
-                    payload: parseJson(text)
-                };
-            });
-        }).then(function (result) {
-            var response = result.response;
-            var payload = result.payload;
-
-            if (response.status === 401) {
-                handleUnauthorized();
-                return;
-            }
-            if (!response.ok || !payload || payload.success !== true) {
-                showInviteMessage(payload && payload.message ? payload.message : t("portal.dynamic.inviteCreateFailed", "Failed to create invitation."), "error");
-                return;
-            }
-
-            showInviteMessage(t("portal.dynamic.inviteCreatedSuccess", "Invitation created successfully."), "success");
-            renderInviteResult(payload.data || {});
-            inviteForm.reset();
-            if (inviteExpireHoursInput) {
-                inviteExpireHoursInput.value = "48";
-            }
-            if (inviteEmailInput) {
-                inviteEmailInput.focus();
-            }
-        }).catch(function () {
-            showInviteMessage(t("portal.dynamic.inviteCreateNetworkError", "Network error while creating invitation."), "error");
-        }).finally(function () {
-            state.inviteSubmitting = false;
-            setInviteSubmitting(false);
+    if (rotateBtn) {
+        rotateBtn.addEventListener("click", function () {
+            rotateBtn.disabled = true;
+            hideError();
+            fetch(contextPath + "/api/admin/invite/current-code", {
+                method: "POST",
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (!data || data.success !== true) {
+                        showError(t("portal.adminDashboard.codePanel.refreshError", "Failed to refresh code."));
+                        return;
+                    }
+                    renderCode(data.data.code, data.data.secondsRemaining);
+                })
+                .catch(function () {
+                    showError(t("portal.adminDashboard.codePanel.refreshError", "Failed to refresh code."));
+                })
+                .finally(function () {
+                    rotateBtn.disabled = false;
+                });
         });
     }
 
-    function setInviteSubmitting(submitting) {
-        if (inviteSubmitButton) {
-            inviteSubmitButton.disabled = submitting;
-            inviteSubmitButton.textContent = submitting
-                ? t("portal.dynamic.sendingInvitation", "Sending...")
-                : t("portal.adminDashboard.sendInvitation", "Send invitation");
+    function fetchCurrentCode() {
+        hideError();
+        fetch(contextPath + "/api/admin/invite/current-code", {
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        })
+            .then(function (res) {
+                if (res.status === 401) {
+                    window.location.href = contextPath + "/login.jsp";
+                    return null;
+                }
+                return res.json();
+            })
+            .then(function (data) {
+                if (!data) return;
+                if (!data.success) {
+                    showError(t("portal.adminDashboard.codePanel.loadError", "Failed to load invite code."));
+                    return;
+                }
+                renderCode(data.data.code, data.data.secondsRemaining);
+            })
+            .catch(function () {
+                showError(t("portal.adminDashboard.codePanel.loadError", "Failed to load invite code."));
+            });
+    }
+
+    function renderCode(code, seconds) {
+        if (codeDisplay) {
+            var formatted = formatCode(code);
+            codeDisplay.textContent = formatted;
+            codeDisplay.classList.remove("code-loading");
         }
-        if (inviteEmailInput) {
-            inviteEmailInput.disabled = submitting;
-        }
-        if (inviteExpireHoursInput) {
-            inviteExpireHoursInput.disabled = submitting;
+        startCountdown(seconds);
+    }
+
+    function formatCode(code) {
+        if (typeof code !== "string" || code.length !== 8) return code || "—";
+        return code.slice(0, 4) + " " + code.slice(4);
+    }
+
+    function startCountdown(seconds) {
+        clearInterval(countdownInterval);
+        currentSeconds = typeof seconds === "number" ? Math.max(0, seconds) : 600;
+        updateCountdownUI();
+
+        countdownInterval = setInterval(function () {
+            currentSeconds -= 1;
+            if (currentSeconds <= 0) {
+                clearInterval(countdownInterval);
+                fetchCurrentCode();
+            } else {
+                updateCountdownUI();
+            }
+        }, 1000);
+    }
+
+    function updateCountdownUI() {
+        var pct = Math.max(0, currentSeconds / 600) * 100;
+        if (countdownBar) countdownBar.style.width = pct + "%";
+        if (countdownLabel) {
+            var m = Math.floor(currentSeconds / 60);
+            var s = currentSeconds % 60;
+            countdownLabel.textContent = m + ":" + (s < 10 ? "0" : "") + s;
         }
     }
 
-    function showInviteMessage(message, type) {
-        if (!inviteMessageNode) {
-            return;
-        }
-        inviteMessageNode.textContent = message;
-        inviteMessageNode.classList.remove("hidden", "error", "success");
-        inviteMessageNode.classList.add(type === "success" ? "success" : "error");
-    }
-
-    function hideInviteMessage() {
-        if (!inviteMessageNode) {
-            return;
-        }
-        inviteMessageNode.textContent = "";
-        inviteMessageNode.classList.remove("error", "success");
-        inviteMessageNode.classList.add("hidden");
-    }
-
-    function renderInviteResult(data) {
-        if (!inviteResultNode) {
-            return;
-        }
-
-        var inviteUrl = safeText(data.inviteUrl, "");
-        var inviteCode = safeText(data.inviteCode, "");
-        var expiresAt = safeText(data.expiresAt, "");
-        var emailDelivery = safeText(data.emailDelivery, "fallback");
-        var deliveryDetail = safeText(data.deliveryDetail, "");
-        var previewBody = safeText(data.previewBody, "");
-        var html = "";
-
-        html += "<p><strong>" + escapeHtml(t("portal.dynamic.inviteResultLink", "Invite link:")) + "</strong> <a href=\"" + escapeHtml(inviteUrl) + "\" target=\"_blank\" rel=\"noopener\">" + escapeHtml(inviteUrl) + "</a></p>";
-        html += "<p><strong>" + escapeHtml(t("portal.dynamic.inviteResultCode", "Invite code:")) + "</strong> " + escapeHtml(inviteCode) + "</p>";
-        html += "<p><strong>" + escapeHtml(t("portal.dynamic.inviteResultExpiresAt", "Expires at:")) + "</strong> " + escapeHtml(expiresAt) + "</p>";
-        html += "<p><strong>" + escapeHtml(t("portal.dynamic.inviteResultEmailDelivery", "Email delivery:")) + "</strong> " + escapeHtml(emailDelivery) + "</p>";
-        if (deliveryDetail) {
-            html += "<p><strong>" + escapeHtml(t("portal.dynamic.inviteResultDeliveryDetail", "Delivery detail:")) + "</strong> " + escapeHtml(deliveryDetail) + "</p>";
-        }
-        if (previewBody && emailDelivery !== "sent") {
-            html += "<details><summary>" + escapeHtml(t("portal.dynamic.inviteResultEmailPreview", "Email preview")) + "</summary><pre>" + escapeHtml(previewBody) + "</pre></details>";
-        }
-
-        inviteResultNode.innerHTML = html;
-        inviteResultNode.classList.remove("hidden");
-    }
-
-    function clearInviteResult() {
-        if (!inviteResultNode) {
-            return;
-        }
-        inviteResultNode.innerHTML = "";
-        inviteResultNode.classList.add("hidden");
-    }
-
-    function handleUnauthorized() {
-        showInviteMessage(t("portal.dynamic.sessionExpiredRedirect", "Session expired. Redirecting to login..."), "error");
-        window.setTimeout(function () {
-            window.location.href = contextPath + "/login.jsp";
-        }, 900);
-    }
-
-    function parseJson(text) {
-        try {
-            return JSON.parse(text);
-        } catch (error) {
-            return null;
+    function showError(msg) {
+        if (codeError) {
+            codeError.textContent = msg;
+            codeError.classList.remove("hidden");
         }
     }
 
-    function trimText(value) {
-        return typeof value === "string" ? value.trim() : "";
-    }
-
-    function isValidEmail(value) {
-        return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimText(value));
-    }
-
-    function safeText(value, fallback) {
-        if (typeof value === "string" && value.trim()) {
-            return value.trim();
+    function hideError() {
+        if (codeError) {
+            codeError.textContent = "";
+            codeError.classList.add("hidden");
         }
-        if (typeof value === "number") {
-            return String(value);
-        }
-        return typeof fallback === "string" ? fallback : "";
-    }
-
-    function escapeHtml(value) {
-        if (typeof value !== "string") {
-            return "";
-        }
-        return value
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;");
     }
 
     function t(key, fallback) {
-        if (i18n) {
-            return i18n.t(key, fallback);
-        }
+        if (i18n) return i18n.t(key, fallback);
         return fallback || key;
     }
 })();
