@@ -1,7 +1,10 @@
 package com.example.authlogin.servlet;
 
 import com.example.authlogin.dao.ApplicantDao;
+import com.example.authlogin.dao.ApplicationDao;
+import com.example.authlogin.dao.UserDao;
 import com.example.authlogin.model.Applicant;
+import com.example.authlogin.model.Application;
 import com.example.authlogin.model.User;
 import com.example.authlogin.util.JsonResponseUtil;
 import com.example.authlogin.util.Logger;
@@ -47,6 +50,8 @@ import java.util.stream.Collectors;
 public class ApplicantServlet extends HttpServlet {
 
     private ApplicantDao applicantDao;
+    private ApplicationDao applicationDao;
+    private UserDao userDao;
 
     // 上传目录
     private static final String UPLOAD_DIR = StoragePaths.getResumeDir();
@@ -57,6 +62,7 @@ public class ApplicantServlet extends HttpServlet {
     private static final String SESSION_DRAFT_RESUME_NAME = "applicantDraftResumeName";
     private static final String PHOTO_ASSET_PARAM = "asset";
     private static final String PHOTO_ASSET_VALUE = "photo";
+    private static final String RESUME_ASSET_VALUE = "resume";
 
     // 允许的文件类型
     private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
@@ -100,6 +106,8 @@ public class ApplicantServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         applicantDao = ApplicantDao.getInstance();
+        applicationDao = ApplicationDao.getInstance();
+        userDao = UserDao.getInstance();
         // 创建上传目录
         createUploadDirectory();
         logInfo("ApplicantServlet initialized");
@@ -123,6 +131,10 @@ public class ApplicantServlet extends HttpServlet {
             throws ServletException, IOException {
         if (isPhotoAssetRequest(request)) {
             streamProfilePhoto(request, response);
+            return;
+        }
+        if (isResumeAssetRequest(request)) {
+            streamProfileResume(request, response);
             return;
         }
 
@@ -301,6 +313,9 @@ public class ApplicantServlet extends HttpServlet {
                 savedApplicant = applicantDao.create(applicant);
                 logInfo("Applicant profile created successfully for user: " + currentUser.getUsername());
             }
+
+            syncAccountRealName(currentUser, savedApplicant.getFullName(), request);
+            syncApplicationApplicantName(savedApplicant);
 
             if (clearDraftAfterSave) {
                 clearDraftResumeState(session, true);
@@ -524,6 +539,9 @@ public class ApplicantServlet extends HttpServlet {
             } else {
                 savedApplicant = applicantDao.create(applicant);
             }
+
+            syncAccountRealName(currentUser, savedApplicant.getFullName(), request);
+            syncApplicationApplicantName(savedApplicant);
 
             if (clearDraftAfterSave) {
                 clearDraftResumeState(session, true);
@@ -921,6 +939,62 @@ public class ApplicantServlet extends HttpServlet {
         return "image/jpeg";
     }
 
+    private boolean isResumeAssetRequest(HttpServletRequest request) {
+        String asset = request.getParameter(PHOTO_ASSET_PARAM);
+        return RESUME_ASSET_VALUE.equalsIgnoreCase(asset);
+    }
+
+    private void streamProfileResume(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        User currentUser = getCurrentUser(request);
+        if (currentUser == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        Optional<Applicant> applicantOpt = applicantDao.findByUserId(currentUser.getUserId());
+        if (applicantOpt.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        Applicant applicant = applicantOpt.get();
+        String resumePath = applicant.getResumePath();
+        if (!isNotEmpty(resumePath)) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        File file = resolveStoredFile(resumePath);
+        if (file == null || !file.exists() || !file.isFile()) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        String contentType = Files.probeContentType(file.toPath());
+        if (!isNotEmpty(contentType)) {
+            contentType = detectResumeContentType(file.getName());
+        }
+
+        String displayName = new File(resumePath).getName();
+        boolean isPdf = "application/pdf".equalsIgnoreCase(contentType);
+        String disposition = (isPdf ? "inline" : "attachment") + "; filename=\"" + displayName + "\"";
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType(contentType);
+        response.setHeader("Content-Disposition", disposition);
+        response.setHeader("Cache-Control", "no-store");
+        response.setContentLengthLong(file.length());
+        Files.copy(file.toPath(), response.getOutputStream());
+        response.getOutputStream().flush();
+    }
+
+    private String detectResumeContentType(String fileName) {
+        String safeName = fileName != null ? fileName.toLowerCase() : "";
+        if (safeName.endsWith(".pdf")) return "application/pdf";
+        if (safeName.endsWith(".docx")) return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        return "application/msword";
+    }
+
     private boolean isDraftResumeRequest(HttpServletRequest request) {
         String draftFlag = request.getParameter(DRAFT_RESUME_FLAG);
         if (draftFlag == null) {
@@ -1058,6 +1132,51 @@ public class ApplicantServlet extends HttpServlet {
             return null;
         }
         return (User) session.getAttribute("user");
+    }
+
+    private void syncAccountRealName(User currentUser, String fullName, HttpServletRequest request) {
+        if (currentUser == null || !isNotEmpty(fullName)) {
+            return;
+        }
+
+        String normalizedFullName = fullName.trim();
+        if (normalizedFullName.equals(currentUser.getRealName())) {
+            return;
+        }
+
+        currentUser.setRealName(normalizedFullName);
+        User savedUser = userDao.update(currentUser);
+        updateSessionUser(request, savedUser);
+    }
+
+    private void updateSessionUser(HttpServletRequest request, User user) {
+        HttpSession session = request.getSession(false);
+        if (session == null || user == null) {
+            return;
+        }
+        session.setAttribute("user", user);
+        session.setAttribute("userId", user.getUserId());
+        session.setAttribute("username", user.getUsername());
+        session.setAttribute("role", user.getRole().name());
+    }
+
+    private void syncApplicationApplicantName(Applicant applicant) {
+        if (applicant == null || !isNotEmpty(applicant.getApplicantId())) {
+            return;
+        }
+
+        String fullName = applicant.getFullName() == null ? "" : applicant.getFullName().trim();
+        if (!isNotEmpty(fullName)) {
+            return;
+        }
+
+        for (Application application : applicationDao.findByApplicantId(applicant.getApplicantId())) {
+            String currentName = application.getApplicantName() == null ? "" : application.getApplicantName();
+            if (!fullName.equals(currentName)) {
+                application.setApplicantName(fullName);
+                applicationDao.update(application);
+            }
+        }
     }
 
     private String normalizeInput(String value) {

@@ -28,7 +28,7 @@ import java.util.Optional;
  * - GET /api/applicants/detail?applicationId=...
  * - GET /api/applicants/resume?applicationId=...
  */
-@WebServlet(urlPatterns = {"/api/applicants/detail", "/api/applicants/resume"})
+@WebServlet(urlPatterns = {"/api/applicants/detail", "/api/applicants/resume", "/api/applicants/photo"})
 public class ApplicantAccessServlet extends HttpServlet {
 
     private ApplicantDao applicantDao;
@@ -78,6 +78,10 @@ public class ApplicantAccessServlet extends HttpServlet {
             streamResume(response, applicant);
             return;
         }
+        if ("/api/applicants/photo".equals(servletPath)) {
+            streamPhoto(response, applicant);
+            return;
+        }
 
         JsonResponseUtil.writeJsonResponse(
                 response,
@@ -123,6 +127,32 @@ public class ApplicantAccessServlet extends HttpServlet {
         data.put("applicationStatus", application.getStatus() != null ? application.getStatus().name() : "PENDING");
         data.put("coverLetter", application.getCoverLetter());
         return data;
+    }
+
+    private void streamPhoto(HttpServletResponse response, Applicant applicant) throws IOException {
+        String photoPath = safeText(applicant.getPhotoPath());
+        if (photoPath.isEmpty()) {
+            JsonResponseUtil.writeJsonResponse(response, 404, false, "Photo not found for this applicant", null);
+            return;
+        }
+
+        File file = new File(StoragePaths.getDataDir(), photoPath);
+        if (!file.exists() || !file.isFile()) {
+            JsonResponseUtil.writeJsonResponse(response, 404, false, "Photo file is unavailable", null);
+            return;
+        }
+
+        String contentType = Files.probeContentType(file.toPath());
+        if (contentType == null || !contentType.startsWith("image/")) {
+            contentType = "image/jpeg";
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType(contentType);
+        response.setHeader("Cache-Control", "private, max-age=300");
+        response.setContentLengthLong(file.length());
+        Files.copy(file.toPath(), response.getOutputStream());
+        response.getOutputStream().flush();
     }
 
     private void streamResume(HttpServletResponse response, Applicant applicant) throws IOException {

@@ -23,7 +23,7 @@ public class UserDao {
     private static final String USER_FILE_TA = USER_DIR + File.separator + "users_ta.csv";
     private static final String USER_FILE_MO = USER_DIR + File.separator + "users_mo.csv";
     private static final String USER_FILE_ADMIN = USER_DIR + File.separator + "users_admin.csv";
-    private static final String CSV_HEADER = "userId,username,password,email,role,createdAt,lastLoginAt";
+    private static final String CSV_HEADER = "userId,username,password,email,role,createdAt,lastLoginAt,displayName,realName,professionalTitle,avatarPath";
     private static final String DEFAULT_DEMO_PASSWORD = "Pass1234";
     private static final String DEFAULT_TA_DEMO_EMAIL = "ta_demo@local.test";
     private static final String DEFAULT_MO_DEMO_EMAIL = "mo_demo@local.test";
@@ -279,9 +279,9 @@ public class UserDao {
         if (username == null) {
             return Optional.empty();
         }
-        String normalized = username.trim();
+        String normalized = username.trim().toLowerCase();
         return readAllUsers().stream()
-                .filter(u -> u.getUsername().equals(normalized))
+                .filter(u -> u.getUsername().equalsIgnoreCase(normalized))
                 .findFirst();
     }
 
@@ -373,6 +373,10 @@ public class UserDao {
 
         if (!found) {
             throw new IllegalArgumentException("User not found: " + user.getUserId());
+        }
+        Optional<User> sameUsername = findByUsername(user.getUsername());
+        if (sameUsername.isPresent() && !sameUsername.get().getUserId().equals(user.getUserId())) {
+            throw new IllegalArgumentException("Username already exists: " + user.getUsername());
         }
 
         return save(user);

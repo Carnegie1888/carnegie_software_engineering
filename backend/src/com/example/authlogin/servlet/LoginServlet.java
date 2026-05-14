@@ -9,6 +9,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Optional;
@@ -67,6 +68,7 @@ public class LoginServlet extends HttpServlet {
             String loginIdentifier = request.getParameter("username");
             String password = request.getParameter("password");
             String requestedRole = normalizeRequestedRole(request.getParameter("role"));
+            boolean rememberMe = "1".equals(request.getParameter("rememberMe"));
 
             if (INVALID_ROLE.equals(requestedRole)) {
                 logInfo("Validation failed: Invalid role parameter");
@@ -109,7 +111,18 @@ public class LoginServlet extends HttpServlet {
                 session.setAttribute("userId", user.getUserId());
                 session.setAttribute("username", user.getUsername());
                 session.setAttribute("role", user.getRole().name());
-                session.setMaxInactiveInterval(30 * 60); // 30分钟超时
+
+                if (rememberMe) {
+                    int maxAge = 30 * 24 * 60 * 60; // 30 天
+                    session.setMaxInactiveInterval(maxAge);
+                    Cookie sessionCookie = new Cookie("JSESSIONID", session.getId());
+                    sessionCookie.setMaxAge(maxAge);
+                    sessionCookie.setPath(request.getContextPath().isEmpty() ? "/" : request.getContextPath() + "/");
+                    sessionCookie.setHttpOnly(true);
+                    response.addCookie(sessionCookie);
+                } else {
+                    session.setMaxInactiveInterval(30 * 60); // 30分钟超时
+                }
 
                 // 返回成功响应
                 String redirectPage = determineRedirectPage(user.getRole());

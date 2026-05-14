@@ -17,6 +17,10 @@ public class User {
     private Role role;
     private LocalDateTime createdAt;
     private LocalDateTime lastLoginAt;
+    private String displayName;
+    private String realName;
+    private String professionalTitle;
+    private String avatarPath;
 
     public enum Role {
         TA, MO, ADMIN
@@ -92,6 +96,38 @@ public class User {
         this.lastLoginAt = lastLoginAt;
     }
 
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getRealName() {
+        return realName;
+    }
+
+    public void setRealName(String realName) {
+        this.realName = realName;
+    }
+
+    public String getProfessionalTitle() {
+        return professionalTitle;
+    }
+
+    public void setProfessionalTitle(String professionalTitle) {
+        this.professionalTitle = professionalTitle;
+    }
+
+    public String getAvatarPath() {
+        return avatarPath;
+    }
+
+    public void setAvatarPath(String avatarPath) {
+        this.avatarPath = avatarPath;
+    }
+
     /**
      * 转换为CSV格式存储
      */
@@ -104,7 +140,11 @@ public class User {
             escapeCsv(email),
             role.name(),
             createdAt != null ? createdAt.format(formatter) : "",
-            lastLoginAt != null ? lastLoginAt.format(formatter) : ""
+            lastLoginAt != null ? lastLoginAt.format(formatter) : "",
+            escapeCsv(displayName),
+            escapeCsv(realName),
+            escapeCsv(professionalTitle),
+            escapeCsv(avatarPath)
         );
     }
 
@@ -130,8 +170,37 @@ public class User {
         if (parts.length > 6 && !parts[6].isEmpty()) {
             user.setLastLoginAt(LocalDateTime.parse(parts[6], DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         }
+        if (parts.length > 7) {
+            user.setDisplayName(unescapeCsv(parts[7]));
+        }
+        if (parts.length > 8) {
+            user.setRealName(unescapeCsv(parts[8]));
+        }
+        if (parts.length > 9) {
+            String ninthField = unescapeCsv(parts[9]);
+            if (parts.length == 10 && looksLikeAvatarPath(ninthField)) {
+                user.setAvatarPath(ninthField);
+            } else {
+                user.setProfessionalTitle(ninthField);
+            }
+        }
+        if (parts.length > 10) {
+            user.setAvatarPath(unescapeCsv(parts[10]));
+        }
 
         return user;
+    }
+
+    private static boolean looksLikeAvatarPath(String value) {
+        if (value == null || value.isEmpty()) {
+            return false;
+        }
+        String lower = value.toLowerCase();
+        return lower.startsWith("account-avatars/")
+                || lower.endsWith(".jpg")
+                || lower.endsWith(".jpeg")
+                || lower.endsWith(".png")
+                || lower.endsWith(".webp");
     }
 
     private static String escapeCsv(String value) {

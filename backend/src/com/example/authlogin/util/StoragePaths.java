@@ -15,7 +15,8 @@ import java.nio.file.Paths;
  * ├── applications/
  * ├── invites/
  * ├── resumes/
- * └── photos/
+ * ├── photos/
+ * └── account-avatars/
  */
 public final class StoragePaths {
 
@@ -73,5 +74,13 @@ public final class StoragePaths {
 
     public static String getPhotoDraftDir() {
         return Paths.get(getDataDir(), "photo-drafts").toString();
+    }
+
+    public static String getAccountAvatarDir() {
+        return Paths.get(getDataDir(), "account-avatars").toString();
+    }
+
+    public static String getNotificationsDir() {
+        return Paths.get(getDataDir(), "notifications").toString();
     }
 }

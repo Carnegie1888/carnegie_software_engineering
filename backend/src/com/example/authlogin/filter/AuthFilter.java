@@ -44,8 +44,8 @@ public class AuthFilter implements Filter {
         "/login.jsp",
         "/register.jsp",
         "/admin-invite.jsp",
-        "/api/admin/invite/validate",
         "/api/admin/invite/accept",
+        "/check-available",
         "/test_applicant.jsp",
         "/jobs"
     ));
@@ -63,7 +63,9 @@ public class AuthFilter implements Filter {
     private static final Set<String> TA_PATHS = new HashSet<>(Arrays.asList(
         "/jsp/ta/",
         "/api/ta/",
+        "/api/account/",
         "/api/applicants/",
+        "/api/notifications",
         "/profile/",
         "/applicant",
         "/apply",

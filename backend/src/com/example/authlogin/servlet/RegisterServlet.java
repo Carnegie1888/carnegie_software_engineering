@@ -38,7 +38,7 @@ public class RegisterServlet extends HttpServlet {
     );
     private static final int USERNAME_MAX_LENGTH = 20;
     private static final int EMAIL_MAX_LENGTH = 100;
-    private static final int PASSWORD_MIN_LENGTH = 6;
+    private static final int PASSWORD_MIN_LENGTH = 8;
     private static final int PASSWORD_MAX_LENGTH = 100;
 
     // 简单的日志方法
@@ -82,9 +82,8 @@ public class RegisterServlet extends HttpServlet {
                 return;
             }
 
-            // 去除输入首尾空格
-            username = username.trim();
-            password = password.trim();
+            // 去除首尾空格（密码保留原样）
+            username = username.trim().toLowerCase();
             email = email.trim();
             roleStr = roleStr.trim();
 
@@ -133,10 +132,10 @@ public class RegisterServlet extends HttpServlet {
      */
     private String validateInput(String username, String password,
                                   String confirmPassword, String email, String role) {
-        String usernameText = username != null ? username.trim() : "";
+        String usernameText = username != null ? username.trim().toLowerCase() : "";
         String emailText = email != null ? email.trim() : "";
-        String passwordText = password != null ? password.trim() : "";
-        String confirmPasswordText = confirmPassword != null ? confirmPassword.trim() : "";
+        String passwordText = password != null ? password : "";           // no trim for passwords
+        String confirmPasswordText = confirmPassword != null ? confirmPassword : ""; // no trim for passwords
         String roleText = role != null ? role.trim().toUpperCase() : "";
 
         // 验证用户名
@@ -152,6 +151,12 @@ public class RegisterServlet extends HttpServlet {
         if (!USERNAME_PATTERN.matcher(usernameText).matches()) {
             return "Username must be 3-20 characters, start with a letter, and contain only letters, numbers, and underscores";
         }
+        if (usernameText.contains("__")) {
+            return "Username cannot contain consecutive underscores";
+        }
+        if (usernameText.charAt(usernameText.length() - 1) == '_') {
+            return "Username cannot end with an underscore";
+        }
 
         // 验证密码
         if (passwordText.isEmpty()) {
@@ -165,6 +170,9 @@ public class RegisterServlet extends HttpServlet {
         }
         if (hasControlChars(password)) {
             return "Password contains unsupported characters";
+        }
+        if (!password.matches(".*[A-Za-z].*") || !password.matches(".*[0-9].*")) {
+            return "Password must contain at least one letter and one number";
         }
 
         // 验证确认密码
