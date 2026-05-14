@@ -46,122 +46,18 @@ if not exist "%TOMCAT_HOME%" (
 
 set CLASSPATH=%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes
 
-echo   Compiling model classes...
-javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%CLASSPATH%" ^
-    "%SRC_DIR%\com\example\authlogin\model\User.java" ^
-    "%SRC_DIR%\com\example\authlogin\model\AdminInvite.java" ^
-    "%SRC_DIR%\com\example\authlogin\model\Applicant.java" ^
-    "%SRC_DIR%\com\example\authlogin\model\Job.java" ^
-    "%SRC_DIR%\com\example\authlogin\model\Application.java" ^
-    "%SRC_DIR%\com\example\authlogin\model\Notification.java"
+set SOURCE_LIST=%BUILD_DIR%\java-sources.txt
+dir /S /B "%SRC_DIR%\*.java" > "%SOURCE_LIST%"
 
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Model compilation failed!
+for %%A in ("%SOURCE_LIST%") do if %%~zA EQU 0 (
+    echo [ERROR] No Java source files found under %SRC_DIR%
     exit /b 1
 )
 
-echo   Compiling util and dao classes...
-javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%CLASSPATH%" ^
-    "%SRC_DIR%\com\example\authlogin\util\StoragePaths.java" ^
-    "%SRC_DIR%\com\example\authlogin\util\JsonResponseUtil.java" ^
-    "%SRC_DIR%\com\example\authlogin\util\SecurityTokenUtil.java" ^
-    "%SRC_DIR%\com\example\authlogin\util\FuzzySearchUtil.java" ^
-    "%SRC_DIR%\com\example\authlogin\util\SessionUtil.java" ^
-    "%SRC_DIR%\com\example\authlogin\util\PermissionUtil.java" ^
-    "%SRC_DIR%\com\example\authlogin\util\Logger.java"
-
+echo   Compiling Java source files...
+javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%CLASSPATH%" @"%SOURCE_LIST%"
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Util compilation failed!
-    exit /b 1
-)
-
-javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%CLASSPATH%" ^
-    "%SRC_DIR%\com\example\authlogin\dao\UserDao.java" ^
-    "%SRC_DIR%\com\example\authlogin\dao\AdminInviteDao.java" ^
-    "%SRC_DIR%\com\example\authlogin\dao\ApplicantDao.java" ^
-    "%SRC_DIR%\com\example\authlogin\dao\JobDao.java" ^
-    "%SRC_DIR%\com\example\authlogin\dao\ApplicationDao.java" ^
-    "%SRC_DIR%\com\example\authlogin\dao\NotificationDao.java"
-
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] DAO compilation failed!
-    exit /b 1
-)
-
-echo   Compiling service, filter, bootstrap and servlet classes...
-
-REM Compile service/ai classes first
-javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%CLASSPATH%" ^
-    "%SRC_DIR%\com\example\authlogin\service\ai\AiSkillMatchClient.java" ^
-    "%SRC_DIR%\com\example\authlogin\service\ai\DeepSeekAiConfig.java" ^
-    "%SRC_DIR%\com\example\authlogin\service\ai\DeepSeekApplicantSearchClient.java" ^
-    "%SRC_DIR%\com\example\authlogin\service\ai\DeepSeekTaJobSearchClient.java" ^
-    "%SRC_DIR%\com\example\authlogin\service\ai\TaJobMatchAiConfig.java" ^
-    "%SRC_DIR%\com\example\authlogin\service\ai\HttpAiSkillMatchClient.java" ^
-    "%SRC_DIR%\com\example\authlogin\service\ai\TongyiXiaomiAnalysisClient.java"
-
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] AI service compilation failed!
-    exit /b 1
-)
-
-REM Compile service classes
-javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%CLASSPATH%" ^
-    "%SRC_DIR%\com\example\authlogin\service\SkillMatchService.java" ^
-    "%SRC_DIR%\com\example\authlogin\service\MoApplicantAiSearchService.java" ^
-    "%SRC_DIR%\com\example\authlogin\service\TaJobAiSearchService.java" ^
-    "%SRC_DIR%\com\example\authlogin\service\TaJobMatchAnalysisService.java" ^
-    "%SRC_DIR%\com\example\authlogin\service\WorkloadStatsService.java" ^
-    "%SRC_DIR%\com\example\authlogin\service\InviteCodeService.java" ^
-    "%SRC_DIR%\com\example\authlogin\service\AdminInviteEmailService.java"
-
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Service compilation failed!
-    exit /b 1
-)
-
-REM Compile filter
-javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%CLASSPATH%" ^
-    "%SRC_DIR%\com\example\authlogin\filter\AuthFilter.java"
-
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Filter compilation failed!
-    exit /b 1
-)
-
-REM Compile bootstrap
-javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%CLASSPATH%" ^
-    "%SRC_DIR%\com\example\authlogin\bootstrap\DemoAccountBootstrapListener.java" ^
-    "%SRC_DIR%\com\example\authlogin\bootstrap\DemoDataSeeder.java"
-
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Bootstrap compilation failed!
-    exit /b 1
-)
-
-REM Compile servlets
-javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%CLASSPATH%" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\LoginServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\RegisterServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\LogoutServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\AccountProfileServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\ApplicantServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\ApplicantAccessServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\JobServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\ApplyServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\MoApplicantAiSearchServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\TaJobAiSearchServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\SkillMatchServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\TaJobMatchAnalysisServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\WorkloadStatsServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\AdminInviteServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\AdminInviteAcceptServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\AdminCurrentInviteCodeServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\CheckAvailableServlet.java" ^
-    "%SRC_DIR%\com\example\authlogin\servlet\NotificationServlet.java"
-
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Servlet compilation failed!
+    echo [ERROR] Java compilation failed!
     exit /b 1
 )
 

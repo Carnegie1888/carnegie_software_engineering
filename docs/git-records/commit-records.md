@@ -288,3 +288,4 @@
 | `member5`  | #71    | `feat: 优化 TA 职位与申请页面体验`              | ✅   | `git commit -m "feat: 优化 TA 职位与申请页面体验" --author="member5 <member5@edu.com>"`              |
 | `member5`  | #72    | `feat: 优化 MO 发布与申请人审核页面`            | ✅   | `git commit -m "feat: 优化 MO 发布与申请人审核页面" --author="member5 <member5@edu.com>"`            |
 | `member6`  | #73    | `feat: 重构 Admin 工作量与通知页面`             | ✅   | `git commit -m "feat: 重构 Admin 工作量与通知页面" --author="member6 <member6@edu.com>"`             |
+| `member6`  | #74    | `refactor: 统一后端模块架构与 API 路由`        | ✅   | `git commit -m "refactor: 统一后端模块架构与 API 路由" --author="member6 <member6@edu.com>"`        |

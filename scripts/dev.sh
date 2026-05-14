@@ -52,124 +52,17 @@ fi
 
 CLASSPATH="$TOMCAT_HOME/lib/servlet-api.jar:$BUILD_DIR/WEB-INF/classes"
 
-echo "  Compiling model classes..."
-javac -encoding UTF-8 -d "$BUILD_DIR/WEB-INF/classes" -cp "$CLASSPATH" \
-    "$SRC_DIR/com/example/authlogin/model/User.java" \
-    "$SRC_DIR/com/example/authlogin/model/AdminInvite.java" \
-    "$SRC_DIR/com/example/authlogin/model/Applicant.java" \
-    "$SRC_DIR/com/example/authlogin/model/Job.java" \
-    "$SRC_DIR/com/example/authlogin/model/Application.java" \
-    "$SRC_DIR/com/example/authlogin/model/Notification.java"
+SOURCE_LIST="$BUILD_DIR/java-sources.txt"
+find "$SRC_DIR" -name "*.java" | sort > "$SOURCE_LIST"
 
-if [ $? -ne 0 ]; then
-    echo "[ERROR] Model compilation failed!"
+if [ ! -s "$SOURCE_LIST" ]; then
+    echo "[ERROR] No Java source files found under $SRC_DIR"
     exit 1
 fi
 
-echo "  Compiling util and dao classes..."
-javac -encoding UTF-8 -d "$BUILD_DIR/WEB-INF/classes" -cp "$CLASSPATH" \
-    "$SRC_DIR/com/example/authlogin/util/StoragePaths.java" \
-    "$SRC_DIR/com/example/authlogin/util/JsonResponseUtil.java" \
-    "$SRC_DIR/com/example/authlogin/util/SecurityTokenUtil.java" \
-    "$SRC_DIR/com/example/authlogin/util/FuzzySearchUtil.java" \
-    "$SRC_DIR/com/example/authlogin/util/SessionUtil.java" \
-    "$SRC_DIR/com/example/authlogin/util/PermissionUtil.java" \
-    "$SRC_DIR/com/example/authlogin/util/Logger.java"
-
-if [ $? -ne 0 ]; then
-    echo "[ERROR] Util compilation failed!"
-    exit 1
-fi
-
-javac -encoding UTF-8 -d "$BUILD_DIR/WEB-INF/classes" -cp "$CLASSPATH" \
-    "$SRC_DIR/com/example/authlogin/dao/UserDao.java" \
-    "$SRC_DIR/com/example/authlogin/dao/AdminInviteDao.java" \
-    "$SRC_DIR/com/example/authlogin/dao/ApplicantDao.java" \
-    "$SRC_DIR/com/example/authlogin/dao/JobDao.java" \
-    "$SRC_DIR/com/example/authlogin/dao/ApplicationDao.java" \
-    "$SRC_DIR/com/example/authlogin/dao/NotificationDao.java"
-
-if [ $? -ne 0 ]; then
-    echo "[ERROR] DAO compilation failed!"
-    exit 1
-fi
-
-echo "  Compiling service, filter, bootstrap and servlet classes..."
-
-# Compile service/ai classes first
-javac -encoding UTF-8 -d "$BUILD_DIR/WEB-INF/classes" -cp "$CLASSPATH" \
-    "$SRC_DIR/com/example/authlogin/service/ai/AiSkillMatchClient.java" \
-    "$SRC_DIR/com/example/authlogin/service/ai/DeepSeekAiConfig.java" \
-    "$SRC_DIR/com/example/authlogin/service/ai/DeepSeekApplicantSearchClient.java" \
-    "$SRC_DIR/com/example/authlogin/service/ai/DeepSeekTaJobSearchClient.java" \
-    "$SRC_DIR/com/example/authlogin/service/ai/TaJobMatchAiConfig.java" \
-    "$SRC_DIR/com/example/authlogin/service/ai/HttpAiSkillMatchClient.java" \
-    "$SRC_DIR/com/example/authlogin/service/ai/TongyiXiaomiAnalysisClient.java"
-
-if [ $? -ne 0 ]; then
-    echo "[ERROR] AI service compilation failed!"
-    exit 1
-fi
-
-# Compile service classes
-javac -encoding UTF-8 -d "$BUILD_DIR/WEB-INF/classes" -cp "$CLASSPATH" \
-    "$SRC_DIR/com/example/authlogin/service/SkillMatchService.java" \
-    "$SRC_DIR/com/example/authlogin/service/MoApplicantAiSearchService.java" \
-    "$SRC_DIR/com/example/authlogin/service/TaJobAiSearchService.java" \
-    "$SRC_DIR/com/example/authlogin/service/TaJobMatchAnalysisService.java" \
-    "$SRC_DIR/com/example/authlogin/service/WorkloadStatsService.java" \
-    "$SRC_DIR/com/example/authlogin/service/InviteCodeService.java" \
-    "$SRC_DIR/com/example/authlogin/service/AdminInviteEmailService.java"
-
-if [ $? -ne 0 ]; then
-    echo "[ERROR] Service compilation failed!"
-    exit 1
-fi
-
-# Compile filter
-javac -encoding UTF-8 -d "$BUILD_DIR/WEB-INF/classes" -cp "$CLASSPATH" \
-    "$SRC_DIR/com/example/authlogin/filter/AuthFilter.java"
-
-if [ $? -ne 0 ]; then
-    echo "[ERROR] Filter compilation failed!"
-    exit 1
-fi
-
-# Compile bootstrap
-javac -encoding UTF-8 -d "$BUILD_DIR/WEB-INF/classes" -cp "$CLASSPATH" \
-    "$SRC_DIR/com/example/authlogin/bootstrap/DemoAccountBootstrapListener.java" \
-    "$SRC_DIR/com/example/authlogin/bootstrap/DemoDataSeeder.java"
-
-if [ $? -ne 0 ]; then
-    echo "[ERROR] Bootstrap compilation failed!"
-    exit 1
-fi
-
-# Compile servlets
-javac -encoding UTF-8 -d "$BUILD_DIR/WEB-INF/classes" -cp "$CLASSPATH" \
-    "$SRC_DIR/com/example/authlogin/servlet/LoginServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/RegisterServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/LogoutServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/AccountProfileServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/ApplicantServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/ApplicantAccessServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/JobServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/ApplyServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/MoApplicantAiSearchServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/TaJobAiSearchServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/SkillMatchServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/TaJobMatchAnalysisServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/WorkloadStatsServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/AdminInviteServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/AdminInviteAcceptServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/AdminCurrentInviteCodeServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/CheckAvailableServlet.java" \
-    "$SRC_DIR/com/example/authlogin/servlet/NotificationServlet.java"
-
-if [ $? -ne 0 ]; then
-    echo "[ERROR] Servlet compilation failed!"
-    exit 1
-fi
+SOURCE_COUNT="$(wc -l < "$SOURCE_LIST" | tr -d ' ')"
+echo "  Compiling $SOURCE_COUNT Java source files..."
+javac -encoding UTF-8 -d "$BUILD_DIR/WEB-INF/classes" -cp "$CLASSPATH" @"$SOURCE_LIST"
 
 echo "  Copying resource files..."
 if [ -d "$WEBAPP_DIR" ]; then
