@@ -1,6 +1,6 @@
 # 用户手册截图说明
 
-本目录用于存放 TARecruitmentSystem 用户手册所需的截图。
+本目录用于存放 TA Hiring System 用户手册所需的截图。
 
 ## 截图规范
 

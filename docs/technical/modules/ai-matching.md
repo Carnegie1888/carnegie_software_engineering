@@ -6,7 +6,7 @@ AI 技能匹配模块为 MO 提供智能化的候选人筛选功能，通过分�
 
 **核心组件**：
 - `AiSkillMatchClient` - AI 客户端接口
-- `TongyiXiaomiAnalysisClient` - 通义 & 小米 AI 分析客户端
+- `DashScopeAnalysisClient` - 通义 & 小米 AI 分析客户端
 - `HttpAiSkillMatchClient` - HTTP AI 客户端实现
 - `SkillMatchService` - 技能匹配服务 (本地算法)
 - `TaJobMatchAnalysisService` - TA 职位匹配分析服务
@@ -59,7 +59,7 @@ AI 技能匹配模块为 MO 提供智能化的候选人筛选功能，通过分�
 
 ### 3.1 AiSkillMatchClient
 
-**路径**: `backend/src/com/example/authlogin/service/ai/AiSkillMatchClient.java`
+**路径**: `backend/src/com/example/tarecruitment/ai/client/AiSkillMatchClient.java`
 
 ```java
 public interface AiSkillMatchClient {
@@ -80,13 +80,13 @@ public interface AiSkillMatchClient {
 }
 ```
 
-### 3.2 TongyiXiaomiAnalysisClient
+### 3.2 DashScopeAnalysisClient
 
-**路径**: `backend/src/com/example/authlogin/service/ai/TongyiXiaomiAnalysisClient.java`
+**路径**: `backend/src/com/example/tarecruitment/ai/client/DashScopeAnalysisClient.java`
 
 实现与通义千问 / 小米 AI 的集成。
 
-**配置** (通过 `ta-job-match.properties`):
+**配置** (通过 `match-analysis.local.properties`):
 ```properties
 api.key=your-api-key
 api.url=https://api.dashscope.cn/v1/services/aigc/text-generation/generation
@@ -99,7 +99,7 @@ model=qwen-turbo
 
 ### 4.1 SkillMatchService
 
-**路径**: `backend/src/com/example/authlogin/service/SkillMatchService.java`
+**路径**: `backend/src/com/example/tarecruitment/ai/service/SkillMatchService.java`
 
 #### 技能匹配 (基础)
 
@@ -192,7 +192,7 @@ public SkillMatchResult matchWithAi(...) {
 
 ### 5.1 TaJobMatchAnalysisService
 
-**路径**: `backend/src/com/example/authlogin/service/TaJobMatchAnalysisService.java`
+**路径**: `backend/src/com/example/tarecruitment/ai/service/TaJobMatchAnalysisService.java`
 
 这是面向 TA 的完整匹配分析服务，包括：
 - 档案脱敏处理
@@ -293,7 +293,7 @@ Suggestions:
 
 ### 6.1 TaJobMatchAnalysisServlet
 
-**路径**: `backend/src/com/example/authlogin/servlet/TaJobMatchAnalysisServlet.java`
+**路径**: `backend/src/com/example/tarecruitment/ai/web/TaJobMatchAnalysisServlet.java`
 
 **端点**: `/api/ta/skill-match`
 
@@ -325,9 +325,9 @@ Suggestions:
 
 ### 6.2 MoApplicationMatchAnalysisServlet
 
-**路径**: `backend/src/com/example/authlogin/servlet/MoApplicationMatchAnalysisServlet.java`
+**路径**: `backend/src/com/example/tarecruitment/ai/web/MoApplicationMatchAnalysisServlet.java`
 
-**端点**: `/api/mo/skill-match`
+**端点**: `/api/mo/skill-matches`
 
 **请求参数**:
 | 参数 | 类型 | 必需 | 说明 |
@@ -340,9 +340,9 @@ Suggestions:
 
 ### 6.3 SkillMatchServlet
 
-**路径**: `backend/src/com/example/authlogin/servlet/SkillMatchServlet.java`
+**路径**: `backend/src/com/example/tarecruitment/ai/web/SkillMatchServlet.java`
 
-**端点**: `/api/mo/skill-match/batch`
+**端点**: `/api/mo/skill-matches`
 
 **批量分析**: 对职位下的所有申请进行匹配分析
 
@@ -364,7 +364,7 @@ Suggestions:
 ```javascript
 // 获取职位的申请匹配分析
 async function analyzeJobApplications(jobId) {
-    const response = await fetch(`/api/mo/skill-match/batch?jobId=${jobId}`, {
+    const response = await fetch(`/api/mo/skill-matches?jobId=${jobId}`, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     });
     return response.json();
@@ -427,7 +427,7 @@ private String buildCacheKey(String mode,
 
 ### 9.1 AI 配置文件
 
-**模板文件**: `frontend/webapp/WEB-INF/ai/ta-job-match.properties.template`
+**模板文件**: `frontend/webapp/WEB-INF/ai/match-analysis.properties.template`
 
 ```properties
 # DashScope API 配置

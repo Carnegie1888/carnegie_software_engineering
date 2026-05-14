@@ -7,7 +7,7 @@
 **核心组件**：
 - `Application` - 申请实体
 - `ApplicationDao` - 数据访问层
-- `ApplyServlet` - 申请操作处理
+- `ApplicationServlet` - 申请操作处理
 - 前端页面: `jsp/ta/application-status.jsp`, `jsp/ta/application-detail.jsp`, `jsp/mo/applicant-selection.jsp`
 
 ---
@@ -16,7 +16,7 @@
 
 ### 2.1 Application
 
-**路径**: `backend/src/com/example/authlogin/model/Application.java`
+**路径**: `backend/src/com/example/tarecruitment/application/model/Application.java`
 
 ```java
 public class Application {
@@ -68,7 +68,7 @@ applicationId,jobId,applicantId,applicantName,applicantEmail,jobTitle,courseCode
 
 ### 3.1 ApplicationDao
 
-**路径**: `backend/src/com/example/authlogin/dao/ApplicationDao.java`
+**路径**: `backend/src/com/example/tarecruitment/application/dao/ApplicationDao.java`
 
 **单例模式**: 是
 
@@ -103,22 +103,22 @@ public boolean existsByJobIdAndApplicantId(String jobId, String applicantId) {
 
 ## 4. Servlet 实现
 
-### 4.1 ApplyServlet
+### 4.1 ApplicationServlet
 
-**路径**: `backend/src/com/example/authlogin/servlet/ApplyServlet.java`
+**路径**: `backend/src/com/example/tarecruitment/application/web/ApplicationServlet.java`
 
-**端点**: `/apply`
+**端点**: `/api/applications`
 
 **支持的操作**:
 
 | 操作 | 方法 | 说明 |
 |------|------|------|
-| 提交申请 | POST `/apply` | TA 提交新申请 |
-| 取消申请 | POST `/apply/cancel` | TA 撤回申请 |
-| 更新进度 | POST `/apply/progress` | MO 更新进度 |
-| 审核决定 | POST `/apply/review` | MO 做出最终决定 |
+| 提交申请 | POST `/api/applications` | TA 提交新申请 |
+| 取消申请 | POST `/api/applications/{applicationId}/transition` | TA 撤回申请 |
+| 接受申请 | POST `/api/applications/{applicationId}/transition` | MO 接受申请 |
+| 拒绝申请 | POST `/api/applications/{applicationId}/transition` | MO 拒绝申请 |
 
-#### POST /apply (提交申请)
+#### POST /api/applications (提交申请)
 
 **请求参数**:
 | 参数 | 类型 | 必需 | 说明 |
@@ -130,7 +130,7 @@ public boolean existsByJobIdAndApplicantId(String jobId, String applicantId) {
 
 **处理流程**:
 ```
-POST /apply
+POST /api/applications
     │
     ▼
 验证 TA 登录状态
@@ -157,41 +157,17 @@ POST /apply
 返回成功
 ```
 
-#### POST /apply/cancel (取消申请)
+#### POST /api/applications/{applicationId}/transition (状态流转)
 
 **请求参数**:
 | 参数 | 类型 | 必需 | 说明 |
 |------|------|------|------|
-| applicationId | String | 是 | 申请 ID |
+| action | String | 是 | `accept`、`reject`、`withdraw` |
 
-**规则**: 仅 TA 可取消自己的、状态为 PENDING 的申请
-
-#### POST /apply/progress (更新进度)
-
-**请求参数**:
-| 参数 | 类型 | 必需 | 说明 |
-|------|------|------|------|
-| applicationId | String | 是 | 申请 ID |
-| progressStage | String | 是 | 新阶段 |
-
-**权限**: 仅 MO (申请所属职位的发布者)
-
-**阶段转换规则**:
-```
-SUBMITTED → UNDER_REVIEW → INTERVIEW_SCHEDULED → COMPLETED
-  (任一方向只能向前推进)
-```
-
-#### POST /apply/review (审核决定)
-
-**请求参数**:
-| 参数 | 类型 | 必需 | 说明 |
-|------|------|------|------|
-| applicationId | String | 是 | 申请 ID |
-| status | String | 是 | ACCEPTED / REJECTED |
-| interviewNotes | String | 否 | 面试备注 |
-
-**权限**: 仅 MO
+**规则**:
+- TA 可以撤回自己的 PENDING 申请。
+- MO 可以接受或拒绝自己职位下的 PENDING 申请。
+- Admin 保持当前系统既有查看能力，不新增审核业务能力。
 
 ---
 
@@ -209,7 +185,7 @@ SUBMITTED → UNDER_REVIEW → INTERVIEW_SCHEDULED → COMPLETED
 ```javascript
 // 加载我的申请
 async function loadMyApplications() {
-    const response = await fetch('/application/my', {
+    const response = await fetch('/api/applications', {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     });
     return response.json();
@@ -217,13 +193,13 @@ async function loadMyApplications() {
 
 // 取消申请
 async function cancelApplication(applicationId) {
-    const response = await fetch('/apply/cancel', {
+    const response = await fetch('/api/applications/{applicationId}/transition', {
         method: 'POST',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: 'applicationId=' + encodeURIComponent(applicationId)
+        body: 'action=withdraw'
     });
     return response.json();
 }
@@ -281,7 +257,7 @@ TA 浏览职位列表
 填写求职信 (可选)
     │
     ▼
-提交 → POST /apply
+提交 → POST /api/applications
     │
     ▼
 查看我的申请状态

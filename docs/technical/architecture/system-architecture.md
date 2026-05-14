@@ -24,8 +24,8 @@ TA Hiring System 采用传统的 **三层架构 (Three-Tier Architecture)**，�
 │  │                                                              ││
 │  │  ┌─────────────────────────────────────────────────────────┐││
 │  │  │                    Servlets                             │││
-│  │  │  LoginServlet, RegisterServlet, JobServlet, ApplyServlet│││
-│  │  │  ApplicantServlet, AdminInviteServlet, WorkloadStats... │││
+│  │  │  LoginServlet, RegisterServlet, JobServlet, ApplicationServlet│││
+│  │  │  ApplicantProfileServlet, AdminInviteServlet, WorkloadStats... │││
 │  │  └─────────────────────────────────────────────────────────┘││
 │  │                            │                                 ││
 │  │  ┌─────────────────────────┴───────────────────────────────┐││
@@ -77,12 +77,13 @@ TA Hiring System 采用传统的 **三层架构 (Three-Tier Architecture)**，�
 
 | 模块 | 包路径 | 职责 |
 |------|--------|------|
-| **认证模块** | `filter/`, `servlet/LoginServlet`, `servlet/RegisterServlet` | 用户登录、注册、会话管理 |
-| **TA档案模块** | `servlet/ApplicantServlet`, `dao/ApplicantDao` | TA 申请人信息管理 |
-| **职位模块** | `servlet/JobServlet`, `dao/JobDao` | 职位 CRUD 操作 |
-| **申请模块** | `servlet/ApplyServlet`, `dao/ApplicationDao` | 申请提交与审核流程 |
-| **AI匹配模块** | `service/ai/`, `service/SkillMatchService` | 技能匹配分析 |
-| **管理员模块** | `servlet/AdminInviteServlet`, `servlet/WorkloadStatsServlet` | 邀请与统计功能 |
+| **公共模块** | `common/api`, `common/web`, `common/storage`, `common/search`, `common/util` | API 路由常量、JSON 响应、请求读取、CSV 编码、存储路径、通用搜索 |
+| **认证模块** | `auth/web`, `auth/dao`, `auth/model`, `auth/service`, `auth/validator` | 用户登录、注册、会话管理、访问策略 |
+| **TA档案模块** | `profile/web`, `profile/dao`, `profile/model`, `profile/service`, `profile/mapper`, `profile/validator` | TA 申请人信息、简历和头像管理 |
+| **职位模块** | `job/web`, `job/service`, `job/mapper`, `job/validator`, `job/dao`, `job/model` | 职位 CRUD 操作 |
+| **申请模块** | `application/web`, `application/service`, `application/mapper`, `application/validator`, `application/dao`, `application/model` | 申请提交、申请材料读取与审核流转 |
+| **AI匹配模块** | `ai/web`, `ai/service`, `ai/client` | 技能匹配、AI 搜索、职位/申请分析 |
+| **管理员模块** | `admin/web`, `admin/service`, `admin/dao`, `admin/model` | 邀请与统计功能 |
 
 ### 2.2 层次依赖关系
 
@@ -161,7 +162,7 @@ AuthFilter → 检查公开路径?
 TA 提交申请
     │
     ▼
-ApplyServlet (POST)
+ApplicationServlet (POST)
     │
     ▼
 验证: Job 存在? 职位开放? 未重复申请?
@@ -213,18 +214,16 @@ frontend/webapp/
 
 ```javascript
 // 示例: 获取职位列表
-fetch('/api/ta/job/list', {
+window.TARecruitment.api.request('/api/jobs', {
     headers: { 'X-Requested-With': 'XMLHttpRequest' }
-})
-.then(response => response.json())
-.then(data => renderJobs(data));
+}).then(result => renderJobs(result.payload));
 ```
 
 **AJAX 响应格式**：
-- 成功: 返回 JSON 数据
-- 401: 未登录，返回 `{"error": "Unauthorized"}`
-- 403: 无权限，返回 `{"error": "Forbidden"}`
-- 500: 服务器错误，返回 `{"error": "..."}`
+- 成功: `{"success":true,"message":"...","data":{...}}`
+- 401: 未登录，返回 `{"success":false,"message":"Please login first"}`
+- 403: 无权限，返回 `{"success":false,"message":"Access denied"}`
+- 500: 服务器错误，返回 `{"success":false,"message":"..."}`
 
 ---
 
@@ -244,7 +243,7 @@ set TA_HIRING_DATA_DIR=%CATALINA_HOME%\data
 
 AI 匹配使用配置文件：
 ```
-frontend/webapp/WEB-INF/ai/ta-job-match.properties.template
+frontend/webapp/WEB-INF/ai/match-analysis.properties.template
 ```
 
 配置项：

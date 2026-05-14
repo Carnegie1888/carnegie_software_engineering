@@ -290,3 +290,4 @@
 | `member6`  | #73    | `feat: 重构 Admin 工作量与通知页面`             | ✅   | `git commit -m "feat: 重构 Admin 工作量与通知页面" --author="member6 <member6@edu.com>"`             |
 | `member6`  | #74    | `refactor: 统一后端模块架构与 API 路由`        | ✅   | `git commit -m "refactor: 统一后端模块架构与 API 路由" --author="member6 <member6@edu.com>"`        |
 | `member5`  | #75    | `refactor: 统一前端 API 路由调用`              | ✅   | `git commit -m "refactor: 统一前端 API 路由调用" --author="member5 <member5@edu.com>"`              |
+| `member6`  | #76    | `docs: 同步架构文档与命名规范`                | ✅   | `git commit -m "docs: 同步架构文档与命名规范" --author="member6 <member6@edu.com>"`                |

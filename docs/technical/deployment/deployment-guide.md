@@ -7,7 +7,7 @@
 | 组件 | 版本要求 | 说明 |
 |------|----------|------|
 | Java | 17+ | JDK 17 或更高版本 |
-| Maven | 3.6+ | 构建工具 |
+| Bash / Windows CMD | 系统自带 | 运行脚本 |
 | Apache Tomcat | 11.x | Servlet 容器 |
 | Git | 任意版本 | 代码管理 (可选) |
 
@@ -25,18 +25,18 @@
 
 ```bash
 git clone <repository-url>
-cd SoftwareEngineering
+cd carnegie_software_engineering
 ```
 
 ### 2.2 导入 IDE
 
 **IntelliJ IDEA**:
 1. File → Open → 选择项目根目录
-2. 选择 Import as Maven project
-3. 等待 Maven 依赖下载完成
+2. 配置 Project SDK 为 Java 17+
+3. 将 `backend/src` 标记为源码目录
 
 **Eclipse**:
-1. File → Import → Maven → Existing Maven Projects
+1. File → Import → General → Existing Projects into Workspace
 2. 选择项目根目录
 3. 完成导入
 
@@ -50,51 +50,34 @@ cd SoftwareEngineering
 
 ## 3. 构建项目
 
-### 3.1 命令行构建
+### 3.1 macOS / Linux 一键运行
 
 ```bash
-# 清理并打包
-mvn clean package
-
-# 仅打包 WAR 文件
-mvn clean package -DskipTests
+cp scripts/config.example.sh scripts/config.sh
+# 编辑 scripts/config.sh，确认 TOMCAT_HOME 与 TA_HIRING_DATA_DIR
+./scripts/dev.sh
 ```
 
-### 3.2 WAR 文件位置
+脚本会自动发现 `backend/src/**/*.java`，通过 `javac @sources` 编译到 `build/WEB-INF/classes`，再把 `frontend/webapp` 与编译结果部署到 Tomcat 的 `webapps/groupproject`。
 
-构建完成后，WAR 文件位于:
-```
-target/groupproject.war
+### 3.2 Windows 一键运行
+
+```batch
+copy scripts\config.example.bat scripts\config.bat
+REM 编辑 scripts\config.bat，确认 TOMCAT_HOME 与 TA_HIRING_DATA_DIR
+scripts\dev.bat
 ```
 
 ---
 
 ## 4. 部署到 Tomcat
 
-### 4.1 自动部署
+### 4.1 脚本部署
 
-将 WAR 文件复制到 Tomcat 的 webapps 目录:
+`scripts/dev.sh` / `scripts/dev.bat` 会清理旧的 `webapps/groupproject` 目录、复制 JSP/CSS/JS/WEB-INF 资源、编译 Java 类，并启动 Tomcat。
 
-**Linux/Mac**:
-```bash
-cp target/groupproject.war ${CATALINA_HOME}/webapps/
-```
+### 4.2 context 配置 (可选)
 
-**Windows**:
-```batch
-copy target\groupproject.war %CATALINA_HOME%\webapps\
-```
-
-Tomcat 会自动解压并部署应用。
-
-### 4.2 手动部署
-
-1. 解压 WAR 文件:
-```bash
-unzip target/groupproject.war -d ${CATALINA_HOME}/webapps/groupproject
-```
-
-2. 配置 context (可选):
 创建 `${CATALINA_HOME}/conf/Catalina/localhost/groupproject.xml`:
 ```xml
 <Context path="/groupproject" docBase="/path/to/webapp" reloadable="true">
@@ -123,8 +106,8 @@ set TA_HIRING_DATA_DIR=%CATALINA_HOME%\data
 复制 AI 配置模板并填写实际值:
 
 ```bash
-cp frontend/webapp/WEB-INF/ai/ta-job-match.properties.template \
-   frontend/webapp/WEB-INF/ai/ta-job-match.properties
+cp frontend/webapp/WEB-INF/ai/match-analysis.properties.template \
+   frontend/webapp/WEB-INF/ai/match-analysis.local.properties
 ```
 
 编辑配置文件:
@@ -203,7 +186,7 @@ ${CATALINA_HOME}/webapps/groupproject/
 ├── WEB-INF/
 │   ├── web.xml
 │   └── ai/
-│       └── ta-job-match.properties  # AI 配置
+│       └── match-analysis.local.properties  # AI 配置
 ├── jsp/
 │   ├── ta/
 │   ├── mo/
@@ -293,7 +276,7 @@ chmod 644 ${DATA_DIR}/*.csv
 **解决方案**:
 ```bash
 # 检查配置文件
-cat frontend/webapp/WEB-INF/ai/ta-job-match.properties
+cat frontend/webapp/WEB-INF/ai/match-analysis.local.properties
 
 # 测试 API 连接
 curl -X POST "https://api.dashscope.cn/v1/services/aigc/text-generation/generation" \
@@ -374,7 +357,6 @@ ${CATALINA_HOME}/bin/shutdown.sh  # Linux/Mac
 ```bash
 # 删除 webapp
 rm -rf ${CATALINA_HOME}/webapps/groupproject
-rm -f ${CATALINA_HOME}/webapps/groupproject.war
 
 # 删除数据 (如确定不需要)
 rm -rf ${DATA_DIR}

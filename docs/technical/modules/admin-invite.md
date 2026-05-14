@@ -18,7 +18,7 @@
 
 ### 2.1 AdminInvite
 
-**路径**: `backend/src/com/example/authlogin/model/AdminInvite.java`
+**路径**: `backend/src/com/example/tarecruitment/admin/model/AdminInvite.java`
 
 ```java
 public class AdminInvite {
@@ -57,7 +57,7 @@ inviteId,email,role,token,status,invitedBy,createdAt,expiresAt,acceptedAt
 
 ### 3.1 AdminInviteDao
 
-**路径**: `backend/src/com/example/authlogin/dao/AdminInviteDao.java`
+**路径**: `backend/src/com/example/tarecruitment/admin/dao/AdminInviteDao.java`
 
 **单例模式**: 是
 
@@ -96,9 +96,9 @@ public boolean isValidToken(String token) {
 
 ### 4.1 AdminInviteServlet
 
-**路径**: `backend/src/com/example/authlogin/servlet/AdminInviteServlet.java`
+**路径**: `backend/src/com/example/tarecruitment/admin/web/AdminInviteServlet.java`
 
-**端点**: `/api/admin/invite`
+**端点**: `/api/admin/invitations`
 
 **支持的操作**:
 
@@ -108,7 +108,7 @@ public boolean isValidToken(String token) {
 | 列表 | GET | 获取邀请列表 |
 | 取消 | POST | 取消邀请 |
 
-#### POST /api/admin/invite (创建邀请)
+#### POST /api/admin/invitations (创建邀请)
 
 **请求参数**:
 | 参数 | 类型 | 必需 | 说明 |
@@ -171,7 +171,7 @@ Best regards,
 TA Hiring System Admin
 ```
 
-#### GET /api/admin/invite
+#### GET /api/admin/invitations
 
 **响应**: JSON 数组
 
@@ -198,7 +198,7 @@ TA Hiring System Admin
 
 **权限**: 仅 ADMIN
 
-#### POST /api/admin/invite/cancel
+#### POST /api/admin/invitations/cancel
 
 **请求参数**:
 | 参数 | 类型 | 必需 | 说明 |
@@ -207,11 +207,11 @@ TA Hiring System Admin
 
 ### 4.2 AdminInviteAcceptServlet
 
-**路径**: `backend/src/com/example/authlogin/servlet/AdminInviteAcceptServlet.java`
+**路径**: `backend/src/com/example/tarecruitment/admin/web/AdminInviteAcceptServlet.java`
 
-**端点**: `/api/admin/invite/accept`
+**端点**: `/api/admin/invitations/acceptance`
 
-#### POST /api/admin/invite/accept
+#### POST /api/admin/invitations/acceptance
 
 **请求参数**:
 | 参数 | 类型 | 必需 | 说明 |
@@ -248,9 +248,9 @@ TA Hiring System Admin
 自动登录 + 重定向
 ```
 
-#### GET /api/admin/invite/validate
+#### GET /api/admin/invitations/validation
 
-**端点**: `/api/admin/invite/validate?token=xxx`
+**端点**: `/api/admin/invitations/validation?token=xxx`
 
 **响应**:
 ```json
@@ -268,7 +268,7 @@ TA Hiring System Admin
 
 ### 5.1 AdminInviteEmailService
 
-**路径**: `backend/src/com/example/authlogin/service/AdminInviteEmailService.java`
+**路径**: `backend/src/com/example/tarecruitment/admin/service/AdminInviteEmailService.java`
 
 ```java
 public class AdminInviteEmailService {
@@ -326,7 +326,7 @@ public class AdminInviteEmailService {
 ```javascript
 // 发送邀请
 async function sendInvite(email, role) {
-    const response = await fetch('/api/admin/invite', {
+    const response = await fetch('/api/admin/invitations', {
         method: 'POST',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
@@ -339,7 +339,7 @@ async function sendInvite(email, role) {
 
 // 加载邀请列表
 async function loadInvites() {
-    const response = await fetch('/api/admin/invite', {
+    const response = await fetch('/api/admin/invitations', {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     });
     return response.json();
@@ -358,7 +358,7 @@ async function loadInvites() {
 ```javascript
 // 验证 Token
 async function validateToken(token) {
-    const response = await fetch(`/api/admin/invite/validate?token=${token}`, {
+    const response = await fetch(`/api/admin/invitations/validation?token=${token}`, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     });
     return response.json();
@@ -366,7 +366,7 @@ async function validateToken(token) {
 
 // 接受邀请并注册
 async function acceptInvite(token, username, password) {
-    const response = await fetch('/api/admin/invite/accept', {
+    const response = await fetch('/api/admin/invitations/acceptance', {
         method: 'POST',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',

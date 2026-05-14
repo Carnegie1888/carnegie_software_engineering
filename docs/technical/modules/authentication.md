@@ -19,7 +19,7 @@
 
 ### 2.1 User 实体
 
-**路径**: `backend/src/com/example/authlogin/model/User.java`
+**路径**: `backend/src/com/example/tarecruitment/auth/model/User.java`
 
 ```java
 public class User {
@@ -37,7 +37,7 @@ public class User {
 
 ### 2.2 UserDao
 
-**路径**: `backend/src/com/example/authlogin/dao/UserDao.java`
+**路径**: `backend/src/com/example/tarecruitment/auth/dao/UserDao.java`
 
 **单例模式实现**：
 ```java
@@ -94,7 +94,7 @@ public Optional<User> verifyLogin(String usernameOrEmail, String password) {
 
 ### 3.1 LoginServlet
 
-**路径**: `backend/src/com/example/authlogin/servlet/LoginServlet.java`
+**路径**: `backend/src/com/example/tarecruitment/auth/web/LoginServlet.java`
 
 **端点**: `POST /login`
 
@@ -128,7 +128,7 @@ public Optional<User> verifyLogin(String usernameOrEmail, String password) {
 
 ### 3.2 RegisterServlet
 
-**路径**: `backend/src/com/example/authlogin/servlet/RegisterServlet.java`
+**路径**: `backend/src/com/example/tarecruitment/auth/web/RegisterServlet.java`
 
 **端点**: `POST /register`
 
@@ -200,7 +200,7 @@ if (role == User.Role.ADMIN) {
 
 ### 3.3 LogoutServlet
 
-**路径**: `backend/src/com/example/authlogin/servlet/LogoutServlet.java`
+**路径**: `backend/src/com/example/tarecruitment/auth/web/LogoutServlet.java`
 
 **端点**: `GET /logout`
 
@@ -228,25 +228,25 @@ public class AuthFilter implements Filter {
         "/login", "/register",
         "/login.jsp", "/register.jsp",
         "/admin-invite.jsp",
-        "/api/admin/invite/validate",
-        "/api/admin/invite/accept",
+        "/api/admin/invitations/validation",
+        "/api/admin/invitations/acceptance",
         "/logout",
         "/test_applicant.jsp",
-        "/jobs"
+        "/api/jobs"
     ));
 
     // MO 专属路径
     private static final Set<String> MO_PATHS = new HashSet<>(Arrays.asList(
         "/jsp/mo/", "/api/mo/",
-        "/job/create", "/job/delete", "/job/update"
+        "/api/jobs"
     ));
 
     // TA 可访问路径
     private static final Set<String> TA_PATHS = new HashSet<>(Arrays.asList(
         "/jsp/ta/", "/api/ta/",
-        "/api/applicants/", "/profile/",
-        "/applicant", "/apply",
-        "/application/", "/job/list", "/job/view"
+        "/api/applications/{applicationId}/applicant",
+        "/api/me/applicant-profile", "/api/applications",
+        "/api/jobs"
     ));
 }
 ```
@@ -306,9 +306,7 @@ private boolean hasPermission(String path, User.Role role) {
 
     // TA 只能访问 TA 路径
     if (role == User.Role.TA) {
-        return isPathMatch(path, TA_PATHS) ||
-               path.startsWith("/profile/") ||
-               path.startsWith("/application/");
+        return isPathMatch(path, TA_PATHS);
     }
 
     return false;
@@ -321,7 +319,7 @@ private boolean hasPermission(String path, User.Role role) {
 
 ### 5.1 SessionUtil
 
-**路径**: `backend/src/com/example/authlogin/util/SessionUtil.java`
+**路径**: `backend/src/com/example/tarecruitment/common/web/SessionUtil.java`
 
 ```java
 public class SessionUtil {
@@ -368,13 +366,13 @@ if (user.isPresent()) {
 
 ### 6.1 PermissionUtil
 
-**路径**: `backend/src/com/example/authlogin/util/PermissionUtil.java`
+**路径**: `backend/src/com/example/tarecruitment/common/web/PermissionUtil.java`
 
 提供权限判断的辅助方法。
 
 ### 6.2 SecurityTokenUtil
 
-**路径**: `backend/src/com/example/authlogin/util/SecurityTokenUtil.java`
+**路径**: `backend/src/com/example/tarecruitment/common/util/SecurityTokenUtil.java`
 
 用于生成安全令牌（如邀请链接 Token）。
 

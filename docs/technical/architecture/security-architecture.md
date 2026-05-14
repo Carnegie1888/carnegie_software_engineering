@@ -94,10 +94,10 @@ PUBLIC_PATHS = {
     "/login", "/register",
     "/login.jsp", "/register.jsp",
     "/admin-invite.jsp",
-    "/api/admin/invite/validate",
-    "/api/admin/invite/accept",
+    "/api/admin/invitations/validation",
+    "/api/admin/invitations/acceptance",
     "/logout",
-    "/jobs"  // 职位公开列表
+    "/api/jobs"  // 职位公开列表
 }
 ```
 
@@ -110,10 +110,11 @@ PUBLIC_PATHS = {
 | `/jsp/admin/*` | ✗ | ✗ | ✓ |
 | `/api/ta/*` | ✓ | ✓ | ✗ |
 | `/api/mo/*` | ✗ | ✓ | ✗ |
-| `/job/create`, `/job/delete`, `/job/update` | ✗ | ✓ | ✗ |
-| `/profile/*` | ✓ | ✓ | ✓ |
+| `/api/jobs` | TA 可读，MO 可管理本人职位 | ✓ | ✗ |
+| `/api/me/applicant-profile/*` | ✓ | ✗ | ✗ |
+| `/api/applications/{applicationId}/applicant/*` | ✓ | ✓ | ✓ |
 
-*注：Admin 无法访问 `/jsp/mo/ai-skill-match.jsp` 和 `/api/mo/skill-match`
+*注：Admin 无法访问 `/jsp/mo/ai-skill-match.jsp` 和 `/api/mo/skill-matches`
 
 ### 3.3 权限验证流程
 

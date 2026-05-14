@@ -5,7 +5,7 @@
 管理员工作量统计模块允许 ADMIN 查看系统中各角色 (MO, TA) 的工作量统计信息。
 
 **核心组件**：
-- `WorkloadStatsServlet` - 统计 API (`/api/admin/workload`)
+- `WorkloadStatsServlet` - 统计 API (`/api/admin/workload-statistics`)
 - `WorkloadStatsService` - 统计业务逻辑
 - 前端页面: `jsp/admin/dashboard.jsp`
 
@@ -50,7 +50,7 @@
 
 ### 3.1 WorkloadStatsService
 
-**路径**: `backend/src/com/example/authlogin/service/WorkloadStatsService.java`
+**路径**: `backend/src/com/example/tarecruitment/admin/service/WorkloadStatsService.java`
 
 **内部类**:
 
@@ -93,9 +93,9 @@ public static class TaWorkloadStats {
 
 ### 4.1 WorkloadStatsServlet
 
-**路径**: `backend/src/com/example/authlogin/servlet/WorkloadStatsServlet.java`
+**路径**: `backend/src/com/example/tarecruitment/admin/web/WorkloadStatsServlet.java`
 
-**端点**: `/api/admin/workload`
+**端点**: `/api/admin/workload-statistics`
 
 **查询参数**:
 | 参数 | 类型 | 说明 |
@@ -105,7 +105,7 @@ public static class TaWorkloadStats {
 | end | String | 结束时间 ISO 格式 (可选) |
 | export | String | `csv` (仅 mode=mo 时支持) |
 
-#### GET /api/admin/workload
+#### GET /api/admin/workload-statistics
 
 返回系统申请状态统计。
 
@@ -124,7 +124,7 @@ public static class TaWorkloadStats {
 }
 ```
 
-#### GET /api/admin/workload?mode=mo
+#### GET /api/admin/workload-statistics?mode=mo
 
 返回所有 MO 的工作量统计列表。
 
@@ -150,7 +150,7 @@ public static class TaWorkloadStats {
 }
 ```
 
-#### GET /api/admin/workload?mode=ta
+#### GET /api/admin/workload-statistics?mode=ta
 
 返回所有 TA 的工作量统计列表。
 
@@ -175,7 +175,7 @@ public static class TaWorkloadStats {
 }
 ```
 
-#### GET /api/admin/workload?mode=mo&export=csv
+#### GET /api/admin/workload-statistics?mode=mo&export=csv
 
 导出 MO 工作量统计为 CSV 文件。
 
@@ -205,13 +205,13 @@ public static class TaWorkloadStats {
 
 ```javascript
 // 加载系统统计
-fetch('/api/admin/workload', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+fetch('/api/admin/workload-statistics', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
 
 // 加载 MO 统计
-fetch('/api/admin/workload?mode=mo', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+fetch('/api/admin/workload-statistics?mode=mo', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
 
 // 加载 TA 统计
-fetch('/api/admin/workload?mode=ta', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+fetch('/api/admin/workload-statistics?mode=ta', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
 ```
 
 ---

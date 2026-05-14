@@ -1,4 +1,4 @@
-# TARecruitmentSystem Software Engineering Group Project
+# TA Hiring System
 
 基于 `Tomcat + Servlet + JSP` 的教学场景 TA 招聘系统，面向三类角色：
 

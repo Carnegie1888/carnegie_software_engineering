@@ -7,8 +7,11 @@ TA 档案管理模块允许 TA 申请人创建和管理个人档案，包括基�
 **核心组件**：
 - `Applicant` - 申请人档案实体
 - `ApplicantDao` - 数据访问层
-- `ApplicantServlet` - 档案 CRUD 操作
-- `ApplicantAccessServlet` - 头像访问
+- `ApplicantProfileServlet` - 当前 TA 档案 JSON 入口
+- `ApplicantAssetServlet` - 当前 TA 头像、简历、草稿简历入口
+- `ApplicantProfileService` - 档案创建、更新和同步流程
+- `ProfileAssetService` - 头像、简历、草稿简历文件处理
+- `ApplicantProfileResponseMapper` / `ApplicantProfileValidator` - 响应组装与表单校验
 - 前端页面: `jsp/ta/dashboard.jsp`
 
 ---
@@ -17,7 +20,7 @@ TA 档案管理模块允许 TA 申请人创建和管理个人档案，包括基�
 
 ### 2.1 Applicant
 
-**路径**: `backend/src/com/example/authlogin/model/Applicant.java`
+**路径**: `backend/src/com/example/tarecruitment/profile/model/Applicant.java`
 
 ```java
 public class Applicant {
@@ -60,7 +63,7 @@ uuid-123,user-456,John Doe,2020123456,Computer Science,Master,3.8,Java;Python;Ma
 
 ### 3.1 ApplicantDao
 
-**路径**: `backend/src/com/example/authlogin/dao/ApplicantDao.java`
+**路径**: `backend/src/com/example/tarecruitment/profile/dao/ApplicantDao.java`
 
 **单例模式**: 是
 
@@ -96,32 +99,33 @@ public Optional<Applicant> findByUserIdOrCreate(String userId) {
 
 ---
 
-## 4. Servlet 实现
+## 4. Web 与服务层实现
 
-### 4.1 ApplicantServlet
+### 4.1 ApplicantProfileServlet
 
-**路径**: `backend/src/com/example/authlogin/servlet/ApplicantServlet.java`
+**路径**: `backend/src/com/example/tarecruitment/profile/web/ApplicantProfileServlet.java`
 
-**端点**: `/applicant`
+**端点**: `/api/me/applicant-profile`
 
 **支持的方法**:
 - `GET` - 获取当前用户档案
-- `POST` - 创建/更新档案
+- `POST` - 创建档案
+- `PUT` - 更新档案
 
 #### GET 处理
 
 ```
-GET /applicant
+GET /api/me/applicant-profile
     │
     ▼
 获取当前登录用户
     │
     ▼
-调用 applicantDao.findByUserId(user.getUserId())
+调用 ApplicantProfileService.get(...)
     │
-    ├── 档案存在 → JSON 返回档案数据
+    ├── 档案存在 → ApplicantProfileResponseMapper 组装 JSON
     │
-    └── 档案不存在 → JSON 返回 null 或自动创建
+    └── 档案不存在 → 返回 404 和草稿简历状态
 ```
 
 **响应格式** (JSON):
@@ -144,7 +148,7 @@ GET /applicant
 }
 ```
 
-#### POST 处理 (创建/更新)
+#### POST/PUT 处理
 
 **请求参数**:
 | 参数 | 类型 | 必需 | 说明 |
@@ -162,22 +166,19 @@ GET /applicant
 
 **处理流程**:
 ```
-POST /applicant
+POST /api/me/applicant-profile
     │
     ▼
-验证必需参数
+ApplicantProfileRequestMapper 读取参数
     │
     ▼
-获取或创建 Applicant 对象
+ApplicantProfileValidator 校验字段
     │
     ▼
-设置字段值
+ApplicantProfileService 保存档案并同步账号/申请单姓名
     │
     ▼
-调用 applicantDao.save(applicant)
-    │
-    ▼
-返回 JSON 响应
+返回统一 JSON 响应
 ```
 
 ---
@@ -196,21 +197,34 @@ String newFilename = userId + "_photo_" + System.currentTimeMillis() + "." + ext
 String newFilename = userId + "_resume_" + System.currentTimeMillis() + "." + extension;
 ```
 
-### 5.2 ApplicantAccessServlet
+### 5.2 ApplicantAssetServlet
 
-**路径**: `backend/src/com/example/authlogin/servlet/ApplicantAccessServlet.java`
+**路径**: `backend/src/com/example/tarecruitment/profile/web/ApplicantAssetServlet.java`
 
-**端点**: `/profile/*`
+**端点**:
+- `GET /api/me/applicant-profile/photo`
+- `GET /api/me/applicant-profile/resume`
+- `POST /api/me/applicant-profile/resume-draft`
+- `DELETE /api/me/applicant-profile/resume-draft`
 
-**功能**:
-- 头像访问: `/profile/photo/{filename}`
-- 简历访问: `/profile/resume/{filename}`
+**实现边界**:
+- Servlet 只检查当前用户、分发资源路径和写文件响应。
+- `ProfileAssetService` 负责文件定位、保存、复制草稿、删除旧文件。
+- `ProfileAssetValidator` 负责文件大小、Content-Type 和扩展名校验。
 
 **安全检查**:
 - 验证用户是否登录
-- 验证文件是否属于当前用户
+- 验证文件是否属于当前用户或对应申请单
 
-### 5.3 文件类型验证
+### 5.3 申请单关联材料访问
+
+MO/TA/Admin 通过申请单读取申请人材料：
+
+- `GET /api/applications/{applicationId}/applicant`
+- `GET /api/applications/{applicationId}/applicant/resume`
+- `GET /api/applications/{applicationId}/applicant/photo`
+
+### 5.4 文件类型验证
 
 ```java
 // 头像验证
@@ -250,7 +264,7 @@ private boolean isValidResume(String filename) {
 ```javascript
 // 保存档案
 async function saveProfile(formData) {
-    const response = await fetch('/applicant', {
+    const response = await fetch('/api/me/applicant-profile', {
         method: 'POST',
         headers: {
             'X-Requested-With': 'XMLHttpRequest'
@@ -265,7 +279,7 @@ async function uploadPhoto(file) {
     const formData = new FormData();
     formData.append('photo', file);
 
-    const response = await fetch('/applicant/photo', {
+    const response = await fetch('/api/me/applicant-profile/photo', {
         method: 'POST',
         headers: {
             'X-Requested-With': 'XMLHttpRequest'

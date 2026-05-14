@@ -2,7 +2,7 @@
 
 ## 概述
 
-本文档是 TARecruitmentSystem Software Engineering Group Project (TA Hiring System) 的技术文档集合，提供系统的整体架构设计和各功能模块的详细技术实现说明。
+本文档是 TA Hiring System 的技术文档集合，提供系统的整体架构设计和各功能模块的详细技术实现说明。
 
 **项目背景**：这是一个面向计算机科学硕士课程的 TA (Teaching Assistant) 招聘管理系统，允许学生申请 TA 职位，模块负责人 (MO) 发布职位并审核申请，系统还集成了 AI 技能匹配功能。
 
@@ -56,15 +56,16 @@
 ## 项目结构
 
 ```
-backend/src/com/example/authlogin/
-├── bootstrap/          # 启动数据初始化
-├── dao/                # 数据访问层 (CSV)
-├── filter/             # 权限过滤器
-├── model/              # 实体类
-├── service/            # 业务服务层
-│   └── ai/             # AI 客户端
-├── servlet/            # Servlet 控制器
-└── util/               # 工具类
+backend/src/com/example/tarecruitment/
+├── common/             # JSON、请求、CSV、存储路径等公共基础设施
+├── auth/               # 登录、注册、会话和权限过滤
+├── profile/            # TA 档案、简历和头像访问
+├── job/                # 职位模型、DAO 和 HTTP 接口
+├── application/        # 申请记录与申请流程
+├── ai/                 # AI 客户端、服务和分析接口
+├── admin/              # 管理员邀请和工作量统计
+├── notification/       # 通知模型、DAO 和接口
+└── demo/               # 演示账号和演示数据初始化
 
 frontend/webapp/
 ├── index.jsp           # 门户首页

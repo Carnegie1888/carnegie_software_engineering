@@ -16,7 +16,7 @@
 
 ### 2.1 Job
 
-**路径**: `backend/src/com/example/authlogin/model/Job.java`
+**路径**: `backend/src/com/example/tarecruitment/job/model/Job.java`
 
 ```java
 public class Job {
@@ -68,7 +68,7 @@ jobId,moId,moName,title,courseCode,courseName,description,requiredSkills,positio
 
 ### 3.1 JobDao
 
-**路径**: `backend/src/com/example/authlogin/dao/JobDao.java`
+**路径**: `backend/src/com/example/tarecruitment/job/dao/JobDao.java`
 
 **单例模式**: 是
 
@@ -112,21 +112,21 @@ public List<Job> search(String keyword) {
 
 ### 4.1 JobServlet
 
-**路径**: `backend/src/com/example/authlogin/servlet/JobServlet.java`
+**路径**: `backend/src/com/example/tarecruitment/job/web/JobServlet.java`
 
-**端点**: `/job`
+**端点**: `/api/jobs`
 
 **支持的操作**:
 
 | 操作 | 方法 | 路径 | 说明 |
 |------|------|------|------|
-| 列表 | GET | `/job/list` | 获取职位列表 |
-| 详情 | GET | `/job/view?id=xxx` | 获取职位详情 |
-| 创建 | POST | `/job/create` | 创建职位 (MO) |
-| 更新 | POST | `/job/update` | 更新职位 (MO) |
-| 删除 | POST | `/job/delete` | 删除职位 (MO) |
+| 列表 | GET | `/api/jobs` | 获取职位列表 |
+| 详情 | GET | `/api/jobs/{jobId}` | 获取职位详情 |
+| 创建 | POST | `/api/jobs` | 创建职位 (MO) |
+| 更新 | PUT | `/api/jobs/{jobId}` | 更新职位 (MO) |
+| 删除 | DELETE | `/api/jobs/{jobId}` | 删除职位 (MO) |
 
-#### GET /job/list
+#### GET /api/jobs
 
 **查询参数**:
 | 参数 | 类型 | 说明 |
@@ -157,7 +157,7 @@ public List<Job> search(String keyword) {
 ]
 ```
 
-#### GET /job/view
+#### GET /api/jobs/{jobId}
 
 **查询参数**:
 | 参数 | 类型 | 必需 | 说明 |
@@ -166,7 +166,7 @@ public List<Job> search(String keyword) {
 
 **响应**: JSON 对象
 
-#### POST /job/create
+#### POST /api/jobs
 
 **请求参数**:
 | 参数 | 类型 | 必需 | 说明 |
@@ -183,18 +183,18 @@ public List<Job> search(String keyword) {
 
 **权限**: 仅 MO
 
-#### POST /job/update
+#### PUT /api/jobs/{jobId}
 
-**请求参数**: 同 create，需额外 `jobId` 参数
+**请求参数**: 同创建参数，职位 ID 通过查询参数 `id` 传入。
 
 **权限**: 仅 MO (只能修改自己的职位)
 
-#### POST /job/delete
+#### DELETE /api/jobs/{jobId}
 
 **请求参数**:
 | 参数 | 类型 | 必需 | 说明 |
 |------|------|------|------|
-| jobId | String | 是 | 职位 ID |
+| id | String | 是 | 职位 ID，通过查询参数传入 |
 
 **权限**: 仅 MO (只能删除自己的职位)
 
@@ -215,7 +215,7 @@ public List<Job> search(String keyword) {
 ```javascript
 // 加载职位列表
 async function loadJobs(keyword = '', status = 'OPEN') {
-    let url = '/job/list';
+    let url = '/api/jobs';
     const params = new URLSearchParams();
     if (keyword) params.append('keyword', keyword);
     if (status) params.append('status', status);
@@ -272,7 +272,7 @@ MO 点击 "创建职位"
 填写职位表单
     │
     ▼
-点击提交 → POST /job/create
+点击提交 → POST /api/jobs
     │
     ▼
 验证参数
@@ -307,7 +307,7 @@ MO 点击 "创建职位"
 
 ### 8.1 FuzzySearchUtil
 
-**路径**: `backend/src/com/example/authlogin/util/FuzzySearchUtil.java`
+**路径**: `backend/src/com/example/tarecruitment/common/search/FuzzySearchUtil.java`
 
 **搜索策略**:
 - 关键词拆分
