@@ -1,0 +1,15 @@
+# DeepSeek applicant AI search config template
+# Copy this file to deepseek.local.properties and fill real secrets locally.
+# The .local.properties file is ignored by git.
+
+# DeepSeek API key (required)
+deepseek.api.key=
+
+# OpenAI-compatible base URL
+deepseek.base-url=https://api.deepseek.com
+
+# Model name
+deepseek.model=deepseek-v4-flash
+
+# Request timeout (milliseconds)
+deepseek.timeout-ms=8000
