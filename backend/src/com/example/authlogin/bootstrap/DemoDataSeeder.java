@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -126,7 +127,9 @@ public final class DemoDataSeeder {
                     "Support lab sessions, review pull requests, and assist with sprint demos.",
                     List.of("Java", "JSP", "SQL", "Git"),
                     2,
-                    "8 hours / week",
+                    8.0,
+                    0,
+                    84,
                     "28 SGD / hour",
                     21,
                     Job.Status.OPEN
@@ -141,7 +144,9 @@ public final class DemoDataSeeder {
                     "Help with SQL clinics, grading, and exam preparation sessions.",
                     List.of("SQL", "JDBC", "ER Modeling"),
                     1,
-                    "6 hours / week",
+                    6.0,
+                    -21,
+                    35,
                     "30 SGD / hour",
                     14,
                     Job.Status.FILLED
@@ -156,7 +161,9 @@ public final class DemoDataSeeder {
                     "Guide tutorial discussions and support mini-project checkpoints.",
                     List.of("Python", "Machine Learning", "Presentation"),
                     2,
-                    "7 hours / week",
+                    7.0,
+                    7,
+                    91,
                     "32 SGD / hour",
                     18,
                     Job.Status.OPEN
@@ -171,7 +178,9 @@ public final class DemoDataSeeder {
                     "Previously used demo posting for frontend office hours and grading.",
                     List.of("HTML", "CSS", "JavaScript", "Testing"),
                     1,
-                    "5 hours / week",
+                    5.0,
+                    -70,
+                    -14,
                     "26 SGD / hour",
                     -3,
                     Job.Status.CLOSED
@@ -186,7 +195,9 @@ public final class DemoDataSeeder {
                     "Support recitations, solution walkthroughs, and coding exercises.",
                     List.of("Algorithms", "Java", "C++"),
                     1,
-                    "6 hours / week",
+                    6.0,
+                    3,
+                    73,
                     "31 SGD / hour",
                     16,
                     Job.Status.OPEN
@@ -201,7 +212,9 @@ public final class DemoDataSeeder {
                     "Assist students with dashboards, data cleaning, and weekly reports.",
                     List.of("Python", "SQL", "Data Visualization"),
                     1,
-                    "8 hours / week",
+                    8.0,
+                    -14,
+                    56,
                     "29 SGD / hour",
                     12,
                     Job.Status.FILLED
@@ -347,23 +360,48 @@ public final class DemoDataSeeder {
 
     private List<User> ensureUsers(SeedSummary summary) {
         List<User> users = new ArrayList<>();
-        users.add(userDao.findByUsername("admin_demo").orElseGet(() -> createUser(
+        users.add(applyDemoAccountDisplay(userDao.findByUsername("admin_demo").orElseGet(() -> createUser(
                 new DemoUserSpec("demo-user-admin-core", "admin_demo", "admin_demo@local.test", User.Role.ADMIN),
                 summary
-        )));
-        users.add(userDao.findByUsername("mo_demo").orElseGet(() -> createUser(
+        ))));
+        users.add(applyDemoAccountDisplay(userDao.findByUsername("mo_demo").orElseGet(() -> createUser(
                 new DemoUserSpec("demo-user-mo-core", "mo_demo", "mo_demo@local.test", User.Role.MO),
                 summary
-        )));
-        users.add(userDao.findByUsername("ta_demo").orElseGet(() -> createUser(
+        ))));
+        users.add(applyDemoAccountDisplay(userDao.findByUsername("ta_demo").orElseGet(() -> createUser(
                 new DemoUserSpec("demo-user-ta-core", "ta_demo", "ta_demo@local.test", User.Role.TA),
                 summary
-        )));
+        ))));
 
         for (DemoUserSpec spec : DEMO_USERS) {
-            users.add(userDao.findByUsername(spec.username()).orElseGet(() -> createUser(spec, summary)));
+            users.add(applyDemoAccountDisplay(userDao.findByUsername(spec.username()).orElseGet(() -> createUser(spec, summary))));
         }
         return users;
+    }
+
+    private User applyDemoAccountDisplay(User user) {
+        if (user == null || user.getRole() != User.Role.MO) {
+            return user;
+        }
+
+        String username = safeText(user.getUsername());
+        String title = "";
+        String realName = "";
+        if ("mo_demo".equals(username)) {
+            title = "Dr.";
+            realName = "Morgan Lee";
+        } else if ("mo_demo_alice".equals(username)) {
+            title = "Prof.";
+            realName = "Alice Carter";
+        } else if ("mo_demo_brian".equals(username)) {
+            title = "Dr.";
+            realName = "Brian Xu";
+        }
+
+        boolean changed = false;
+        changed = fillBlank(user.getProfessionalTitle(), user::setProfessionalTitle, title) || changed;
+        changed = fillBlank(user.getRealName(), user::setRealName, realName) || changed;
+        return changed ? userDao.update(user) : user;
     }
 
     private User createUser(DemoUserSpec spec, SeedSummary summary) {
@@ -465,7 +503,18 @@ public final class DemoDataSeeder {
             changed = fillBlank(job.getCourseCode(), job::setCourseCode, spec.courseCode()) || changed;
             changed = fillBlank(job.getCourseName(), job::setCourseName, spec.courseName()) || changed;
             changed = fillBlank(job.getDescription(), job::setDescription, spec.description()) || changed;
-            changed = fillBlank(job.getWorkload(), job::setWorkload, spec.workload()) || changed;
+            if (job.getWeeklyHours() == null || Math.abs(job.getWeeklyHours() - spec.weeklyHours()) > 0.0001) {
+                job.setWeeklyHours(spec.weeklyHours());
+                changed = true;
+            }
+            if (job.getWorkStartDate() == null) {
+                job.setWorkStartDate(LocalDate.now().plusDays(spec.workStartOffsetDays()));
+                changed = true;
+            }
+            if (job.getWorkEndDate() == null) {
+                job.setWorkEndDate(LocalDate.now().plusDays(spec.workEndOffsetDays()));
+                changed = true;
+            }
             changed = fillBlank(job.getSalary(), job::setSalary, spec.salary()) || changed;
             if ((job.getRequiredSkills() == null || job.getRequiredSkills().isEmpty()) && !spec.requiredSkills().isEmpty()) {
                 job.setRequiredSkills(spec.requiredSkills());
@@ -503,7 +552,9 @@ public final class DemoDataSeeder {
         job.setDescription(spec.description());
         job.setRequiredSkills(spec.requiredSkills());
         job.setPositions(spec.positions());
-        job.setWorkload(spec.workload());
+        job.setWeeklyHours(spec.weeklyHours());
+        job.setWorkStartDate(LocalDate.now().plusDays(spec.workStartOffsetDays()));
+        job.setWorkEndDate(LocalDate.now().plusDays(spec.workEndOffsetDays()));
         job.setSalary(spec.salary());
         job.setDeadline(LocalDateTime.now().plusDays(spec.deadlineOffsetDays()));
         job.setStatus(spec.status());
@@ -521,12 +572,12 @@ public final class DemoDataSeeder {
     private void ensureApplications(List<User> users, List<Applicant> applicants, List<Job> jobs, SeedSummary summary) {
         for (ApplicationSpec spec : APPLICATION_SPECS) {
             User applicantUser = requireUser(users, spec.username());
-            requireApplicant(applicants, applicantUser.getUserId());
+            Applicant applicant = requireApplicant(applicants, applicantUser.getUserId());
             Job job = requireJob(jobs, spec.jobId());
 
             Application application = applicationDao.findById(spec.applicationId())
                     .or(() -> applicationDao.findByJobIdAndApplicantId(job.getJobId(), applicantUser.getUserId()))
-                    .orElseGet(() -> createApplication(applicantUser, job, spec, summary));
+                    .orElseGet(() -> createApplication(applicantUser, applicant, job, spec, summary));
 
             boolean changed = false;
             if (!job.getJobId().equals(application.getJobId())) {
@@ -537,7 +588,7 @@ public final class DemoDataSeeder {
                 application.setApplicantId(applicantUser.getUserId());
                 changed = true;
             }
-            changed = fillBlank(application.getApplicantName(), application::setApplicantName, applicantUser.getUsername()) || changed;
+            changed = fillBlank(application.getApplicantName(), application::setApplicantName, applicant.getFullName()) || changed;
             changed = fillBlank(application.getApplicantEmail(), application::setApplicantEmail, applicantUser.getEmail()) || changed;
             changed = fillBlank(application.getJobTitle(), application::setJobTitle, job.getTitle()) || changed;
             changed = fillBlank(application.getCourseCode(), application::setCourseCode, job.getCourseCode()) || changed;
@@ -593,12 +644,12 @@ public final class DemoDataSeeder {
         }
     }
 
-    private Application createApplication(User applicantUser, Job job, ApplicationSpec spec, SeedSummary summary) {
+    private Application createApplication(User applicantUser, Applicant applicant, Job job, ApplicationSpec spec, SeedSummary summary) {
         Application application = new Application();
         application.setApplicationId(spec.applicationId());
         application.setJobId(job.getJobId());
         application.setApplicantId(applicantUser.getUserId());
-        application.setApplicantName(applicantUser.getUsername());
+        application.setApplicantName(applicant.getFullName());
         application.setApplicantEmail(applicantUser.getEmail());
         application.setJobTitle(job.getTitle());
         application.setCourseCode(job.getCourseCode());
@@ -799,7 +850,9 @@ public final class DemoDataSeeder {
             String description,
             List<String> requiredSkills,
             int positions,
-            String workload,
+            double weeklyHours,
+            int workStartOffsetDays,
+            int workEndOffsetDays,
             String salary,
             int deadlineOffsetDays,
             Job.Status status

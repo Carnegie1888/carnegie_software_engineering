@@ -22,7 +22,7 @@ public class JobDao {
 
     private static final String JOB_DIR = StoragePaths.getJobsDir();
     private static final String JOB_FILE = JOB_DIR + File.separator + "jobs.csv";
-    private static final String CSV_HEADER = "jobId,moId,moName,title,courseCode,courseName,description,requiredSkills,positions,workload,salary,deadline,status,createdAt,updatedAt";
+    private static final String CSV_HEADER = "jobId,moId,moName,title,courseCode,courseName,description,requiredSkills,positions,workload,salary,deadline,status,createdAt,updatedAt,weeklyHours,workStartDate,workEndDate";
 
     private static JobDao instance;
 

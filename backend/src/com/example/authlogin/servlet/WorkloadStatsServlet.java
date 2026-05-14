@@ -1,6 +1,9 @@
 package com.example.authlogin.servlet;
 
 import com.example.authlogin.dao.ApplicationDao;
+import com.example.authlogin.dao.JobDao;
+import com.example.authlogin.dao.UserDao;
+import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
 import com.example.authlogin.service.WorkloadStatsService;
 import com.example.authlogin.util.JsonResponseUtil;
@@ -16,21 +19,28 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * WorkloadStatsServlet - 管理员工作量统计接口
+ * WorkloadStatsServlet - 管理员 TA 录用工作量统计接口
  * 访问路径: /api/admin/workload
  */
 @WebServlet("/api/admin/workload")
 public class WorkloadStatsServlet extends HttpServlet {
 
     private ApplicationDao applicationDao;
+    private JobDao jobDao;
+    private UserDao userDao;
     private WorkloadStatsService workloadStatsService;
 
     @Override
     public void init() throws ServletException {
         applicationDao = ApplicationDao.getInstance();
+        jobDao = JobDao.getInstance();
+        userDao = UserDao.getInstance();
         workloadStatsService = new WorkloadStatsService();
     }
 
@@ -64,40 +74,92 @@ public class WorkloadStatsServlet extends HttpServlet {
         }
 
         String mode = request.getParameter("mode");
-        if ("mo".equalsIgnoreCase(mode)) {
-            if ("csv".equalsIgnoreCase(request.getParameter("export"))) {
-                String csv = workloadStatsService.exportMoWorkloadCsv(applicationDao.findAll(), start, end);
-                response.setStatus(200);
-                response.setContentType("text/csv;charset=UTF-8");
-                response.setHeader("Content-Disposition", "attachment; filename=\"mo-workload-stats.csv\"");
-                response.getWriter().write(csv);
-                return;
-            }
-
-            List<WorkloadStatsService.MoWorkloadStats> moStats = workloadStatsService.calculateMoWorkloadStats(applicationDao.findAll(), start, end);
-            String moWorkloadsJson = moWorkloadsToJson(moStats);
-            JsonResponseUtil.writeResponse(response, 200, true, "MO workload stats generated",
-                    "\"moWorkloads\": " + moWorkloadsJson);
+        if (mode != null && !mode.isBlank() && !"ta".equalsIgnoreCase(mode)) {
+            JsonResponseUtil.write(response, 400, false, "Only TA workload stats are supported", null);
             return;
         }
 
-        if ("ta".equalsIgnoreCase(mode)) {
-            List<WorkloadStatsService.TaWorkloadStats> taStats = workloadStatsService.calculateTaWorkloadStats(applicationDao.findAll(), start, end);
-            String taWorkloadsJson = taWorkloadsToJson(taStats);
-            JsonResponseUtil.writeResponse(response, 200, true, "TA workload stats generated",
-                    "\"taWorkloads\": " + taWorkloadsJson);
+        WorkloadStatsService.WorkloadReport report = buildReport(start, end);
+        if ("csv".equalsIgnoreCase(request.getParameter("export"))) {
+            String csv = workloadStatsService.exportTaWorkloadCsv(report);
+            response.setStatus(200);
+            response.setContentType("text/csv;charset=UTF-8");
+            response.setHeader("Content-Disposition", "attachment; filename=\"ta-workload-stats.csv\"");
+            response.getWriter().write(csv);
             return;
         }
 
-        WorkloadStatsService.ApplicationCounts counts = workloadStatsService.calculateApplicationCounts(applicationDao.findAll(), start, end);
-        JsonResponseUtil.write(response, 200, true, "Application count stats generated",
-                java.util.Map.of(
-                        "total", counts.getTotal(),
-                        "pending", counts.getPending(),
-                        "accepted", counts.getAccepted(),
-                        "rejected", counts.getRejected(),
-                        "withdrawn", counts.getWithdrawn()
+        JsonResponseUtil.write(response, 200, true, "TA workload stats generated", reportToMap(report));
+    }
+
+    private WorkloadStatsService.WorkloadReport buildReport(LocalDateTime start, LocalDateTime end) {
+        Map<String, Job> jobsById = jobDao.findAll().stream()
+                .collect(Collectors.toMap(
+                        Job::getJobId,
+                        job -> job,
+                        (left, right) -> left,
+                        LinkedHashMap::new
                 ));
+        Map<String, User> usersById = userDao.findAll().stream()
+                .collect(Collectors.toMap(
+                        User::getUserId,
+                        user -> user,
+                        (left, right) -> left,
+                        LinkedHashMap::new
+                ));
+        return workloadStatsService.calculateTaWorkloadReport(applicationDao.findAll(), jobsById, usersById, start, end);
+    }
+
+    private Map<String, Object> reportToMap(WorkloadStatsService.WorkloadReport report) {
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("taWorkloads", taWorkloadsToList(report.getTaWorkloads()));
+        data.put("invalidJobs", invalidJobsToList(report.getInvalidJobs()));
+        data.put("totalTaCount", report.getTotalTaCount());
+        data.put("totalAcceptedJobs", report.getTotalAcceptedJobs());
+        data.put("totalWorkWeeks", report.getTotalWorkWeeks());
+        data.put("totalWorkHours", roundNumber(report.getTotalWorkHours()));
+        return data;
+    }
+
+    private List<Map<String, Object>> taWorkloadsToList(List<WorkloadStatsService.TaWorkloadStats> workloads) {
+        return workloads.stream().map(stats -> {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("taId", stats.getTaId());
+            item.put("taName", stats.getTaName());
+            item.put("acceptedJobCount", stats.getAcceptedJobCount());
+            item.put("totalWorkWeeks", stats.getTotalWorkWeeks());
+            item.put("totalWorkHours", roundNumber(stats.getTotalWorkHours()));
+            item.put("jobs", stats.getJobs().stream().map(job -> {
+                Map<String, Object> jobItem = new LinkedHashMap<>();
+                jobItem.put("jobId", job.getJobId());
+                jobItem.put("jobTitle", job.getJobTitle());
+                jobItem.put("courseCode", job.getCourseCode());
+                jobItem.put("weeklyHours", roundNumber(job.getWeeklyHours()));
+                jobItem.put("workStartDate", job.getWorkStartDate().toString());
+                jobItem.put("workEndDate", job.getWorkEndDate().toString());
+                jobItem.put("countedWeeks", job.getCountedWeeks());
+                jobItem.put("countedHours", roundNumber(job.getCountedHours()));
+                return jobItem;
+            }).collect(Collectors.toList()));
+            return item;
+        }).collect(Collectors.toList());
+    }
+
+    private List<Map<String, Object>> invalidJobsToList(List<WorkloadStatsService.InvalidJob> invalidJobs) {
+        return invalidJobs.stream().map(invalid -> {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("applicationId", invalid.getApplicationId());
+            item.put("applicantId", invalid.getApplicantId());
+            item.put("applicantName", invalid.getApplicantName());
+            item.put("jobId", invalid.getJobId());
+            item.put("jobTitle", invalid.getJobTitle());
+            item.put("reason", invalid.getReason());
+            return item;
+        }).collect(Collectors.toList());
+    }
+
+    private double roundNumber(double value) {
+        return Double.parseDouble(WorkloadStatsService.formatNumber(value));
     }
 
     private User getCurrentUser(HttpServletRequest request) {
@@ -106,66 +168,6 @@ public class WorkloadStatsServlet extends HttpServlet {
             return null;
         }
         return (User) session.getAttribute("user");
-    }
-
-    private String escapeJson(String str) {
-        if (str == null) {
-            return "";
-        }
-        return str.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
-    }
-
-    private String moWorkloadsToJson(java.util.List<WorkloadStatsService.MoWorkloadStats> workloads) {
-        StringBuilder json = new StringBuilder();
-        json.append("[");
-        if (workloads != null) {
-            for (int i = 0; i < workloads.size(); i++) {
-                WorkloadStatsService.MoWorkloadStats stats = workloads.get(i);
-                json.append("{");
-                json.append("\"moId\": \"").append(escapeJson(stats.getMoId())).append("\", ");
-                json.append("\"moName\": \"").append(escapeJson(stats.getMoName())).append("\", ");
-                json.append("\"totalApplications\": ").append(stats.getTotalApplications()).append(", ");
-                json.append("\"pending\": ").append(stats.getPending()).append(", ");
-                json.append("\"processed\": ").append(stats.getProcessed()).append(", ");
-                json.append("\"accepted\": ").append(stats.getAccepted()).append(", ");
-                json.append("\"rejected\": ").append(stats.getRejected()).append(", ");
-                json.append("\"withdrawn\": ").append(stats.getWithdrawn());
-                json.append("}");
-                if (i < workloads.size() - 1) {
-                    json.append(", ");
-                }
-            }
-        }
-        json.append("]");
-        return json.toString();
-    }
-
-    private String taWorkloadsToJson(java.util.List<WorkloadStatsService.TaWorkloadStats> workloads) {
-        StringBuilder json = new StringBuilder();
-        json.append("[");
-        if (workloads != null) {
-            for (int i = 0; i < workloads.size(); i++) {
-                WorkloadStatsService.TaWorkloadStats stats = workloads.get(i);
-                json.append("{");
-                json.append("\"taId\": \"").append(escapeJson(stats.getTaId())).append("\", ");
-                json.append("\"taName\": \"").append(escapeJson(stats.getTaName())).append("\", ");
-                json.append("\"totalApplications\": ").append(stats.getTotalApplications()).append(", ");
-                json.append("\"pending\": ").append(stats.getPending()).append(", ");
-                json.append("\"accepted\": ").append(stats.getAccepted()).append(", ");
-                json.append("\"rejected\": ").append(stats.getRejected()).append(", ");
-                json.append("\"withdrawn\": ").append(stats.getWithdrawn());
-                json.append("}");
-                if (i < workloads.size() - 1) {
-                    json.append(", ");
-                }
-            }
-        }
-        json.append("]");
-        return json.toString();
     }
 
     private LocalDateTime parseDateTime(String text, boolean isEnd) {

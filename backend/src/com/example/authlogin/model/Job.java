@@ -1,5 +1,7 @@
 package com.example.authlogin.model;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -22,7 +24,10 @@ public class Job {
     private String description;          // 职位描述
     private List<String> requiredSkills; // 必需技能列表
     private int positions;               // 职位数量
-    private String workload;             // 工作量（如：10小时/周）
+    private String workload;             // 旧版工作量文本，结构化字段缺失时兼容读取
+    private Double weeklyHours;          // 每周工作小时数
+    private LocalDate workStartDate;     // 工作开始日期
+    private LocalDate workEndDate;       // 工作结束日期
     private String salary;               // 薪资
     private LocalDateTime deadline;     // 申请截止日期
     private Status status;               // 职位状态
@@ -115,12 +120,16 @@ public class Job {
     }
 
     public String getRequiredSkillsAsString() {
-        return requiredSkills != null ? String.join(";", requiredSkills) : "";
+        return requiredSkills != null ? String.join(", ", requiredSkills) : "";
     }
 
     public void setRequiredSkillsFromString(String skillsStr) {
         if (skillsStr != null && !skillsStr.isEmpty()) {
-            this.requiredSkills = new ArrayList<>(Arrays.asList(skillsStr.split(";")));
+            this.requiredSkills = new ArrayList<>();
+            Arrays.stream(skillsStr.split("[,，;；]"))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .forEach(this.requiredSkills::add);
         } else {
             this.requiredSkills = new ArrayList<>();
         }
@@ -135,11 +144,38 @@ public class Job {
     }
 
     public String getWorkload() {
+        if (weeklyHours != null) {
+            return formatWeeklyHours(weeklyHours) + " hours / week";
+        }
         return workload;
     }
 
     public void setWorkload(String workload) {
         this.workload = workload;
+    }
+
+    public Double getWeeklyHours() {
+        return weeklyHours;
+    }
+
+    public void setWeeklyHours(Double weeklyHours) {
+        this.weeklyHours = weeklyHours;
+    }
+
+    public LocalDate getWorkStartDate() {
+        return workStartDate;
+    }
+
+    public void setWorkStartDate(LocalDate workStartDate) {
+        this.workStartDate = workStartDate;
+    }
+
+    public LocalDate getWorkEndDate() {
+        return workEndDate;
+    }
+
+    public void setWorkEndDate(LocalDate workEndDate) {
+        this.workEndDate = workEndDate;
     }
 
     public String getSalary() {
@@ -223,12 +259,15 @@ public class Job {
             escapeCsv(description != null ? description : ""),
             escapeCsv(getRequiredSkillsAsString()),
             String.valueOf(positions),
-            escapeCsv(workload != null ? workload : ""),
+            escapeCsv(getWorkload() != null ? getWorkload() : ""),
             escapeCsv(salary != null ? salary : ""),
             deadline != null ? deadline.format(formatter) : "",
             status != null ? status.name() : "OPEN",
             createdAt != null ? createdAt.format(formatter) : "",
-            updatedAt != null ? updatedAt.format(formatter) : ""
+            updatedAt != null ? updatedAt.format(formatter) : "",
+            weeklyHours != null ? formatWeeklyHours(weeklyHours) : "",
+            workStartDate != null ? workStartDate.toString() : "",
+            workEndDate != null ? workEndDate.toString() : ""
         );
     }
 
@@ -276,8 +315,36 @@ public class Job {
         if (parts.length > 14 && !parts[14].isEmpty()) {
             job.setUpdatedAt(LocalDateTime.parse(parts[14], DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         }
+        if (parts.length > 15 && !parts[15].isEmpty()) {
+            try {
+                job.setWeeklyHours(Double.parseDouble(parts[15].trim()));
+            } catch (NumberFormatException ignored) {
+                job.setWeeklyHours(null);
+            }
+        }
+        if (parts.length > 16 && !parts[16].isEmpty()) {
+            try {
+                job.setWorkStartDate(LocalDate.parse(parts[16].trim()));
+            } catch (Exception ignored) {
+                job.setWorkStartDate(null);
+            }
+        }
+        if (parts.length > 17 && !parts[17].isEmpty()) {
+            try {
+                job.setWorkEndDate(LocalDate.parse(parts[17].trim()));
+            } catch (Exception ignored) {
+                job.setWorkEndDate(null);
+            }
+        }
 
         return job;
+    }
+
+    public static String formatWeeklyHours(Double value) {
+        if (value == null) {
+            return "";
+        }
+        return BigDecimal.valueOf(value).stripTrailingZeros().toPlainString();
     }
 
     private static String escapeCsv(String value) {
@@ -306,6 +373,9 @@ public class Job {
                 ", courseCode='" + courseCode + '\'' +
                 ", status=" + status +
                 ", positions=" + positions +
+                ", weeklyHours=" + weeklyHours +
+                ", workStartDate=" + workStartDate +
+                ", workEndDate=" + workEndDate +
                 ", deadline=" + deadline +
                 '}';
     }

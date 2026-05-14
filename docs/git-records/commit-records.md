@@ -275,3 +275,4 @@
 | `member5`  | #58    | `refactor: 更新 JSP 页面资源引用并修正样式入口`    | ✅   | `git commit -m "refactor: 更新 JSP 页面资源引用并修正样式入口" --author="member5 <member5@edu.com>"`    |
 | `member6`  | #59    | `chore: 清理 figmaTA 参考工程并更新 README 说明`   | ✅   | `git commit -m "chore: 清理 figmaTA 参考工程并更新 README 说明" --author="member6 <member6@edu.com>"`   |
 | `member6`  | #60    | `chore: 重组项目文档与脚本入口`                   | ✅   | `git commit -m "chore: 重组项目文档与脚本入口" --author="member6 <member6@edu.com>"`                   |
+| `member4`  | #61    | `feat: 重做 TA 工作量统计规则`                   | ✅   | `git commit -m "feat: 重做 TA 工作量统计规则" --author="member4 <member4@edu.com>"`                   |
