@@ -1,30 +1,18 @@
 # member2 分工与当前代码文件
 
-[返回总览](README.md)
+[返回总览](Overview.md)
 
 ## 基本信息
 
 | 项目 | 内容 |
 | --- | --- |
 | Git author | `member2 <member2@edu.com>` |
-| 标准提交数 | 19 |
-| 最新标准提交 | `a00f6e9 feat: 接入 DeepSeek 推荐搜索服务` |
+| 标准提交数 | 20 |
 | 分工概述 | TA 档案与文件上传、数据路径/初始化稳定性、AI 推荐搜索与匹配服务 |
-
-## Git 历史证据
-
-- `22d8703 feat: 创建Applicant实体类和ApplicantDao`
-- `ee7326a feat: 实现档案创建Servlet，支持基本信息存储`
-- `2751fc3 feat: 实现简历文件上传功能`
-- `98d6024 refactor: 优化文件写入与权限路径配置`
-- `d9235c7 refactor: 按业务模块拆分本地数据文件路径`
-- `26f40ce feat: 补齐默认演示账号并支持启动时自动初始化`
-- `1e51b1d feat: 新增TA与MO岗位匹配分析服务接口`
-- `a00f6e9 feat: 接入 DeepSeek 推荐搜索服务`
 
 ## 分工概述
 
-`member2` 主要承担 TA 档案、简历/头像等资源上传、数据存储路径与演示账号初始化稳定性，并在后期负责 AI 推荐搜索与匹配分析接口的后端接入，包括 DeepSeek 相关配置和客户端。
+`member2` 主要承担 TA 档案、简历/头像等资源上传、数据存储路径与演示账号初始化稳定性，并在后期负责 AI 推荐搜索与匹配分析接口的后端接入，包括 DeepSeek 相关配置和客户端。旧技能匹配服务下线后，AI 相关后端范围收敛为推荐搜索与匹配分析接口。
 
 ## 当前对应代码文件
 
@@ -66,3 +54,27 @@ DeepSeek 推荐搜索与 AI 搜索入口：
 - `backend/src/com/example/tarecruitment/ai/service/TaJobMatchAnalysisService.java`
 - `backend/src/com/example/tarecruitment/ai/web/TaJobMatchAnalysisServlet.java`
 - `backend/src/com/example/tarecruitment/ai/web/MoApplicationMatchAnalysisServlet.java`
+
+## 测试展示
+
+运行命令：
+
+```bash
+./scripts/test/test-member2.sh
+```
+
+测试代码：
+
+- `backend/test/Member2BackendTest.java`
+
+测试覆盖点：
+
+- `CsvCodec` 是否能正确处理逗号和引号，避免破坏 CSV 列。
+- `StoragePaths` 是否通过 `TA_HIRING_DATA_DIR` 生成 applicants、resumes、photos 等运行时目录。
+- `Applicant` 的 CSV 序列化/反序列化是否保留档案字段、技能、简历和照片路径。
+- `ApplicantDao` 是否能创建档案，并拒绝重复用户档案和重复学号。
+- `DeepSeekAiConfig` 在没有真实 API key 或配置为占位符时，是否安全降级为“未配置”。
+
+答辩时可以这样解释：
+
+`member2` 的测试重点是 TA 档案、CSV 数据层和 AI 推荐配置。脚本用临时数据目录模拟真实运行环境，证明档案可以安全写入 CSV，重复档案会被拦截；同时 AI key 没配置时不会生成假的推荐结果，而是走安全降级。

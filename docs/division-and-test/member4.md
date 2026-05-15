@@ -1,32 +1,18 @@
 # member4 分工与当前代码文件
 
-[返回总览](README.md)
+[返回总览](Overview.md)
 
 ## 基本信息
 
 | 项目 | 内容 |
 | --- | --- |
 | Git author | `member4 <member4@edu.com>` |
-| 标准提交数 | 22 |
-| 最新标准提交 | `998b080 feat: 新增通知与管理员邀请码服务` |
+| 标准提交数 | 23 |
 | 分工概述 | 申请流程、状态流转、TA 撤回、MO 选择、通知与邀请码业务、集成测试/用户手册早期工作 |
-
-## Git 历史证据
-
-- `e2e3d85 feat: 创建Application申请实体类和ApplicationDao`
-- `7638e84 feat: 实现职位申请Servlet`
-- `1a21361 feat: 实现申请状态查询API`
-- `8af6b7d feat: 添加MO选择申请人功能`
-- `9470d7a fix: 收紧 TA 档案必填字段校验`
-- `d3326c0 feat: 完善申请人档案接口并支持简历草稿与头像读写`
-- `d37a71d refactor: 下线面试安排阶段并收敛申请流程`
-- `7bb777a feat: 重做 TA 工作量统计规则`
-- `ea6c756 feat: 支持 TA 撤回申请并同步审核状态`
-- `998b080 feat: 新增通知与管理员邀请码服务`
 
 ## 分工概述
 
-`member4` 主要承担申请业务流程：职位申请、申请状态查询、MO 选择/录用、流程阶段收敛、TA 撤回申请和审核状态同步。后期也补充通知与管理员邀请码服务，并在早期承担集成测试、打包和用户手册类工作。
+`member4` 主要承担申请业务流程：职位申请、申请状态查询、MO 选择/录用、流程阶段收敛、TA 撤回申请和审核状态同步。后期也补充通知与管理员邀请码服务，并继续完善职位申请与账号资料相关服务边界；早期承担过集成测试、打包和用户手册类工作。
 
 ## 当前对应代码文件
 
@@ -66,3 +52,27 @@
 
 - `backend/src/com/example/tarecruitment/common/util/SecurityTokenUtil.java`
 - `backend/src/com/example/tarecruitment/common/search/FuzzySearchUtil.java`
+
+## 测试展示
+
+运行命令：
+
+```bash
+./scripts/test/test-member4.sh
+```
+
+测试代码：
+
+- `backend/test/Member4BackendTest.java`
+
+测试覆盖点：
+
+- `ApplicationValidator` 是否校验申请 ID、职位 ID、求职信和状态流转动作。
+- `Application` 的 CSV 序列化/反序列化是否保留申请人、状态和进度阶段。
+- `ApplicationDao` 是否能创建申请，并完成接受、撤回等状态流转。
+- `Notification` 是否能保存和读取系统公告字段。
+- `AdminInvite` 是否能保存邀请码记录，并判断邀请是否过期。
+
+答辩时可以这样解释：
+
+`member4` 的测试重点是申请流程和状态流转。脚本会创建临时申请数据，模拟 TA 已申请、MO 接受申请、TA 撤回申请等关键流程。测试通过说明申请状态、进度阶段、通知和管理员邀请码这些业务对象可以稳定保存和读取。

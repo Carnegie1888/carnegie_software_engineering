@@ -1,6 +1,6 @@
 # member3 分工与当前代码文件
 
-[返回总览](README.md)
+[返回总览](Overview.md)
 
 ## 基本信息
 
@@ -8,20 +8,7 @@
 | --- | --- |
 | Git author | `member3 <member3@edu.com>` |
 | 标准提交数 | 19 |
-| 最新标准提交 | `b32f933 feat: 支持账号资料与用户名同步更新` |
 | 分工概述 | 职位发布/查询/校验、工作量统计接口、账号资料同步、AI 配置模板 |
-
-## Git 历史证据
-
-- `376d895 feat: 创建Job职位实体类和JobDao`
-- `9d6eae3 feat: 实现职位发布Servlet`
-- `7e77bc4 feat: 实现职位列表查询API，支持筛选`
-- `04e3028 feat: 添加职位编辑和删除功能`
-- `b6981e0 feat: 创建WorkloadStats统计服务类`
-- `d5fd1ac feat: 实现MO处理工作量统计`
-- `0989358 refactor: 统一职位发布校验并按有效状态返回列表`
-- `83ea5a3 fix: 完善职位发布结构化校验`
-- `b32f933 feat: 支持账号资料与用户名同步更新`
 
 ## 分工概述
 
@@ -55,7 +42,6 @@
 
 - `backend/src/com/example/tarecruitment/ai/client/MatchAnalysisAiConfig.java`
 - `backend/src/com/example/tarecruitment/ai/client/DashScopeAnalysisClient.java`
-- `backend/src/com/example/tarecruitment/ai/client/HttpAiSkillMatchClient.java`
 - `backend/src/com/example/tarecruitment/ai/service/TaJobMatchAnalysisService.java`
 - `backend/src/com/example/tarecruitment/ai/web/TaJobMatchAnalysisServlet.java`
 - `backend/src/com/example/tarecruitment/ai/web/MoApplicationMatchAnalysisServlet.java`
@@ -65,3 +51,27 @@
 
 - `backend/src/com/example/tarecruitment/common/search/FuzzySearchUtil.java`
 - `backend/src/com/example/tarecruitment/common/storage/StoragePaths.java`
+
+## 测试展示
+
+运行命令：
+
+```bash
+./scripts/test/test-member3.sh
+```
+
+测试代码：
+
+- `backend/test/Member3BackendTest.java`
+
+测试覆盖点：
+
+- `JobValidator` 是否接受合法职位，并拒绝危险标题、重复技能和错误分隔符。
+- `Job` 的有效状态是否能根据截止时间从 `OPEN` 自动转为 `CLOSED`。
+- `JobDao` 是否能创建职位、搜索职位字段并更新职位状态。
+- `AccountProfileValidator` 是否能校验用户名、TA 实名和上传文件名。
+- `MatchAnalysisAiConfig` 在 API key 是占位符或超时配置非法时是否安全降级。
+
+答辩时可以这样解释：
+
+`member3` 的测试重点是职位发布、结构化校验和账号资料同步。测试不仅验证“能创建职位”，也验证错误输入会被后端挡住，例如重复技能、危险 HTML 和非法用户名。这样可以说明职位模块不是只靠前端限制，而是后端也有规则兜底。

@@ -1,6 +1,6 @@
 # member1 分工与当前代码文件
 
-[返回总览](README.md)
+[返回总览](Overview.md)
 
 ## 基本信息
 
@@ -8,23 +8,11 @@
 | --- | --- |
 | Git author | `member1 <member1@edu.com>` |
 | 标准提交数 | 18 |
-| 最新标准提交 | `82d4566 chore: 添加文件日志工具并替换原有日志输出` |
 | 分工概述 | 后端基础能力、认证流程、接口响应与工具类、技能匹配早期实现、部分测试/统计补充 |
-
-## Git 历史证据
-
-- `4ea4072 feat: 创建User实体类和UserDao`
-- `86e0557 feat: 实现登录Servlet和注册Servlet`
-- `63543c7 feat: 添加Session管理和权限验证`
-- `8f6a4e2 feat: 创建SkillMatch服务类，定义技能匹配算法`
-- `89ba81f refactor: 统一接口响应并修复职位筛选逻辑`
-- `1bdb2d0 feat: 新增管理员邀请制账号开通流程`
-- `cf3f849 feat: 添加TA工作量统计功能`
-- `82d4566 chore: 添加文件日志工具并替换原有日志输出`
 
 ## 分工概述
 
-`member1` 主要承担后端早期基础能力：用户认证、登录注册、Session/权限校验、统一响应工具、日志工具，以及技能匹配服务早期实现。后续也补过管理员邀请流程、职位筛选响应修复、TA 工作量统计和脚本日志相关内容。
+`member1` 主要承担后端早期基础能力：用户认证、登录注册、Session/权限校验、统一响应工具、日志工具，以及技能匹配服务早期实现。后续也补过管理员邀请流程、职位筛选响应修复、TA 工作量统计和脚本日志相关内容。早期技能匹配入口后续已被下线，因此不再列入当前仍存在的代码文件。
 
 ## 当前对应代码文件
 
@@ -50,9 +38,25 @@
 - `backend/src/com/example/tarecruitment/common/util/Logger.java`
 - `backend/src/com/example/tarecruitment/common/util/SecurityTokenUtil.java`
 
-技能匹配早期服务与入口：
+## 测试展示
 
-- `backend/src/com/example/tarecruitment/ai/client/AiSkillMatchClient.java`
-- `backend/src/com/example/tarecruitment/ai/client/HttpAiSkillMatchClient.java`
-- `backend/src/com/example/tarecruitment/ai/service/SkillMatchService.java`
-- `backend/src/com/example/tarecruitment/ai/web/SkillMatchServlet.java`
+运行命令：
+
+```bash
+./scripts/test/test-member1.sh
+```
+
+测试代码：
+
+- `backend/test/Member1BackendTest.java`
+
+测试覆盖点：
+
+- `ServiceResult` 是否能稳定表达 service 层的状态码、成功标记、消息和数据。
+- `SecurityTokenUtil` 是否能生成 8 位管理员邀请码，并产生稳定 SHA-256 哈希。
+- `User` 的 CSV 序列化/反序列化是否保留账号资料字段。
+- `UserDao` 是否能初始化固定演示账号、验证登录、拒绝重复用户名。
+
+答辩时可以这样解释：
+
+`member1` 的测试重点是认证和公共后端基础能力。脚本会先编译后端源码，再使用临时 `TA_HIRING_DATA_DIR` 创建隔离测试数据，不会污染本机真实演示数据。测试通过说明登录账号、演示账号、密码哈希和 service 返回结构这些底层能力可以正常工作。
