@@ -297,3 +297,4 @@
 | `member5`  | #80    | `refactor: 下线旧 AI 页面并优化门户交互`       | ✅   | `git commit -m "refactor: 下线旧 AI 页面并优化门户交互" --author="member5 <member5@edu.com>"`       |
 | `member6`  | #81    | `docs: 重组交付文档并刷新用户手册材料`         | ✅   | `git commit -m "docs: 重组交付文档并刷新用户手册材料" --author="member6 <member6@edu.com>"`         |
 | `member6`  | #82    | `docs: 修正文档迁移后的路径引用`               | ✅   | `git commit -m "docs: 修正文档迁移后的路径引用" --author="member6 <member6@edu.com>"`               |
+| `member1`  | #83    | `test: 新增成员后端分工测试入口`               | ✅   | `git commit -m "test: 新增成员后端分工测试入口" --author="member1 <member1@edu.com>"`               |
