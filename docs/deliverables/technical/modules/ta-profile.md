@@ -316,7 +316,7 @@ async function uploadPhoto(file) {
 
 ## 9. 测试用例
 
-**集成测试**: `backend/test/ApplicantJobIntegrationTest.java`
+**验证方式**: 使用 `scripts/dev.sh` 启动本地环境后，按以下场景手工验证；提交前可运行 `./scripts/javadocs.sh` 和前端 `node --check`。
 
 **测试场景**:
 1. TA 创建档案 → 档案正确保存

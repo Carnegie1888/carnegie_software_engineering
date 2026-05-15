@@ -369,4 +369,4 @@ rm -rf ${DATA_DIR}
 如有问题，请查看:
 - 项目 README: `README.md`
 - Git 提交记录: `docs/git-records/commit-records.md`
-- 技术文档: `docs/technical/index.md`
+- 技术文档: `docs/deliverables/technical/index.md`

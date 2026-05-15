@@ -25,15 +25,14 @@
 | 路径                           | 作用                                                          |
 | ------------------------------ | ------------------------------------------------------------- |
 | `backend/src/`               | 后端 Java 源码                                                |
-| `backend/test/`              | 轻量架构和核心流程烟雾测试                                    |
 | `frontend/webapp/`           | JSP 页面、CSS、JavaScript、`WEB-INF/web.xml` 和 AI 配置模板 |
 | `scripts/dev.sh`             | macOS / Linux 一键编译、部署、启动                            |
 | `scripts/dev.bat`            | Windows 一键编译、部署、启动                                  |
 | `scripts/config.example.sh`  | macOS / Linux 本地配置模板                                    |
 | `scripts/config.example.bat` | Windows 本地配置模板                                          |
-| `scripts/test.sh`            | 后端烟雾测试脚本                                              |
-| `docs/technical/`            | 架构、API、部署和模块说明                                     |
-| `docs/test_accounts/`        | 演示账号说明                                                  |
+| `scripts/javadocs.sh`        | macOS / Linux JavaDoc 生成脚本                                |
+| `scripts/javadocs.bat`       | Windows JavaDoc 生成脚本                                      |
+| `docs/deliverables/technical/` | 架构、API、部署和模块说明                                   |
 | `docs/deliverables/`         | 课程交付资料                                                  |
 
 ## 环境要求
@@ -131,8 +130,6 @@ scripts\dev.bat
 | MO    | `mo_demo_brian`  | `Pass1234` |
 | Admin | `admin_demo`     | `Pass1234` |
 
-更多测试账号说明见 `docs/test_accounts/test-accounts.md`。
-
 ## 数据和日志
 
 运行时数据必须由 `TA_HIRING_DATA_DIR` 指定，代码不会把运行数据写进仓库。用户、职位、申请、通知、头像和简历等演示数据都会保存在这个目录下。
@@ -179,5 +176,5 @@ cp frontend/webapp/WEB-INF/ai/deepseek.properties.template \
 
 ## 更多文档
 
-- 技术文档入口：`docs/technical/index.md`
-- 部署说明：`docs/technical/deployment/deployment-guide.md`
+- 技术文档入口：`docs/deliverables/technical/index.md`
+- 部署说明：`docs/deliverables/technical/deployment/deployment-guide.md`

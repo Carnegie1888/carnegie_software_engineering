@@ -84,7 +84,7 @@ frontend/webapp/
 ├── css/                # 样式文件
 └── js/                 # 前端脚本
 
-docs/technical/
+docs/deliverables/technical/
 ├── architecture/       # 架构设计文档
 ├── modules/            # 功能模块文档
 ├── api/                # API 文档
@@ -92,7 +92,7 @@ docs/technical/
 └── deployment/         # 部署文档
 ```
 
-自动生成的 JavaDoc 不提交到 `docs/technical`，通过脚本生成到：
+自动生成的 JavaDoc 不提交到 `docs/deliverables/technical`，通过脚本生成到：
 
 ```text
 build/javadocs/index.html

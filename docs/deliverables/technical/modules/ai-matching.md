@@ -199,6 +199,7 @@ TARecruitment.api.request(TARecruitment.routes.ta.jobRecommendations(), {
 推荐检查：
 
 ```bash
-./scripts/test.sh
+bash -n scripts/dev.sh scripts/javadocs.sh
+find frontend/webapp/js -name "*.js" -print0 | xargs -0 -n1 node --check
 ./scripts/javadocs.sh
 ```

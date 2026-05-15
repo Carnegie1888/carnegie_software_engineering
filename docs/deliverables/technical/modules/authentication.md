@@ -183,10 +183,12 @@ TARecruitment.api.request(loginUrl, {
 
 ## 7. 测试
 
-当前轻量测试入口为：
+当前轻量检查入口为：
 
 ```bash
-./scripts/test.sh
+bash -n scripts/dev.sh scripts/javadocs.sh
+find frontend/webapp/js -name "*.js" -print0 | xargs -0 -n1 node --check
+./scripts/javadocs.sh
 ```
 
-其中 `ArchitectureSmokeTest` 会覆盖 CSV 编解码、演示账号、核心模型往返、申请流程、职位状态和工作量统计等基础契约。
+如需完整运行验证，可执行 `scripts/dev.sh` 部署到本地 Tomcat 后按登录、注册、退出和角色跳转流程手工检查。
