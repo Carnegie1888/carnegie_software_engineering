@@ -11,40 +11,44 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
  * TA 职位匹配分析服务：
  * - 仅使用白名单档案字段构造 AI 上下文
- * - AI 不可用时稳定回退到本地分析
+ * - AI 不可用时由 Servlet 返回 503，不生成本地普通匹配结果
+ *
+ * 当前前端入口：
+ * - TA 职位详情页：分析“我”和某个职位是否匹配
+ * - MO 申请详情页：分析某个申请人与职位是否匹配
+ *
+ * 页面不会展示 prompt，也不会展示原始脱敏文本；只展示分数、总结、优势、风险、
+ * 建议和证据列表。
  */
 public class TaJobMatchAnalysisService {
 
+    // 外部 AI 上下文脱敏规则：这些模式只用于 prompt 前处理，不影响本地 CSV 原文。
     private static final Pattern EMAIL_PATTERN = Pattern.compile("(?i)[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}");
     private static final Pattern PHONE_PATTERN = Pattern.compile("(?<!\\d)(?:\\+?86[-\\s]?)?1\\d{10}(?!\\d)");
     private static final Pattern STUDENT_ID_PATTERN = Pattern.compile("(?<!\\d)(?:20\\d{8}|\\d{8,10})(?!\\d)");
+    // 单段自由文本只截取摘要，避免 prompt 过长，也减少敏感上下文暴露面。
     private static final int MAX_TEXT_LENGTH = 320;
 
     private final DashScopeAnalysisClient aiClient;
-    private final SkillMatchService fallbackSkillService;
 
     public TaJobMatchAnalysisService(DashScopeAnalysisClient aiClient) {
-        this(aiClient, new SkillMatchService((required, applicant) -> Optional.empty()));
-    }
-
-    TaJobMatchAnalysisService(DashScopeAnalysisClient aiClient, SkillMatchService fallbackSkillService) {
         this.aiClient = aiClient;
-        this.fallbackSkillService = fallbackSkillService != null
-                ? fallbackSkillService
-                : new SkillMatchService((required, applicant) -> Optional.empty());
     }
 
     public AnalysisResult analyze(Job job, Applicant applicant) {
         return analyze(job, applicant, null);
     }
 
+    /**
+     * 生成职位匹配分析。这里只返回真实 AI 分析结果；AI 不可用时抛出
+     * AnalysisUnavailableException，由 Servlet 返回 503。
+     */
     public AnalysisResult analyze(Job job, Applicant applicant, String coverLetter) {
         if (job == null) {
             throw new IllegalArgumentException("Job is required.");
@@ -56,13 +60,6 @@ public class TaJobMatchAnalysisService {
         SanitizedProfile profile = sanitizeProfile(applicant);
         String sanitizedCoverLetter = sanitizeFreeText(coverLetter);
         List<String> requiredSkills = normalizeSkills(job.getRequiredSkills());
-        String jobContext = buildJobContext(job);
-        String profileContext = buildProfileContext(profile);
-        if (!isBlank(sanitizedCoverLetter)) {
-            profileContext = profileContext.isEmpty()
-                    ? sanitizedCoverLetter
-                    : profileContext + ". " + sanitizedCoverLetter;
-        }
 
         DashScopeAnalysisClient.AnalysisAttempt attempt = requestAi(
                 job,
@@ -84,17 +81,17 @@ public class TaJobMatchAnalysisService {
             );
         }
 
-        return buildFallbackResult(
-                job,
-                profile,
-                requiredSkills,
-                jobContext,
-                profileContext,
-                sanitizedCoverLetter,
-                attempt.getFailureReason()
-        );
+        String reason = isBlank(attempt.getFailureReason())
+                ? "AI analysis is currently unavailable."
+                : attempt.getFailureReason();
+        throw new AnalysisUnavailableException(reason);
     }
 
+    /**
+     * 向 AI 客户端发送脱敏后的 prompt。
+     *
+     * 这里统一处理 aiClient 缺失场景，让上层始终收到 AnalysisAttempt。
+     */
     private DashScopeAnalysisClient.AnalysisAttempt requestAi(Job job,
                                                                  SanitizedProfile profile,
                                                                  List<String> requiredSkills,
@@ -107,6 +104,9 @@ public class TaJobMatchAnalysisService {
         return aiClient.analyze(systemPrompt, userPrompt);
     }
 
+    /**
+     * 系统提示只定义输出协议和安全边界，不包含候选人或职位数据。
+     */
     private String buildSystemPrompt() {
         return "你是 TA 岗位匹配分析助手。"
                 + "请基于岗位信息和候选人非敏感档案做客观评估，输出中文结论。"
@@ -118,6 +118,11 @@ public class TaJobMatchAnalysisService {
                 + "不得推测、不得输出姓名/学号/电话/邮箱等敏感信息。";
     }
 
+    /**
+     * 用户提示由职位信息和白名单档案字段组成。
+     *
+     * 姓名、邮箱、电话、学号等直接身份信息不会进入 prompt。
+     */
     private String buildUserPrompt(Job job,
                                    SanitizedProfile profile,
                                    List<String> requiredSkills,
@@ -144,108 +149,9 @@ public class TaJobMatchAnalysisService {
         return prompt.toString();
     }
 
-    private AnalysisResult buildFallbackResult(Job job,
-                                               SanitizedProfile profile,
-                                               List<String> requiredSkills,
-                                               String jobContext,
-                                               String profileContext,
-                                               String coverLetter,
-                                               String fallbackReason) {
-        SkillMatchService.SkillMatchResult base = fallbackSkillService.matchByKeywords(
-                requiredSkills,
-                jobContext,
-                profile.skills,
-                profileContext
-        );
-        int score = (int) Math.round(Math.max(0.0, Math.min(100.0, base.getScore())));
-        String level = resolveLevel(score);
-
-        List<String> strengths = new ArrayList<>();
-        if (!base.getMatchedSkills().isEmpty()) {
-            strengths.add("已匹配岗位技能：" + join(limit(base.getMatchedSkills(), 4)));
-        }
-        if (!isBlank(profile.gpa)) {
-            strengths.add("当前 GPA 信息可用：" + profile.gpa);
-        }
-        if (!isBlank(profile.experience)) {
-            strengths.add("相关经历摘要：" + shortText(profile.experience, 100));
-        }
-        if (!isBlank(profile.motivation)) {
-            strengths.add("申请动机摘要：" + shortText(profile.motivation, 100));
-        }
-        if (!isBlank(coverLetter)) {
-            strengths.add("求职信摘要：" + shortText(coverLetter, 100));
-        }
-        if (strengths.isEmpty()) {
-            strengths.add("已具备部分与岗位相关的基础条件。");
-        }
-
-        List<String> risks = new ArrayList<>();
-        if (!base.getMissingSkills().isEmpty()) {
-            risks.add("仍缺少部分岗位技能：" + join(limit(base.getMissingSkills(), 4)));
-        }
-        if (isBlank(profile.experience)) {
-            risks.add("缺少可验证的相关经历描述，面试阶段建议重点核验。");
-        }
-        if (isBlank(profile.motivation)) {
-            risks.add("申请动机信息较少，岗位投入度判断依据不足。");
-        }
-        if (isBlank(coverLetter)) {
-            risks.add("求职信信息较少，缺少与岗位直接关联的补充说明。");
-        }
-        if (risks.isEmpty()) {
-            risks.add("未发现明显风险，建议结合面试进一步确认细节。");
-        }
-
-        List<String> suggestions = new ArrayList<>();
-        if (!base.getMissingSkills().isEmpty()) {
-            suggestions.add("优先补充以下技能案例或学习计划：" + join(limit(base.getMissingSkills(), 3)));
-        }
-        suggestions.add("在求职信中用量化结果说明与你匹配的课程经验。");
-        suggestions.add("准备 1-2 个与课程场景相关的教学或助教实践案例。");
-
-        List<String> jobEvidence = new ArrayList<>();
-        jobEvidence.add("岗位标题/课程：" + safe(job.getTitle()) + " / " + safe(job.getCourseCode()));
-        jobEvidence.add("岗位技能要求：" + join(limit(requiredSkills, 6)));
-        if (!isBlank(job.getDescription())) {
-            jobEvidence.add("岗位描述摘要：" + shortText(job.getDescription(), 120));
-        }
-
-        List<String> profileEvidence = new ArrayList<>();
-        profileEvidence.add("院系/项目：" + profile.department + " / " + profile.program);
-        profileEvidence.add("技能信息：" + join(limit(profile.skills, 6)));
-        if (!isBlank(profile.experience)) {
-            profileEvidence.add("经历摘要：" + shortText(profile.experience, 100));
-        }
-        if (!isBlank(coverLetter)) {
-            profileEvidence.add("求职信摘要：" + shortText(coverLetter, 100));
-        }
-
-        String summary;
-        if (base.getMissingSkills().isEmpty()) {
-            summary = "你的技能与岗位核心要求整体匹配度较高，建议在申请材料中突出相关经历与可投入时间。";
-        } else {
-            summary = "你目前已匹配 " + base.getMatchedSkills().size() + " 项技能，仍有 "
-                    + base.getMissingSkills().size()
-                    + " 项技能待补充，建议结合岗位要求完善案例说明。";
-        }
-
-        String reason = isBlank(fallbackReason)
-                ? "AI summary is temporarily unavailable."
-                : fallbackReason.trim();
-        return AnalysisResult.fromFallback(
-                score,
-                level,
-                summary,
-                strengths,
-                risks,
-                suggestions,
-                jobEvidence,
-                profileEvidence,
-                reason
-        );
-    }
-
+    /**
+     * 提取允许进入 AI 上下文的候选人字段，并清理自由文本。
+     */
     private SanitizedProfile sanitizeProfile(Applicant applicant) {
         return new SanitizedProfile(
                 safe(applicant.getDepartment()),
@@ -257,10 +163,16 @@ public class TaJobMatchAnalysisService {
         );
     }
 
+    /**
+     * 自由文本脱敏和截断。
+     *
+     * 这里处理的是 prompt 副本，不修改 Applicant 原始 CSV 数据。
+     */
     private String sanitizeFreeText(String text) {
         if (isBlank(text)) {
             return "";
         }
+        // 发送给外部 AI 前统一压平换行并脱敏，避免 prompt 泄露邮箱、手机号和学号。
         String sanitized = text.replace('\r', ' ').replace('\n', ' ').replace('\t', ' ').trim();
         sanitized = EMAIL_PATTERN.matcher(sanitized).replaceAll("[已脱敏邮箱]");
         sanitized = PHONE_PATTERN.matcher(sanitized).replaceAll("[已脱敏手机号]");
@@ -272,6 +184,9 @@ public class TaJobMatchAnalysisService {
         return sanitized;
     }
 
+    /**
+     * 标准化技能列表，保持原有顺序并去重。
+     */
     private List<String> normalizeSkills(List<String> skills) {
         if (skills == null || skills.isEmpty()) {
             return Collections.emptyList();
@@ -286,64 +201,9 @@ public class TaJobMatchAnalysisService {
         return Collections.unmodifiableList(new ArrayList<>(deduplicated));
     }
 
-    private List<String> limit(List<String> items, int maxSize) {
-        if (items == null || items.isEmpty()) {
-            return Collections.emptyList();
-        }
-        int end = Math.min(maxSize, items.size());
-        return new ArrayList<>(items.subList(0, end));
-    }
-
-    private String buildJobContext(Job job) {
-        StringBuilder context = new StringBuilder();
-        appendSentence(context, job.getTitle());
-        appendSentence(context, job.getCourseCode());
-        appendSentence(context, job.getCourseName());
-        appendSentence(context, job.getDescription());
-        appendSentence(context, join(job.getRequiredSkills()));
-        return context.toString().trim();
-    }
-
-    private String buildProfileContext(SanitizedProfile profile) {
-        StringBuilder context = new StringBuilder();
-        appendSentence(context, profile.department);
-        appendSentence(context, profile.program);
-        appendSentence(context, profile.gpa);
-        appendSentence(context, join(profile.skills));
-        appendSentence(context, profile.experience);
-        appendSentence(context, profile.motivation);
-        return context.toString().trim();
-    }
-
-    private void appendSentence(StringBuilder builder, String value) {
-        String normalized = safe(value);
-        if (normalized.isEmpty()) {
-            return;
-        }
-        if (builder.length() > 0) {
-            builder.append(". ");
-        }
-        builder.append(normalized);
-    }
-
-    private String resolveLevel(int score) {
-        if (score >= 85) {
-            return "HIGH";
-        }
-        if (score >= 60) {
-            return "MEDIUM";
-        }
-        return "LOW";
-    }
-
-    private String shortText(String text, int maxLength) {
-        String value = safe(text);
-        if (value.length() <= maxLength) {
-            return value;
-        }
-        return value.substring(0, maxLength).trim() + "...";
-    }
-
+    /**
+     * 中文展示列表使用顿号连接。
+     */
     private String join(List<String> values) {
         if (values == null || values.isEmpty()) {
             return "";
@@ -359,6 +219,11 @@ public class TaJobMatchAnalysisService {
         return value == null || value.trim().isEmpty();
     }
 
+    /**
+     * 已脱敏的候选人档案快照。
+     *
+     * 只在本服务内部流转，避免误把完整 Applicant 暴露给 AI prompt 构造函数。
+     */
     private static final class SanitizedProfile {
         private final String department;
         private final String program;
@@ -382,6 +247,11 @@ public class TaJobMatchAnalysisService {
         }
     }
 
+    /**
+     * 前端分析面板使用的统一结果对象。
+     *
+     * 仅承载外部 AI 成功返回的分析结果。
+     */
     public static final class AnalysisResult {
         private final int overallScore;
         private final String matchLevel;
@@ -391,8 +261,6 @@ public class TaJobMatchAnalysisService {
         private final List<String> suggestions;
         private final List<String> jobEvidence;
         private final List<String> profileEvidence;
-        private final boolean fallback;
-        private final String fallbackReason;
 
         private AnalysisResult(int overallScore,
                                String matchLevel,
@@ -401,9 +269,7 @@ public class TaJobMatchAnalysisService {
                                List<String> risks,
                                List<String> suggestions,
                                List<String> jobEvidence,
-                               List<String> profileEvidence,
-                               boolean fallback,
-                               String fallbackReason) {
+                               List<String> profileEvidence) {
             this.overallScore = Math.max(0, Math.min(100, overallScore));
             this.matchLevel = normalizeLevel(matchLevel, this.overallScore);
             this.summary = summary == null ? "" : summary.trim();
@@ -412,10 +278,11 @@ public class TaJobMatchAnalysisService {
             this.suggestions = immutableCopy(suggestions);
             this.jobEvidence = immutableCopy(jobEvidence);
             this.profileEvidence = immutableCopy(profileEvidence);
-            this.fallback = fallback;
-            this.fallbackReason = fallbackReason == null ? "" : fallbackReason.trim();
         }
 
+        /**
+         * AI 成功时创建结果。
+         */
         public static AnalysisResult fromAi(int overallScore,
                                             String matchLevel,
                                             String summary,
@@ -432,35 +299,13 @@ public class TaJobMatchAnalysisService {
                     risks,
                     suggestions,
                     jobEvidence,
-                    profileEvidence,
-                    false,
-                    ""
+                    profileEvidence
             );
         }
 
-        public static AnalysisResult fromFallback(int overallScore,
-                                                  String matchLevel,
-                                                  String summary,
-                                                  List<String> strengths,
-                                                  List<String> risks,
-                                                  List<String> suggestions,
-                                                  List<String> jobEvidence,
-                                                  List<String> profileEvidence,
-                                                  String fallbackReason) {
-            return new AnalysisResult(
-                    overallScore,
-                    matchLevel,
-                    summary,
-                    strengths,
-                    risks,
-                    suggestions,
-                    jobEvidence,
-                    profileEvidence,
-                    true,
-                    fallbackReason
-            );
-        }
-
+        /**
+         * 转成 ApiResponses 可序列化的 Map。
+         */
         public Map<String, Object> toResponseMap() {
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("overallScore", overallScore);
@@ -471,11 +316,12 @@ public class TaJobMatchAnalysisService {
             map.put("suggestions", suggestions);
             map.put("jobEvidence", jobEvidence);
             map.put("profileEvidence", profileEvidence);
-            map.put("fallback", fallback);
-            map.put("fallbackReason", fallbackReason);
             return map;
         }
 
+        /**
+         * 防御性归一化等级，避免外部模型返回未知字符串导致前端样式失效。
+         */
         private static String normalizeLevel(String level, int score) {
             String normalized = level == null ? "" : level.trim().toUpperCase(Locale.ROOT);
             if ("HIGH".equals(normalized) || "MEDIUM".equals(normalized) || "LOW".equals(normalized)) {
@@ -490,6 +336,9 @@ public class TaJobMatchAnalysisService {
             return "LOW";
         }
 
+        /**
+         * 响应列表不可变，防止调用方在返回前继续修改结果。
+         */
         private static List<String> immutableCopy(List<String> values) {
             if (values == null || values.isEmpty()) {
                 return Collections.emptyList();
@@ -501,6 +350,12 @@ public class TaJobMatchAnalysisService {
                 }
             }
             return Collections.unmodifiableList(copy);
+        }
+    }
+
+    public static final class AnalysisUnavailableException extends RuntimeException {
+        public AnalysisUnavailableException(String message) {
+            super(message);
         }
     }
 }

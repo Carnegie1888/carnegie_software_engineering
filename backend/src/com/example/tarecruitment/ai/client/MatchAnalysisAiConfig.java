@@ -8,8 +8,11 @@ import java.util.Locale;
 import java.util.Properties;
 
 /**
- * Match analysis AI configuration.
+ * 职位/申请匹配分析的 AI 配置。
+ *
  * 读取优先级：本地 properties 文件 > System Property > Environment Variable。
+ * 前端页面不会展示这些配置项，只会调用分析接口并展示返回结果。
+ * ta.job.match.ai.* 是早期命名，当前继续保留，避免破坏已有本地配置。
  */
 public final class MatchAnalysisAiConfig {
 
@@ -33,6 +36,7 @@ public final class MatchAnalysisAiConfig {
     public static MatchAnalysisAiConfig load(ServletContext servletContext) {
         Properties localProps = loadLocalProperties(servletContext);
 
+        // 本地配置优先，方便演示机器单独放 key；环境变量用于脚本或服务器部署。
         String apiKey = readConfig(localProps, "dashscope.api.key", "dashscope.api.key", "DASHSCOPE_API_KEY");
         String baseUrl = readConfig(
                 localProps,

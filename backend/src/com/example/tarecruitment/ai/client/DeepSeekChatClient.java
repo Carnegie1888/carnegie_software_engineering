@@ -6,7 +6,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Shared DeepSeek chat-completion JSON helpers used by module-specific AI clients.
+ * DeepSeek chat-completion JSON 辅助工具。
+ *
+ * 这里没有业务判断，只负责把不同模块共用的请求体、返回 JSON 抽取逻辑收在一起。
+ * 页面看到的“职位推荐/申请人推荐”文案由各自 service 决定。
  */
 final class DeepSeekChatClient {
 

@@ -18,9 +18,13 @@ import java.util.regex.Pattern;
 
 /**
  * 基于 DashScope OpenAI 兼容接口的 TA 匹配分析客户端。
+ *
+ * 这个客户端只负责请求和解析，不决定页面显示结构。
+ * 返回字段会被 TaJobMatchAnalysisService 包装成前端可展示的分析块。
  */
 public class DashScopeAnalysisClient {
 
+    // DashScope OpenAI 兼容响应里真正要解析的是 assistant message 的 content 字段。
     private static final Pattern CONTENT_PATTERN = Pattern.compile(
             "\"content\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"",
             Pattern.DOTALL
@@ -40,6 +44,12 @@ public class DashScopeAnalysisClient {
         this.config = config;
     }
 
+    /**
+     * 请求 DashScope 生成匹配分析。
+     *
+     * 方法不记录 prompt 内容，失败时只返回原因文本，避免把候选人资料、
+     * 职位描述或内部 ref 暴露到日志/响应外层。
+     */
     public AnalysisAttempt analyze(String systemPrompt, String userPrompt) {
         if (config == null) {
             return AnalysisAttempt.failure("AI config is missing.");
@@ -82,6 +92,12 @@ public class DashScopeAnalysisClient {
         }
     }
 
+    /**
+     * 构造 OpenAI 兼容 chat/completions 请求体。
+     *
+     * systemPrompt 控制输出格式，userPrompt 放脱敏后的职位/候选人上下文；
+     * 两者都只在请求体中传输，不在本地落盘。
+     */
     private String buildRequestBody(String systemPrompt, String userPrompt) {
         return "{"
                 + "\"model\":\"" + escapeJson(config.getModel()) + "\","
@@ -93,6 +109,12 @@ public class DashScopeAnalysisClient {
                 + "}";
     }
 
+    /**
+     * 解析模型返回的 JSON 分析结果。
+     *
+     * 模型可能把 JSON 包在 markdown 代码块中，也可能把 score 字段命名成
+     * overallScore 或 score；这里集中做兼容，service 层拿到的是稳定 payload。
+     */
     private Optional<AnalysisPayload> parseResponse(String body) {
         if (isBlank(body)) {
             return Optional.empty();
@@ -137,6 +159,12 @@ public class DashScopeAnalysisClient {
         ));
     }
 
+    /**
+     * 从接口响应中取 assistant content。
+     *
+     * 这里用轻量正则而不是引入 JSON 库，是因为项目保持 Servlet/JSP
+     * 轻量栈；只解析当前接口必须用到的字段。
+     */
     private String extractAssistantContent(String body) {
         Matcher matcher = CONTENT_PATTERN.matcher(body);
         if (!matcher.find()) {
@@ -145,6 +173,11 @@ public class DashScopeAnalysisClient {
         return unescapeJson(matcher.group(1)).trim();
     }
 
+    /**
+     * 从 assistant content 中提取最外层 JSON 对象。
+     *
+     * 兼容模型返回 ```json ... ``` 的情况，防止代码块围栏影响字段解析。
+     */
     private String extractJsonObject(String content) {
         String trimmed = safe(content);
         if (trimmed.startsWith("```")) {
@@ -165,6 +198,9 @@ public class DashScopeAnalysisClient {
         return "";
     }
 
+    /**
+     * 读取数值字段，解析失败时返回 null 交给上层判定响应无效。
+     */
     private Double extractNumberField(String json, String fieldName) {
         Pattern pattern = Pattern.compile("\"" + Pattern.quote(fieldName) + "\"\\s*:\\s*(-?\\d+(?:\\.\\d+)?)");
         Matcher matcher = pattern.matcher(json);
@@ -178,6 +214,9 @@ public class DashScopeAnalysisClient {
         }
     }
 
+    /**
+     * 读取字符串字段，并处理 JSON 转义。
+     */
     private String extractStringField(String json, String fieldName) {
         Pattern pattern = Pattern.compile(
                 "\"" + Pattern.quote(fieldName) + "\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"",
@@ -190,6 +229,12 @@ public class DashScopeAnalysisClient {
         return unescapeJson(matcher.group(1)).trim();
     }
 
+    /**
+     * 读取字符串数组字段。
+     *
+     * 分析结果中的 strengths/risks/suggestions/evidence 都走这条路径，
+     * 统一过滤空项，避免前端渲染空 bullet。
+     */
     private List<String> extractStringArray(String json, String fieldName) {
         Pattern arrayPattern = Pattern.compile(
                 "\"" + Pattern.quote(fieldName) + "\"\\s*:\\s*\\[(.*?)\\]",
@@ -212,6 +257,12 @@ public class DashScopeAnalysisClient {
         return items;
     }
 
+    /**
+     * 清洗模型返回的列表项。
+     *
+     * 去重和截断在客户端完成，保证即使模型输出过长，页面卡片也不会
+     * 被单条分析文本撑坏。
+     */
     private List<String> normalizeList(List<String> values) {
         if (values == null || values.isEmpty()) {
             return Collections.emptyList();
@@ -229,6 +280,12 @@ public class DashScopeAnalysisClient {
         return Collections.unmodifiableList(new ArrayList<>(deduplicated));
     }
 
+    /**
+     * 归一化匹配等级。
+     *
+     * 如果模型没按 HIGH/MEDIUM/LOW 返回，就根据分数推断，保证前端
+     * 始终能拿到稳定的等级枚举。
+     */
     private String normalizeMatchLevel(String rawLevel, int score) {
         String level = safe(rawLevel).toUpperCase(Locale.ROOT);
         if ("HIGH".equals(level) || "MEDIUM".equals(level) || "LOW".equals(level)) {
@@ -243,6 +300,9 @@ public class DashScopeAnalysisClient {
         return "LOW";
     }
 
+    /**
+     * 手动转义 JSON 字符串，避免 prompt 中的换行/引号破坏请求体。
+     */
     private String escapeJson(String text) {
         if (text == null) {
             return "";
@@ -254,6 +314,11 @@ public class DashScopeAnalysisClient {
                 .replace("\t", "\\t");
     }
 
+    /**
+     * 手动还原接口响应中的 JSON 字符串转义。
+     *
+     * 只实现当前 DashScope 响应需要的转义类型，不扩展成通用 JSON 解析器。
+     */
     private String unescapeJson(String text) {
         if (text == null || text.isEmpty()) {
             return "";
@@ -321,6 +386,11 @@ public class DashScopeAnalysisClient {
         return value == null ? "" : value.trim();
     }
 
+    /**
+     * 一次 AI 请求的结果包装。
+     *
+     * service 只检查 hasResult，不需要关心 HTTP 异常、解析异常等底层细节。
+     */
     public static final class AnalysisAttempt {
         private final AnalysisPayload payload;
         private final String failureReason;
@@ -351,6 +421,12 @@ public class DashScopeAnalysisClient {
         }
     }
 
+    /**
+     * 前端可展示的匹配分析结构。
+     *
+     * 字段名和 /api/ta/job-match-analyses、/api/mo/application-match-analyses
+     * 的响应 payload 对齐。
+     */
     public static final class AnalysisPayload {
         private final int overallScore;
         private final String matchLevel;

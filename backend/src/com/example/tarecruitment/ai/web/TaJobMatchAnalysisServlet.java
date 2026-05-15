@@ -24,6 +24,9 @@ import java.util.Optional;
 
 /**
  * TA 侧职位匹配分析接口。
+ *
+ * 当前前端入口：TA 职位详情页的 AI matching analysis 弹层。
+ * 该接口只返回真实 AI 分析结果；AI 不可用时返回 503。
  * 访问路径：POST /api/ta/job-match-analyses
  */
 @WebServlet(ApiRoutes.TA_JOB_MATCH_ANALYSES)
@@ -95,6 +98,8 @@ public class TaJobMatchAnalysisServlet extends HttpServlet {
             ApiResponses.write(response, 200, true, "Job match analysis generated", data);
         } catch (IllegalArgumentException ex) {
             ApiResponses.write(response, 400, false, ex.getMessage(), null);
+        } catch (TaJobMatchAnalysisService.AnalysisUnavailableException ex) {
+            ApiResponses.serviceUnavailable(response, "AI analysis is currently unavailable. Please try again later.");
         } catch (Exception ex) {
             getServletContext().log("Failed to generate TA job match analysis", ex);
             ApiResponses.write(

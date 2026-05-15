@@ -26,6 +26,9 @@ import java.util.Optional;
 
 /**
  * MO application-level match analysis endpoint.
+ *
+ * 当前前端入口：MO dashboard / applicant-selection 中的申请详情 AI 分析面板。
+ * 复用 TaJobMatchAnalysisService，因此输出结构和 TA 职位详情页保持一致。
  * Access path: POST /api/mo/application-match-analyses
  */
 @WebServlet(ApiRoutes.MO_APPLICATION_MATCH_ANALYSES)
@@ -110,6 +113,8 @@ public class MoApplicationMatchAnalysisServlet extends HttpServlet {
             ApiResponses.write(response, 200, true, "Application match analysis generated", data);
         } catch (IllegalArgumentException ex) {
             ApiResponses.badRequest(response, ex.getMessage());
+        } catch (TaJobMatchAnalysisService.AnalysisUnavailableException ex) {
+            ApiResponses.serviceUnavailable(response, "AI analysis is currently unavailable. Please try again later.");
         } catch (Exception ex) {
             getServletContext().log("Failed to generate MO application match analysis", ex);
             ApiResponses.serverError(response, "Unable to generate analysis right now. Please try again later.");

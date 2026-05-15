@@ -292,3 +292,4 @@
 | `member5`  | #75    | `refactor: 统一前端 API 路由调用`              | ✅   | `git commit -m "refactor: 统一前端 API 路由调用" --author="member5 <member5@edu.com>"`              |
 | `member6`  | #76    | `docs: 同步架构文档与命名规范`                | ✅   | `git commit -m "docs: 同步架构文档与命名规范" --author="member6 <member6@edu.com>"`                |
 | `member6`  | #77    | `docs: 补充后端包级架构说明`                  | ✅   | `git commit -m "docs: 补充后端包级架构说明" --author="member6 <member6@edu.com>"`                  |
+| `member2`  | #78    | `refactor: 移除旧技能匹配服务并收敛 AI 分析接口` | ✅   | `git commit -m "refactor: 移除旧技能匹配服务并收敛 AI 分析接口" --author="member2 <member2@edu.com>"` |

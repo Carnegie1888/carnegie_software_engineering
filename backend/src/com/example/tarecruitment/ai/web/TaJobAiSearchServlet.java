@@ -31,6 +31,9 @@ import java.util.stream.Collectors;
 
 /**
  * TA job-list AI recommendation endpoint.
+ *
+ * 当前前端入口在 ta-job-list.js 的 AI 搜索模式。
+ * 只推荐当前开放且当前 TA 尚未申请的职位；DeepSeek 不可用时返回 503，不做本地假推荐。
  * Access path: POST /api/ta/job-recommendations
  */
 @WebServlet(ApiRoutes.TA_JOB_RECOMMENDATIONS)
@@ -119,6 +122,7 @@ public class TaJobAiSearchServlet extends HttpServlet {
 
     private List<Job> loadApplicableOpenJobs(String currentUserId) {
         LocalDateTime effectiveNow = LocalDateTime.now();
+        // 前端只显示推荐结果；“排除已申请职位”和“只看开放职位”是后端保护逻辑。
         return jobDao.findAll().stream()
                 .filter(job -> job != null && job.getEffectiveStatus(effectiveNow) == Job.Status.OPEN)
                 .filter(job -> job.getJobId() != null && !job.getJobId().trim().isEmpty())
@@ -136,6 +140,7 @@ public class TaJobAiSearchServlet extends HttpServlet {
             if (job == null) {
                 continue;
             }
+            // 前端同时需要职位卡片数据和 jobId -> 推荐理由的快速索引。
             jobs.add(buildJobPayload(job));
             Map<String, Object> recommendation = ApiResponses.objectMap(
                     "jobId", safeText(job.getJobId()),

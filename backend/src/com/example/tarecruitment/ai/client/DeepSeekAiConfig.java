@@ -8,11 +8,15 @@ import java.util.Locale;
 import java.util.Properties;
 
 /**
- * DeepSeek OpenAI-compatible API configuration.
- * Read order: local properties > System Property > Environment Variable.
+ * DeepSeek OpenAI-compatible API 配置。
+ *
+ * 读取优先级：本地 properties 文件 > System Property > Environment Variable。
+ * 这份配置支撑“推荐类”AI 功能；配置本身不在前端展示。
+ * 如果 key 缺失或还是占位符，服务层会返回 AI 暂不可用，而不是生成本地假推荐。
  */
 public final class DeepSeekAiConfig {
 
+    // 本地密钥文件路径；*.local.properties 不提交仓库。
     private static final String LOCAL_CONFIG_PATH = "/WEB-INF/ai/deepseek.local.properties";
     private static final String DEFAULT_BASE_URL = "https://api.deepseek.com";
     private static final String DEFAULT_MODEL = "deepseek-v4-flash";
@@ -30,9 +34,16 @@ public final class DeepSeekAiConfig {
         this.timeoutMillis = timeoutMillis > 0 ? timeoutMillis : DEFAULT_TIMEOUT_MS;
     }
 
+    /**
+     * 加载 DeepSeek 配置。
+     *
+     * 本地 properties 适合课程演示，System Property/Environment Variable 适合部署；
+     * 调用方不需要知道配置来自哪里。
+     */
     public static DeepSeekAiConfig load(ServletContext servletContext) {
         Properties localProps = loadLocalProperties(servletContext);
 
+        // 本地文件适合课堂演示；System Property / Environment Variable 适合部署环境。
         String apiKey = readConfig(localProps, "deepseek.api.key", "deepseek.api.key", "DEEPSEEK_API_KEY");
         String baseUrl = readConfig(localProps, "deepseek.base-url", "deepseek.base-url", "DEEPSEEK_BASE_URL");
         String model = readConfig(localProps, "deepseek.model", "deepseek.model", "DEEPSEEK_MODEL");
@@ -57,6 +68,11 @@ public final class DeepSeekAiConfig {
         return timeoutMillis;
     }
 
+    /**
+     * 判断 API key 是否真实配置。
+     *
+     * 占位符会被视为未配置，推荐类 AI 将返回“暂不可用”，不会走本地假推荐。
+     */
     public boolean isApiKeyConfigured() {
         if (isBlank(apiKey)) {
             return false;
@@ -69,6 +85,9 @@ public final class DeepSeekAiConfig {
                 || lower.contains("changeme"));
     }
 
+    /**
+     * 读取 WEB-INF 下的本地配置文件。
+     */
     private static Properties loadLocalProperties(ServletContext servletContext) {
         Properties properties = new Properties();
         if (servletContext == null) {
@@ -84,6 +103,9 @@ public final class DeepSeekAiConfig {
         return properties;
     }
 
+    /**
+     * 按本地文件 -> JVM 参数 -> 环境变量的顺序读取配置。
+     */
     private static String readConfig(Properties localProps, String localKey, String propertyName, String envName) {
         String localValue = localProps.getProperty(localKey);
         if (!isBlank(localValue)) {
@@ -102,6 +124,9 @@ public final class DeepSeekAiConfig {
         return "";
     }
 
+    /**
+     * 解析超时时间，非法值回退默认值。
+     */
     private static long parseTimeout(String text) {
         if (isBlank(text)) {
             return DEFAULT_TIMEOUT_MS;
@@ -114,6 +139,9 @@ public final class DeepSeekAiConfig {
         }
     }
 
+    /**
+     * 规范化 base URL，去掉尾部斜杠，避免拼接 /chat/completions 时出现双斜杠。
+     */
     private static String normalizeBaseUrl(String url) {
         String normalized = isBlank(url) ? DEFAULT_BASE_URL : url.trim();
         while (normalized.endsWith("/")) {

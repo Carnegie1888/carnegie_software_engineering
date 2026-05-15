@@ -16,8 +16,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * TA job-list AI recommendation service.
- * Uses only whitelisted and redacted TA profile and job context in prompts.
+ * TA 职位列表 AI 推荐服务。
+ *
+ * 当前前端入口是 TA job list 的 AI 搜索模式。
+ * 只把 TA 档案的白名单字段和当前开放职位发给 DeepSeek。
+ * 没有 key 或服务不可用时，直接返回“AI 推荐暂不可用”，不做本地假推荐。
  */
 public class TaJobAiSearchService {
 
@@ -81,6 +84,7 @@ public class TaJobAiSearchService {
             if (jobContext == null || jobContext.job == null || !seenJobIds.add(jobContext.job.getJobId())) {
                 continue;
             }
+            // jobRef 只是 prompt 内部引用，前端不展示 J1/J2；返回前替换成职位标题。
             recommendations.add(new RecommendedJob(
                     jobContext.job,
                     replaceJobRefs(recommendation.getRecommendation(), byRef)
@@ -141,6 +145,7 @@ public class TaJobAiSearchService {
             if (job == null || isBlank(job.getJobId())) {
                 continue;
             }
+            // 用临时 jobRef 避免 AI 直接接触内部 jobId，也让模型只能推荐输入列表里的职位。
             contexts.add(new JobContext("J" + (contexts.size() + 1), job));
         }
         return contexts;

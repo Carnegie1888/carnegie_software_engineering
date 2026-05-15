@@ -1,15 +1,25 @@
 # Match analysis AI config template
-# Copy this file to match-analysis.local.properties and fill real secrets locally.
-# The .local.properties file is ignored by git.
+# 用法：复制为 match-analysis.local.properties，再在本地填写真实密钥。
+# 注意：*.local.properties 已被 git 忽略，真实密钥不要提交到仓库。
+#
+# 当前用途：
+# - TA 职位详情页的“AI matching analysis”
+# - MO 申请详情里的“AI matching analysis”
+#
+# 这份配置本身不会直接出现在前端页面上；页面只看到分析结果。
+# ta.job.match.ai.* 是历史命名，当前仍保留作兼容配置键，后续统一命名时再迁移。
+# 遗留/待移除：完成配置键统一后，可把 ta.job.match.ai.* 迁到 match.analysis.ai.*。
 
-# DashScope API key (required)
+# DashScope API key (required). 没有真实 key 时，后端会返回 AI 不可用提示。
+# 后端不再生成本地普通匹配结果。
 dashscope.api.key=REPLACE_WITH_REAL_DASHSCOPE_API_KEY
 
-# OpenAI-compatible base URL
+# OpenAI-compatible base URL. 结尾不要加 /，代码会做兜底清理。
 ta.job.match.ai.base-url=https://dashscope.aliyuncs.com/compatible-mode/v1
 
-# Model name
+# Model name. 这里是服务商控制台里的模型名，不是 Java 类名。
 ta.job.match.ai.model=tongyi-xiaomi-analysis-flash
 
-# Request timeout (milliseconds)
+# Request timeout (milliseconds). 超时后页面会显示 AI 不可用提示。
+# 超时时间只影响后端 AI 调用，不改变前端接口路径或响应字段结构。
 ta.job.match.ai.timeout-ms=6000

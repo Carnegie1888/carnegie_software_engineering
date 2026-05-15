@@ -13,7 +13,10 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * DeepSeek client for MO applicant AI search.
+ * MO 申请人推荐使用的 DeepSeek 客户端。
+ *
+ * 只处理和外部接口通信、解析 JSON 这两件事；哪些申请人可以被推荐、
+ * 哪些字段可以发给 AI，由 MoApplicantAiSearchService 控制。
  */
 public class DeepSeekApplicantSearchClient {
 
@@ -31,10 +34,18 @@ public class DeepSeekApplicantSearchClient {
         this.config = config;
     }
 
+    /**
+     * 推荐类 AI 没有本地假推荐兜底；未配置 key 时直接返回 unavailable。
+     */
     public boolean isConfigured() {
         return config != null && config.isApiKeyConfigured();
     }
 
+    /**
+     * 调用 DeepSeek 生成 MO 申请人推荐。
+     *
+     * prompt 由 service 层构造并脱敏；客户端只负责发送请求和解析稳定 JSON。
+     */
     public SearchAttempt search(String systemPrompt, String userPrompt) {
         if (!isConfigured()) {
             return SearchAttempt.failure("deepseek.api.key is missing or placeholder.");
@@ -74,6 +85,11 @@ public class DeepSeekApplicantSearchClient {
         }
     }
 
+    /**
+     * 解析 DeepSeek assistant content。
+     *
+     * 只接受 recommend / out_of_scope 两种 action，防止模型返回自由文本被前端误用。
+     */
     private Optional<SearchPayload> parseResponse(String body) {
         if (isBlank(body)) {
             return Optional.empty();
@@ -96,6 +112,11 @@ public class DeepSeekApplicantSearchClient {
         return Optional.of(new SearchPayload(action, message, results));
     }
 
+    /**
+     * 解析推荐结果数组。
+     *
+     * candidateRef 是 service 层给 AI 的内部引用，后端会再映射回真实 applicationId/姓名。
+     */
     private List<SearchRecommendation> extractRecommendations(String json) {
         String arrayBody = DeepSeekChatClient.extractArrayBody(json, "results");
         if (isBlank(arrayBody)) {
@@ -121,6 +142,9 @@ public class DeepSeekApplicantSearchClient {
         return DeepSeekChatClient.safe(value);
     }
 
+    /**
+     * DeepSeek 调用结果包装，避免 service 层处理 HTTP/IO/解析异常细节。
+     */
     public static final class SearchAttempt {
         private final SearchPayload payload;
         private final String failureReason;
@@ -151,6 +175,9 @@ public class DeepSeekApplicantSearchClient {
         }
     }
 
+    /**
+     * 客户端解析后的推荐响应。
+     */
     public static final class SearchPayload {
         private final String action;
         private final String message;
@@ -177,6 +204,9 @@ public class DeepSeekApplicantSearchClient {
         }
     }
 
+    /**
+     * 单条申请人推荐。
+     */
     public static final class SearchRecommendation {
         private final String candidateRef;
         private final String recommendation;

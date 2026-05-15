@@ -17,8 +17,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * MO applicant list AI search service.
- * Uses only whitelisted and redacted candidate context in prompts.
+ * MO 申请人 AI 推荐服务。
+ *
+ * 当前前端入口是 MO dashboard 的申请人推荐搜索。
+ * 只把白名单字段和脱敏后的候选人上下文发给 DeepSeek。
+ * 没有 key 或服务不可用时，直接返回“AI 搜索暂不可用”，不做本地假推荐。
  */
 public class MoApplicantAiSearchService {
 
@@ -83,6 +86,7 @@ public class MoApplicantAiSearchService {
             if (candidate == null || !seenApplicationIds.add(candidate.application.getApplicationId())) {
                 continue;
             }
+            // candidateRef 只是 prompt 内部引用，前端不展示 C1/C2；返回前替换成申请人显示名。
             recommendations.add(new RecommendedApplication(
                     candidate.application,
                     replaceCandidateRefs(recommendation.getRecommendation(), byRef)
@@ -148,6 +152,7 @@ public class MoApplicantAiSearchService {
             if (applicant == null) {
                 continue;
             }
+            // candidateRef 是给 AI 排序和引用用的临时编号，避免把真实姓名/邮箱放进 prompt。
             String candidateRef = "C" + (candidates.size() + 1);
             candidates.add(new CandidateContext(
                     candidateRef,

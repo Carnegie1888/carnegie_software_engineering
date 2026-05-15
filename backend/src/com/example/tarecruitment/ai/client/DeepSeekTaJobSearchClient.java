@@ -13,7 +13,10 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * DeepSeek client for TA job-list AI recommendation search.
+ * TA 职位推荐使用的 DeepSeek 客户端。
+ *
+ * 只负责调用 DeepSeek 并解析 JSON；开放职位过滤、已申请职位排除、
+ * 以及脱敏后的 prompt 组装都在 service/servlet 层完成。
  */
 public class DeepSeekTaJobSearchClient {
 
@@ -31,10 +34,18 @@ public class DeepSeekTaJobSearchClient {
         this.config = config;
     }
 
+    /**
+     * 推荐类 AI 没有本地假推荐兜底；未配置 key 时直接返回 unavailable。
+     */
     public boolean isConfigured() {
         return config != null && config.isApiKeyConfigured();
     }
 
+    /**
+     * 调用 DeepSeek 生成 TA 职位推荐。
+     *
+     * prompt 中只包含 service 层允许的职位和 TA 档案摘要；客户端不接触完整页面状态。
+     */
     public SearchAttempt search(String systemPrompt, String userPrompt) {
         if (!isConfigured()) {
             return SearchAttempt.failure("deepseek.api.key is missing or placeholder.");
@@ -75,6 +86,11 @@ public class DeepSeekTaJobSearchClient {
         }
     }
 
+    /**
+     * 解析 DeepSeek assistant content。
+     *
+     * action 只接受 recommend / out_of_scope，未知结构会被视为格式错误。
+     */
     private Optional<SearchPayload> parseResponse(String body) {
         if (isBlank(body)) {
             return Optional.empty();
@@ -97,6 +113,11 @@ public class DeepSeekTaJobSearchClient {
         return Optional.of(new SearchPayload(action, message, results));
     }
 
+    /**
+     * 解析职位推荐数组。
+     *
+     * jobRef 是 prompt 内部引用，service 会映射回真实 jobId 并保持只展示开放职位。
+     */
     private List<SearchRecommendation> extractRecommendations(String json) {
         String arrayBody = DeepSeekChatClient.extractArrayBody(json, "results");
         if (isBlank(arrayBody)) {
@@ -122,6 +143,9 @@ public class DeepSeekTaJobSearchClient {
         return DeepSeekChatClient.safe(value);
     }
 
+    /**
+     * DeepSeek 调用结果包装，避免 service 层处理 HTTP/IO/解析异常细节。
+     */
     public static final class SearchAttempt {
         private final SearchPayload payload;
         private final String failureReason;
@@ -152,6 +176,9 @@ public class DeepSeekTaJobSearchClient {
         }
     }
 
+    /**
+     * 客户端解析后的职位推荐响应。
+     */
     public static final class SearchPayload {
         private final String action;
         private final String message;
@@ -178,6 +205,9 @@ public class DeepSeekTaJobSearchClient {
         }
     }
 
+    /**
+     * 单条职位推荐。
+     */
     public static final class SearchRecommendation {
         private final String jobRef;
         private final String recommendation;
