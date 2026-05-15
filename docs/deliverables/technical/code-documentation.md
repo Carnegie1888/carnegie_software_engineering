@@ -7,7 +7,7 @@
 | 文档类型 | 位置 | 作用 |
 |----------|------|------|
 | 人工技术文档 | `docs/deliverables/technical/` | 解释系统架构、模块职责、API、部署和主要业务流程 |
-| 自动 JavaDoc | `build/javadocs/index.html` | 从 Java 源码注释自动生成类、方法、参数和包级说明 |
+| 自动 JavaDoc | `docs/deliverables/technical/javadocs/index.html` | 从 Java 源码注释自动生成类、方法、参数和包级说明 |
 
 阅读代码时建议先看 `docs/deliverables/technical/index.md`，理解系统分层和模块边界；再生成 JavaDoc，查看具体类和 public 方法的职责。
 
@@ -34,10 +34,10 @@ TOMCAT_HOME/lib/servlet-api.jar
 作为 Jakarta Servlet 依赖。生成结果放在：
 
 ```text
-build/javadocs/index.html
+docs/deliverables/technical/javadocs/index.html
 ```
 
-`build/` 已被 `.gitignore` 忽略，因此生成的 HTML 不需要提交到仓库。
+JavaDoc 输出目录位于技术交付材料目录内。源码、public API、包结构或注释更新后，应重新运行脚本刷新该目录。
 
 ## 3. 代码阅读顺序
 

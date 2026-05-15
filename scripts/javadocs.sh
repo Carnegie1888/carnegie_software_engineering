@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIG_FILE="$ROOT_DIR/scripts/config.sh"
-OUTPUT_DIR="$ROOT_DIR/build/javadocs"
+OUTPUT_DIR="$ROOT_DIR/docs/deliverables/technical/javadocs"
 
 if [[ -f "$CONFIG_FILE" ]]; then
     # shellcheck disable=SC1090

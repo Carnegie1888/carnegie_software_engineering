@@ -300,3 +300,4 @@
 | `member1`  | #83    | `test: 新增成员后端分工测试入口`               | ✅   | `git commit -m "test: 新增成员后端分工测试入口" --author="member1 <member1@edu.com>"`               |
 | `member5`  | #84    | `test: 新增前端成员冒烟测试入口`               | ✅   | `git commit -m "test: 新增前端成员冒烟测试入口" --author="member5 <member5@edu.com>"`               |
 | `member6`  | #85    | `docs: 重组成员分工与测试说明文档`             | ✅   | `git commit -m "docs: 重组成员分工与测试说明文档" --author="member6 <member6@edu.com>"`             |
+| `member6`  | #86    | `docs: 将 JavaDoc 输出纳入技术交付目录`        | ✅   | `git commit -m "docs: 将 JavaDoc 输出纳入技术交付目录" --author="member6 <member6@edu.com>"`        |

@@ -3,7 +3,7 @@ setlocal
 
 set "ROOT_DIR=%~dp0.."
 set "CONFIG_FILE=%ROOT_DIR%\scripts\config.bat"
-set "OUTPUT_DIR=%ROOT_DIR%\build\javadocs"
+set "OUTPUT_DIR=%ROOT_DIR%\docs\deliverables\technical\javadocs"
 
 if exist "%CONFIG_FILE%" call "%CONFIG_FILE%" >nul 2>nul
 

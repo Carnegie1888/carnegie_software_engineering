@@ -89,13 +89,14 @@ docs/deliverables/technical/
 ├── modules/            # 功能模块文档
 ├── api/                # API 文档
 ├── code-documentation.md  # 代码文档与 JavaDoc 指南
+├── javadocs/           # 自动生成的 JavaDoc HTML
 └── deployment/         # 部署文档
 ```
 
-自动生成的 JavaDoc 不提交到 `docs/deliverables/technical`，通过脚本生成到：
+自动生成的 JavaDoc 作为技术交付材料的一部分，通过脚本生成到：
 
 ```text
-build/javadocs/index.html
+docs/deliverables/technical/javadocs/index.html
 ```
 
 ---
@@ -126,5 +127,6 @@ build/javadocs/index.html
 
 | 日期 | 版本 | 说明 |
 |------|------|------|
+| 2026-05-15 | 1.1.1 | 调整 JavaDoc 输出到技术交付目录 |
 | 2026-05-14 | 1.1.0 | 增加 JavaDoc 自动生成说明和代码文档入口 |
 | 2026-03-28 | 1.0.0 | 初始技术文档 |
