@@ -295,3 +295,4 @@
 | `member2`  | #78    | `refactor: 移除旧技能匹配服务并收敛 AI 分析接口` | ✅   | `git commit -m "refactor: 移除旧技能匹配服务并收敛 AI 分析接口" --author="member2 <member2@edu.com>"` |
 | `member4`  | #79    | `refactor: 完善职位申请与账号资料服务边界`     | ✅   | `git commit -m "refactor: 完善职位申请与账号资料服务边界" --author="member4 <member4@edu.com>"`     |
 | `member5`  | #80    | `refactor: 下线旧 AI 页面并优化门户交互`       | ✅   | `git commit -m "refactor: 下线旧 AI 页面并优化门户交互" --author="member5 <member5@edu.com>"`       |
+| `member6`  | #81    | `docs: 重组交付文档并刷新用户手册材料`         | ✅   | `git commit -m "docs: 重组交付文档并刷新用户手册材料" --author="member6 <member6@edu.com>"`         |
