@@ -1,8 +1,7 @@
 /*
  * TA 职位详情页脚本，对应 /jsp/ta/job-detail.jsp。
  *
- * 读取 /api/jobs/{jobId} 展示岗位，提交 /api/applications 创建申请，
- * 并可调用 /api/ta/job-match-analyses 查看当前 TA 与岗位的 AI 匹配分析。
+ * 读取 /api/jobs/{jobId} 展示岗位，并提交 /api/applications 创建申请。
  */
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
@@ -45,22 +44,6 @@
     var applyModal = document.getElementById("apply-modal");
     var applyModalDialog = document.getElementById("apply-modal-dialog");
     var applyModalClose = document.getElementById("apply-modal-close");
-    var aiMatchButton = document.getElementById("detail-ai-match-btn");
-    var aiMatchModal = document.getElementById("ai-match-modal");
-    var aiMatchModalDialog = document.getElementById("ai-match-modal-dialog");
-    var aiMatchModalClose = document.getElementById("ai-match-modal-close");
-    var aiMatchRefreshButton = document.getElementById("ai-match-refresh-btn");
-    var aiMatchStatusBanner = document.getElementById("ai-match-status-banner");
-    var aiMatchLoading = document.getElementById("ai-match-loading");
-    var aiMatchResult = document.getElementById("ai-match-result");
-    var aiMatchScore = document.getElementById("ai-match-score");
-    var aiMatchLevel = document.getElementById("ai-match-level");
-    var aiMatchSummary = document.getElementById("ai-match-summary");
-    var aiMatchStrengths = document.getElementById("ai-match-strengths");
-    var aiMatchRisks = document.getElementById("ai-match-risks");
-    var aiMatchSuggestions = document.getElementById("ai-match-suggestions");
-    var aiMatchJobEvidence = document.getElementById("ai-match-job-evidence");
-    var aiMatchProfileEvidence = document.getElementById("ai-match-profile-evidence");
 
     if (
         !titleNode ||
@@ -77,7 +60,7 @@
     }
 
     var state = {
-        // job/currentApplication 是页面主状态；aiMatch* 只服务弹窗分析结果。
+        // job/currentApplication 是页面主状态。
         jobId: "",
         loadingJob: false,
         submitting: false,
@@ -87,10 +70,7 @@
         applyDisabled: true,
         applyDisabledMessage: "",
         applyDisabledTone: "error",
-        lastFocus: null,
-        aiSubmitting: false,
-        aiResult: null,
-        aiLastFocus: null
+        lastFocus: null
     };
 
     applyForm.addEventListener("submit", function (event) {
@@ -101,16 +81,6 @@
     applyOpenButton.addEventListener("click", function () {
         openApplyModal();
     });
-
-    if (aiMatchButton) {
-        aiMatchButton.addEventListener("click", function () {
-            if (isModalVisible(aiMatchModal)) {
-                closeAiMatchModal();
-                return;
-            }
-            openAiMatchModal();
-        });
-    }
 
     if (applyModalClose) {
         applyModalClose.addEventListener("click", function () {
@@ -124,24 +94,8 @@
         }
     });
 
-    if (aiMatchModalClose) {
-        aiMatchModalClose.addEventListener("click", function () {
-            closeAiMatchModal();
-        });
-    }
-
-    if (aiMatchRefreshButton) {
-        aiMatchRefreshButton.addEventListener("click", function () {
-            requestAiMatchAnalysis(true);
-        });
-    }
-
     document.addEventListener("keydown", function (event) {
         if (event.key !== "Escape") {
-            return;
-        }
-        if (isModalVisible(aiMatchModal)) {
-            closeAiMatchModal();
             return;
         }
         if (isModalVisible(applyModal)) {
@@ -157,12 +111,10 @@
 
     function initialize() {
         syncApplyControls();
-        syncAiMatchTrigger();
         state.jobId = getJobIdFromLocation();
         if (!state.jobId) {
             showDetailMessage(t("portal.taJobDetail.missingId", "Missing job ID. Please return to the list and try again."), "error");
             setApplyDisabled(true, t("portal.dynamic.jobIdMissing", "Job ID is missing."), "error");
-            syncAiMatchTrigger();
             return;
         }
 
@@ -175,16 +127,12 @@
 
     function rerenderCurrentView() {
         syncApplyControls();
-        syncAiMatchTrigger();
         if (!state.loadedJob) {
             return;
         }
         renderJob(state.loadedJob);
         if (state.hasApplied) {
             setApplyDisabled(true, applicationStatusMessage(state.applicationStatus), "success");
-        }
-        if (state.aiResult) {
-            renderAiMatchResult(state.aiResult);
         }
     }
 
@@ -276,7 +224,6 @@
         statusNode.className = "status-pill status-" + status.toLowerCase();
 
         renderSkills(job.requiredSkills);
-        syncAiMatchTrigger();
 
         if (currentRole !== "TA") {
             setApplyDisabled(true, t("portal.dynamic.currentAccountCannotSubmit", "Current account cannot submit applications on this page."), "error");
@@ -450,7 +397,6 @@
             courseNode.textContent = "-";
         }
         syncApplyControls();
-        syncAiMatchTrigger();
     }
 
     function setApplySubmitting(submitting) {
@@ -505,9 +451,6 @@
         if (applyOpenButton.disabled || state.applyDisabled) {
             return;
         }
-        if (isModalVisible(aiMatchModal)) {
-            closeAiMatchModal();
-        }
         state.lastFocus = document.activeElement;
         hideApplyStatus();
         applyModal.classList.remove("hidden");
@@ -536,333 +479,6 @@
         }
     }
 
-    function openAiMatchModal() {
-        if (!hasAiModalElements()) {
-            return;
-        }
-        if (aiMatchButton && aiMatchButton.disabled) {
-            return;
-        }
-        if (currentRole !== "TA") {
-            showDetailMessage(t("portal.dynamic.currentAccountCannotSubmit", "Current account cannot submit applications on this page."), "error");
-            return;
-        }
-        if (!state.jobId || !state.loadedJob) {
-            showDetailMessage(t("portal.dynamic.jobIdMissing", "Job ID is missing."), "error");
-            return;
-        }
-
-        if (isModalVisible(applyModal)) {
-            closeApplyModal();
-        }
-
-        state.aiLastFocus = document.activeElement;
-        hideAiMatchStatus();
-        aiMatchModal.classList.remove("hidden");
-        aiMatchModal.setAttribute("aria-hidden", "false");
-        aiMatchButton.setAttribute("aria-expanded", "true");
-        aiMatchModalDialog.focus();
-        scrollToAiMatchCard();
-
-        if (!state.aiResult) {
-            requestAiMatchAnalysis(false);
-            return;
-        }
-        renderAiMatchResult(state.aiResult);
-    }
-
-    function closeAiMatchModal() {
-        if (!isModalVisible(aiMatchModal)) {
-            return;
-        }
-        aiMatchModal.classList.add("hidden");
-        aiMatchModal.setAttribute("aria-hidden", "true");
-        if (aiMatchButton) {
-            aiMatchButton.setAttribute("aria-expanded", "false");
-        }
-        if (state.aiLastFocus && typeof state.aiLastFocus.focus === "function") {
-            state.aiLastFocus.focus();
-        } else if (aiMatchButton && typeof aiMatchButton.focus === "function") {
-            aiMatchButton.focus();
-        }
-    }
-
-    function requestAiMatchAnalysis(forceRefresh) {
-        if (!hasAiModalElements()) {
-            return Promise.resolve();
-        }
-        if (state.aiSubmitting) {
-            return Promise.resolve();
-        }
-        if (currentRole !== "TA") {
-            showAiMatchStatus(t("portal.dynamic.currentAccountCannotSubmit", "Current account cannot submit applications on this page."), "error");
-            return Promise.resolve();
-        }
-        if (!state.jobId) {
-            showAiMatchStatus(t("portal.dynamic.jobIdMissing", "Job ID is missing."), "error");
-            return Promise.resolve();
-        }
-        if (state.aiResult && !forceRefresh) {
-            renderAiMatchResult(state.aiResult);
-            return Promise.resolve();
-        }
-
-        state.aiSubmitting = true;
-        syncAiMatchTrigger();
-        hideAiMatchStatus();
-        setAiMatchLoading(true);
-
-        var formData = new URLSearchParams();
-        formData.set("jobId", state.jobId);
-
-        return request(window.TARecruitment.routes.ta.jobMatchAnalyses(), {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-                "X-Requested-With": "XMLHttpRequest"
-            },
-            body: formData.toString()
-        })
-            .then(function (result) {
-                var response = result.response;
-                var payload = result.payload;
-
-                if (response.status === 401) {
-                    handleUnauthorized();
-                    return;
-                }
-
-                if (!response.ok || !payload || payload.success !== true) {
-                    var errorMessage = t("portal.dynamic.aiAnalysisFailed", "Unable to generate AI analysis right now.");
-                    if (payload && typeof payload.message === "string" && payload.message.trim()) {
-                        errorMessage = localizeServerMessage(payload.message, "portal.dynamic.aiAnalysisFailed", errorMessage);
-                    }
-                    showAiMatchStatus(errorMessage, "error");
-                    return;
-                }
-
-                var data = getPayloadDataObject(payload);
-                if (!data) {
-                    showAiMatchStatus(t("portal.dynamic.aiAnalysisFailed", "Unable to generate AI analysis right now."), "error");
-                    return;
-                }
-
-                state.aiResult = normalizeAiMatchResult(data);
-                renderAiMatchResult(state.aiResult);
-                hideAiMatchStatus();
-            })
-            .catch(function () {
-                showAiMatchStatus(t("portal.dynamic.aiAnalysisNetworkError", "Network error while requesting AI analysis."), "error");
-            })
-            .finally(function () {
-                state.aiSubmitting = false;
-                setAiMatchLoading(false);
-                syncAiMatchTrigger();
-            });
-    }
-
-    function setAiMatchLoading(loading) {
-        if (!hasAiModalElements()) {
-            return;
-        }
-        aiMatchLoading.classList.toggle("hidden", !loading);
-        if (loading) {
-            aiMatchResult.classList.add("hidden");
-        }
-        if (aiMatchRefreshButton) {
-            aiMatchRefreshButton.disabled = loading;
-        }
-    }
-
-    function renderAiMatchResult(result) {
-        if (!hasAiModalElements()) {
-            return;
-        }
-        if (!result) {
-            aiMatchResult.classList.add("hidden");
-            return;
-        }
-        aiMatchScore.textContent = formatAiScore(result.overallScore);
-        aiMatchLevel.textContent = aiMatchLevelText(result.matchLevel);
-        aiMatchSummary.textContent = safeText(
-            result.summary,
-            t("portal.dynamic.aiNoSummary", "No summary is available yet.")
-        );
-
-        renderAiList(
-            aiMatchStrengths,
-            result.strengths,
-            t("portal.dynamic.aiNoStrengths", "No clear strengths identified.")
-        );
-        renderAiList(
-            aiMatchRisks,
-            result.risks,
-            t("portal.dynamic.aiNoRisks", "No obvious risks identified.")
-        );
-        renderAiList(
-            aiMatchSuggestions,
-            result.suggestions,
-            t("portal.dynamic.aiNoSuggestions", "No additional suggestions at this time.")
-        );
-        renderAiList(
-            aiMatchJobEvidence,
-            result.jobEvidence,
-            t("portal.dynamic.aiNoJobEvidence", "No job evidence captured.")
-        );
-        renderAiList(
-            aiMatchProfileEvidence,
-            result.profileEvidence,
-            t("portal.dynamic.aiNoProfileEvidence", "No profile evidence captured.")
-        );
-
-        aiMatchResult.classList.remove("hidden");
-    }
-
-    function renderAiList(listNode, items, emptyText) {
-        if (!listNode) {
-            return;
-        }
-        listNode.innerHTML = "";
-        if (!items || items.length === 0) {
-            var emptyItem = document.createElement("li");
-            emptyItem.textContent = emptyText;
-            listNode.appendChild(emptyItem);
-            return;
-        }
-        items.forEach(function (item) {
-            var li = document.createElement("li");
-            li.textContent = item;
-            listNode.appendChild(li);
-        });
-    }
-
-    function normalizeAiMatchResult(data) {
-        var score = Number(data.overallScore);
-        if (isNaN(score)) {
-            score = Number(data.score);
-        }
-        if (isNaN(score)) {
-            score = 0;
-        }
-        score = Math.max(0, Math.min(100, Math.round(score)));
-
-        var level = safeText(data.matchLevel, "").toUpperCase();
-        if (level !== "HIGH" && level !== "MEDIUM" && level !== "LOW") {
-            if (score >= 85) {
-                level = "HIGH";
-            } else if (score >= 60) {
-                level = "MEDIUM";
-            } else {
-                level = "LOW";
-            }
-        }
-
-        return {
-            overallScore: score,
-            matchLevel: level,
-            summary: safeText(data.summary, ""),
-            strengths: normalizeStringArray(data.strengths),
-            risks: normalizeStringArray(data.risks),
-            suggestions: normalizeStringArray(data.suggestions),
-            jobEvidence: normalizeStringArray(data.jobEvidence),
-            profileEvidence: normalizeStringArray(data.profileEvidence)
-        };
-    }
-
-    function showAiMatchStatus(message, type) {
-        if (!aiMatchStatusBanner) {
-            return;
-        }
-        aiMatchStatusBanner.textContent = message;
-        aiMatchStatusBanner.classList.remove("hidden", "error", "success");
-        aiMatchStatusBanner.classList.add(type === "success" ? "success" : "error");
-    }
-
-    function hideAiMatchStatus() {
-        if (!aiMatchStatusBanner) {
-            return;
-        }
-        aiMatchStatusBanner.textContent = "";
-        aiMatchStatusBanner.classList.remove("error", "success");
-        aiMatchStatusBanner.classList.add("hidden");
-    }
-
-    function aiMatchLevelText(level) {
-        if (level === "HIGH") {
-            return t("portal.dynamic.aiMatchLevelHigh", "High");
-        }
-        if (level === "MEDIUM") {
-            return t("portal.dynamic.aiMatchLevelMedium", "Medium");
-        }
-        if (level === "LOW") {
-            return t("portal.dynamic.aiMatchLevelLow", "Low");
-        }
-        return "-";
-    }
-
-    function formatAiScore(score) {
-        if (typeof score !== "number" || isNaN(score)) {
-            return "-";
-        }
-        return Math.round(score) + "%";
-    }
-
-    function normalizeStringArray(value) {
-        if (Array.isArray(value)) {
-            return value
-                .map(function (item) {
-                    return safeText(item, "");
-                })
-                .filter(function (item) {
-                    return item.length > 0;
-                });
-        }
-        if (typeof value !== "string" || !value.trim()) {
-            return [];
-        }
-        return value
-            .split(/[;\n]/)
-            .map(function (item) {
-                return item.trim();
-            })
-            .filter(function (item) {
-                return item.length > 0;
-            });
-    }
-
-    function hasAiModalElements() {
-        return !!(
-            aiMatchButton &&
-            aiMatchModal &&
-            aiMatchModalDialog &&
-            aiMatchStatusBanner &&
-            aiMatchLoading &&
-            aiMatchResult &&
-            aiMatchScore &&
-            aiMatchLevel &&
-            aiMatchSummary &&
-            aiMatchStrengths &&
-            aiMatchRisks &&
-            aiMatchSuggestions &&
-            aiMatchJobEvidence &&
-            aiMatchProfileEvidence
-        );
-    }
-
-    function syncAiMatchTrigger() {
-        if (!aiMatchButton) {
-            return;
-        }
-        var disabled = state.loadingJob || !state.jobId || !state.loadedJob || currentRole !== "TA";
-        aiMatchButton.disabled = disabled;
-        if (disabled) {
-            aiMatchButton.setAttribute("aria-expanded", "false");
-        }
-        if (aiMatchRefreshButton) {
-            aiMatchRefreshButton.disabled = state.aiSubmitting;
-        }
-    }
-
     function syncBodyModalState() {
         if (!document.body) {
             return;
@@ -872,16 +488,6 @@
         } else {
             document.body.classList.remove("apply-modal-open");
         }
-    }
-
-    function scrollToAiMatchCard() {
-        if (!aiMatchModal || typeof aiMatchModal.scrollIntoView !== "function") {
-            return;
-        }
-        aiMatchModal.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
     }
 
     function isModalVisible(modalNode) {

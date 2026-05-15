@@ -4,11 +4,11 @@
 
 ## 基本信息
 
-| 项目 | 内容 |
-| --- | --- |
-| Git author | `member6 <member6@edu.com>` |
-| 标准提交数 | 41 |
-| 分工概述 | 项目 leader/架构重组、通用配置、文档脚本整理、门户壳层、公共样式、Admin 页面与全站双语资源 |
+| 项目       | 内容                                                                           |
+| ---------- | ------------------------------------------------------------------------------ |
+| Git author | `member6 <member6@edu.com>`                                                  |
+| 标准提交数 | 41                                                                             |
+| 分工概述   | 架构重组、通用配置、文档脚本整理、门户壳层、公共样式、Admin 页面与全站双语资源 |
 
 ## 分工概述
 
@@ -24,7 +24,6 @@
 - `backend/src/com/example/tarecruitment/common/storage/StoragePaths.java`
 - `backend/src/com/example/tarecruitment/common/search/FuzzySearchUtil.java`
 - `backend/src/com/example/tarecruitment/common/util/Logger.java`
-- `backend/src/com/example/tarecruitment/common/util/SecurityTokenUtil.java`
 - `backend/src/com/example/tarecruitment/common/web/ApiResponses.java`
 - `backend/src/com/example/tarecruitment/common/web/JsonResponseUtil.java`
 - `backend/src/com/example/tarecruitment/common/web/PermissionUtil.java`
@@ -69,7 +68,6 @@ Admin 页面整体重构：
 AI 配置模板：
 
 - `frontend/webapp/WEB-INF/ai/deepseek.properties.template`
-- `frontend/webapp/WEB-INF/ai/match-analysis.properties.template`
 
 脚本、运行配置和技术文档：
 
@@ -108,7 +106,7 @@ AI 配置模板：
 
 测试覆盖点：
 
-- 项目 leader 负责的架构、门户壳层、公共样式、脚本和文档文件是否存在。
+- 负责的架构、门户壳层、公共样式、脚本和文档文件是否存在。
 - 后端源码、前端页面、脚本和分工文档中是否还残留旧包名、旧 Servlet、带版本号的旧 API 前缀或旧根路径。
 - `ApiRoutes.java` 中的后端 API 常量是否保持简洁 `/api/...` 路径。
 - `frontend/webapp/js/common/ta-recruitment.js` 是否同步包含后端 `ApiRoutes` 的 API 路径。

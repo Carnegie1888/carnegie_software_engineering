@@ -32,8 +32,6 @@
     var photoEmptyState = document.getElementById("photo-empty-state");
     var photoFilledState = document.getElementById("photo-filled-state");
     var photoPreviewImage = document.getElementById("photo-preview-image");
-    var photoFileDisplayName = document.getElementById("photo-file-display-name");
-    var photoFileDisplayDetail = document.getElementById("photo-file-display-detail");
     var photoRemoveButton = document.getElementById("photo-remove-btn");
     var photoUploadMessage = document.getElementById("photo-upload-message");
 
@@ -1248,21 +1246,12 @@
             }
         }
 
-        if (photoFileDisplayName && activePhotoCard) {
-            photoFileDisplayName.textContent = activePhotoCard.name;
-        }
-        if (photoFileDisplayDetail && activePhotoCard) {
-            photoFileDisplayDetail.textContent = activePhotoCard.detail;
-        }
-
         if (photoRemoveButton) {
             var canRemoveCurrentPhoto = !!activePhotoCard && photoSectionEditable;
             photoRemoveButton.hidden = !canRemoveCurrentPhoto;
             photoRemoveButton.classList.toggle("hidden", !canRemoveCurrentPhoto);
             photoRemoveButton.disabled = !canRemoveCurrentPhoto;
         }
-
-        syncNavAvatar();
     }
 
     /*
@@ -2258,14 +2247,6 @@
                 realName: typeof realName === "string" ? realName : ""
             }
         }));
-    }
-
-    /*
-     * 遗留/待移除：TA 档案照片是申请材料照片，不再同步到账号侧边栏头像。
-     * 保留原因：旧页面曾在这里做同步；后续确认没有旧主题引用后可删除空函数和调用点。
-     */
-    function syncNavAvatar() {
-        // Sidebar avatar is account-level; TA profile photo is application-facing.
     }
 
     /*

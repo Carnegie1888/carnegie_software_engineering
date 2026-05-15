@@ -111,11 +111,11 @@ MO 登录后默认进入岗位管理页面，可以查看自己发布的岗位�
 - 招聘人数、截止日期、每周工作小时数；
 - 工作开始日期、工作结束日期和薪资说明。
 
-### 4.2 MO 申请人筛选
+### 4.2 MO 申请人审核子视图
 
-申请人筛选页面用于查看 TA 对本 MO 岗位提交的申请。MO 可以按申请人姓名、邮箱或岗位标题搜索。
+申请人审核现在集成在 MO 岗位管理页中。MO 从“我的发布”进入某个岗位后，可以查看该岗位收到的申请，并按申请人姓名、邮箱或岗位标题搜索。
 
-![MO 申请人筛选页面](user-manual-images/mo-applicant-selection.png)
+![MO 申请人审核子视图](user-manual-images/mo-dashboard-applicants.png)
 
 操作要点：
 
@@ -123,17 +123,17 @@ MO 登录后默认进入岗位管理页面，可以查看自己发布的岗位�
 - MO 可以查看申请人信息、申请岗位和求职说明。
 - 对待审核申请，MO 可以执行接受或拒绝操作。
 
-### 4.3 MO AI 推荐与申请分析
+### 4.3 MO AI 推荐
 
-MO 岗位管理页可以使用 AI 推荐搜索候选人，申请人详情页可以对单个申请生成 AI 匹配分析。
+MO 岗位管理页可以使用 AI 推荐搜索候选人。
 
 页面会展示：
 
 - AI 推荐的候选人列表；
-- 单个申请人与岗位要求的分析分数；
-- 优势、风险、建议和证据说明。
+- 推荐理由和候选人基础信息；
+- 可继续进入申请人详情查看材料并处理申请。
 
-如果 AI 配置不可用，页面会显示不可用提示，不生成本地普通匹配结果。
+如果 AI 配置不可用，页面会显示不可用提示，不生成本地假推荐。
 
 ## 5. 管理员使用指南
 
@@ -224,7 +224,7 @@ MO 岗位管理页可以使用 AI 推荐搜索候选人，申请人详情页可�
 | `ta-job-list.png` | `/jsp/ta/job-list.jsp` | TA 岗位列表 |
 | `ta-application-status.png` | `/jsp/ta/application-status.jsp` | TA 申请状态 |
 | `mo-dashboard.png` | `/jsp/mo/dashboard.jsp` | MO 岗位管理 |
-| `mo-applicant-selection.png` | `/jsp/mo/applicant-selection.jsp` | MO 申请人筛选 |
+| `mo-dashboard-applicants.png` | `/jsp/mo/dashboard.jsp` | MO 申请人审核子视图 |
 | `admin-dashboard.png` | `/jsp/admin/dashboard.jsp` | 管理员 TA 工作量 |
 | `admin-invite-management.png` | `/jsp/admin/invite.jsp` | 管理员邀请码管理 |
 | `admin-notifications.png` | `/jsp/admin/notifications.jsp` | 管理员通知页面 |

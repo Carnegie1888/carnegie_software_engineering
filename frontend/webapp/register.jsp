@@ -30,7 +30,7 @@
                 </svg>
             </div>
             <h1 id="register-title" data-i18n="register.hero.title">Create your account</h1>
-            <p class="subtitle" data-i18n="register.hero.subtitle">Join the TA Hiring Portal in a few steps</p>
+            <p class="subtitle" data-i18n="register.hero.subtitle">Join TA Hiring System in a few steps</p>
         </section>
 
         <section class="register-card" data-i18n-aria-label="register.form.aria">
@@ -190,7 +190,7 @@
             <a href="<%= contextPath %>/admin-invite.jsp" data-i18n="register.links.adminLink">Use admin invitation</a>
         </p>
 
-        <p class="login-footer" data-i18n="common.footer.copyright">University Hiring System © 2026</p>
+        <p class="login-footer" data-i18n="common.footer.copyright">TA Hiring System © 2026</p>
     </main>
 
     <script>

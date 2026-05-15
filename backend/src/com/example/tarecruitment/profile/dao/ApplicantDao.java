@@ -10,7 +10,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * ApplicantDao - TA 申请人档案数据访问对象。
@@ -232,29 +231,6 @@ public class ApplicantDao {
      */
     public List<Applicant> findAll() {
         return new ArrayList<>(readAllApplicants());
-    }
-
-    /**
-     * 根据院系查找申请人。
-     *
-     * 遗留/待移除：当前前端没有单独按院系浏览申请人档案的入口；
-     * 若后续确认测试/AI 推荐也不需要，可和 findByProgram 一起清理。
-     */
-    public List<Applicant> findByDepartment(String department) {
-        return readAllApplicants().stream()
-                .filter(a -> a.getDepartment() != null && a.getDepartment().equalsIgnoreCase(department))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 根据项目查找申请人。
-     *
-     * 遗留/待移除：当前前端没有单独按项目浏览申请人档案的入口。
-     */
-    public List<Applicant> findByProgram(String program) {
-        return readAllApplicants().stream()
-                .filter(a -> a.getProgram() != null && a.getProgram().equalsIgnoreCase(program))
-                .collect(Collectors.toList());
     }
 
     /**

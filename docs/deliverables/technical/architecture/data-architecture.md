@@ -88,9 +88,7 @@ set TA_HIRING_DATA_DIR=%CATALINA_HOME%\data
 │   Job        │
 └──────────────┘
 
-┌──────────────┐     1:1
-│  AdminInvite │─────────────▶ User (email)
-└──────────────┘
+Admin 短邀请码不再保存邀请实体，只在 `invites/` 目录保存服务端密钥和轮换窗口状态。
 ```
 
 ### 2.2 User 实体
@@ -188,7 +186,7 @@ public Status getEffectiveStatus(LocalDateTime now) {
 | appliedAt | DateTime | 申请时间 |
 | updatedAt | DateTime | 更新时间 |
 | reviewedAt | DateTime | 审核时间 |
-| progressStage | Enum | SUBMITTED / UNDER_REVIEW / INTERVIEW_SCHEDULED / COMPLETED |
+| progressStage | Enum | UNDER_REVIEW / INTERVIEW_SCHEDULED / COMPLETED |
 | reviewStartedAt | DateTime | 材料审核开始时间 |
 | interviewScheduledAt | DateTime | 面试安排时间 |
 | finalDecisionAt | DateTime | 最终决定时间 |
@@ -196,27 +194,21 @@ public Status getEffectiveStatus(LocalDateTime now) {
 **进度阶段说明**：
 
 ```
-SUBMITTED → UNDER_REVIEW → INTERVIEW_SCHEDULED → COMPLETED
-   (提交)      (审核中)       (已安排面试)         (完成)
-                    ↓
-              ACCEPTED / REJECTED / WITHDRAWN
+UNDER_REVIEW → INTERVIEW_SCHEDULED → COMPLETED
+   (审核中)       (已安排面试)         (完成)
+      ↓
+ WITHDRAWN
 ```
 
-### 2.6 AdminInvite 实体
+### 2.6 Admin 短邀请码状态
 
-**文件**: `invites/invites.csv`
+**目录**: `invites/`
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| inviteId | String (UUID) | 邀请唯一标识 |
-| email | String | 被邀请邮箱 |
-| role | Enum | MO / ADMIN |
-| token | String (UUID) | 验证令牌 |
-| status | Enum | PENDING / ACCEPTED / EXPIRED |
-| invitedBy | String | 邀请人 ID |
-| createdAt | DateTime | 创建时间 |
-| expiresAt | DateTime | 过期时间 |
-| acceptedAt | DateTime | 接受时间 |
+| 文件 | 说明 |
+|------|------|
+| `invite_secret.bin` | 生成短邀请码的服务端密钥 |
+| `rotation_offset.txt` | 管理员主动刷新后的轮换偏移 |
+| `forced_window_start.txt` | 手动刷新后新窗口的开始时间 |
 
 ---
 

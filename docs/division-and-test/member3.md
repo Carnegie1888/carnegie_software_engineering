@@ -35,22 +35,19 @@
 
 工作量统计：
 
-- `backend/src/com/example/tarecruitment/admin/service/WorkloadStatsService.java`
-- `backend/src/com/example/tarecruitment/admin/web/WorkloadStatsServlet.java`
-
-岗位匹配 AI 配置与调用客户端：
-
-- `backend/src/com/example/tarecruitment/ai/client/MatchAnalysisAiConfig.java`
-- `backend/src/com/example/tarecruitment/ai/client/DashScopeAnalysisClient.java`
-- `backend/src/com/example/tarecruitment/ai/service/TaJobMatchAnalysisService.java`
-- `backend/src/com/example/tarecruitment/ai/web/TaJobMatchAnalysisServlet.java`
-- `backend/src/com/example/tarecruitment/ai/web/MoApplicationMatchAnalysisServlet.java`
-- `frontend/webapp/WEB-INF/ai/match-analysis.properties.template`
+- `backend/src/com/example/tarecruitment/admin/service/WorkloadStatsService.java`（**重叠标注：member3 主归属；member4 的申请流程会影响统计口径**）
+- `backend/src/com/example/tarecruitment/admin/web/WorkloadStatsServlet.java`（**重叠标注：member3 主归属；member4 的申请流程会影响统计口径**）
 
 相关公共能力：
 
-- `backend/src/com/example/tarecruitment/common/search/FuzzySearchUtil.java`
-- `backend/src/com/example/tarecruitment/common/storage/StoragePaths.java`
+- `backend/src/com/example/tarecruitment/common/search/FuzzySearchUtil.java`（**重叠标注：member3 主归属；member4 的申请/统计说明会依赖搜索能力**）
+- `backend/src/com/example/tarecruitment/common/storage/StoragePaths.java`（重叠文件，member2 答辩主归属）
+
+## 文件重叠与答辩归属说明
+
+- `backend/src/com/example/tarecruitment/admin/service/WorkloadStatsService.java` 和 `backend/src/com/example/tarecruitment/admin/web/WorkloadStatsServlet.java` 同时出现在 member4 文档中，因为工作量统计需要读取申请状态和录用结果。答辩时统计接口和统计规则由 member3 主讲；member4 只说明申请状态如何影响统计结果。
+- `backend/src/com/example/tarecruitment/common/search/FuzzySearchUtil.java` 同时出现在 member4 文档中，因为申请/统计说明会提到筛选和搜索能力。答辩时该搜索工具由 member3 主讲。
+- `backend/src/com/example/tarecruitment/common/storage/StoragePaths.java` 同时出现在 member2 文档中。答辩时该数据路径基础设施由 member2 主讲；member3 只说明职位模块依赖它读取测试数据目录。
 
 ## 测试展示
 
@@ -70,7 +67,6 @@
 - `Job` 的有效状态是否能根据截止时间从 `OPEN` 自动转为 `CLOSED`。
 - `JobDao` 是否能创建职位、搜索职位字段并更新职位状态。
 - `AccountProfileValidator` 是否能校验用户名、TA 实名和上传文件名。
-- `MatchAnalysisAiConfig` 在 API key 是占位符或超时配置非法时是否安全降级。
 
 答辩时可以这样解释：
 

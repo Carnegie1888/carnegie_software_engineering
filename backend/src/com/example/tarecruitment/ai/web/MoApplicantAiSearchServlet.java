@@ -189,7 +189,7 @@ public class MoApplicantAiSearchServlet extends HttpServlet {
                 "appliedAt", app.getAppliedAt() != null ? app.getAppliedAt().toString() : "",
                 "updatedAt", app.getUpdatedAt() != null ? app.getUpdatedAt().toString() : "",
                 "reviewedAt", app.getReviewedAt() != null ? app.getReviewedAt().toString() : "",
-                "progressStage", app.getProgressStage() != null ? app.getProgressStage().name() : "SUBMITTED",
+                "progressStage", app.getProgressStage() != null ? app.getProgressStage().name() : "UNDER_REVIEW",
                 "reviewStartedAt", app.getReviewStartedAt() != null ? app.getReviewStartedAt().toString() : "",
                 "interviewScheduledAt", app.getInterviewScheduledAt() != null ? app.getInterviewScheduledAt().toString() : "",
                 "finalDecisionAt", app.getFinalDecisionAt() != null ? app.getFinalDecisionAt().toString() : ""

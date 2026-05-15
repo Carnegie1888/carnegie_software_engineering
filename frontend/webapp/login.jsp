@@ -30,7 +30,7 @@
                     <path d="M12 4.5L20 8.5L12 12.5L4 8.5L12 4.5ZM7.2 10.1V14.2C7.2 16.6 9.5 18.4 12 18.4C14.5 18.4 16.8 16.6 16.8 14.2V10.1L12 12.5L7.2 10.1Z" />
                 </svg>
             </div>
-            <h1 id="login-title" data-i18n="login.hero.title">TA Hiring Portal</h1>
+            <h1 id="login-title" data-i18n="login.hero.title">TA Hiring System</h1>
             <p class="subtitle" data-i18n="login.hero.subtitle">Sign in to your account</p>
         </section>
 
@@ -120,7 +120,7 @@
             <a href="<%= contextPath %>/admin-invite.jsp" data-i18n="login.links.createAdmin">Use admin invitation</a>
         </p>
 
-        <p class="login-footer" data-i18n="common.footer.copyright">University Hiring System © 2026</p>
+        <p class="login-footer" data-i18n="common.footer.copyright">TA Hiring System © 2026</p>
     </main>
 
     <script>

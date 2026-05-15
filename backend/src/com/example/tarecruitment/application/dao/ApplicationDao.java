@@ -295,29 +295,6 @@ public class ApplicationDao {
     }
 
     /**
-     * MO：开始材料审核（仅待处理且阶段为已提交）
-     */
-    public boolean startReview(String applicationId) {
-        // 遗留/待移除：当前前端创建申请后会直接进入 UNDER_REVIEW，
-        // 独立“开始材料审核”动作没有明显入口；如后续仍无按钮，可移除该 DAO 方法和相关文案。
-        Optional<Application> appOpt = findById(applicationId);
-        if (appOpt.isEmpty()) {
-            return false;
-        }
-        Application app = appOpt.get();
-        if (app.getStatus() != Application.Status.PENDING) {
-            return false;
-        }
-        if (app.getProgressStage() != Application.ProgressStage.SUBMITTED) {
-            return false;
-        }
-                app.setProgressStage(Application.ProgressStage.UNDER_REVIEW);
-        app.setReviewStartedAt(LocalDateTime.now());
-        save(app);
-        return true;
-    }
-
-    /**
      * 接受申请
      */
     public boolean accept(String applicationId) {

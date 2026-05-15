@@ -1,20 +1,43 @@
 import com.example.tarecruitment.auth.dao.UserDao;
 import com.example.tarecruitment.auth.model.User;
 import com.example.tarecruitment.common.service.ServiceResult;
-import com.example.tarecruitment.common.util.SecurityTokenUtil;
 
+/**
+ * member1 后端测试入口。
+ *
+ * 这不是 JUnit 测试，而是一个可以直接通过 javac/java 运行的轻量 main 测试程序。
+ * 这样做是为了符合当前项目“Servlet + JSP + 原生 JS + CSV + 脚本”的轻量技术栈，
+ * 不额外引入 Maven、JUnit 或测试框架。
+ *
+ * 测试范围对应 member1 的答辩职责：
+ * 1. service 层统一结果对象 ServiceResult；
+     * 2. 用户模型 User 的 CSV 存储格式；
+     * 3. 用户 DAO 的演示账号、登录验证、密码哈希和重复用户名保护。
+ *
+ * scripts/test/test-member1.sh 会给本测试设置临时 TA_HIRING_DATA_DIR，
+ * 所以 UserDao 写入的是 build/member-tests/member1/data 下的临时 CSV，
+ * 不会影响 Tomcat 真实演示数据。
+ */
 public class Member1BackendTest {
 
     private static int passed;
 
     public static void main(String[] args) {
+        // main 方法按答辩展示顺序组织：先测公共返回结构，再测用户存储和登录。
         testServiceResult();
-        testSecurityTokenUtil();
         testUserCsvRoundTrip();
         testUserDaoDemoAccountsAndLogin();
         System.out.println("[member1] PASS total=" + passed);
     }
 
+    /**
+     * 验证 ServiceResult 的基本契约。
+     *
+     * Servlet 层最终会把 service 结果转成 HTTP 响应，因此这里确认：
+     * - created() 对应 201 和 success=true；
+     * - forbidden() 对应 403 和 success=false；
+     * - data/message 不会在结果对象中丢失。
+     */
     private static void testServiceResult() {
         ServiceResult created = ServiceResult.created("created", "payload");
         assertEquals(201, created.getStatusCode(), "created status");
@@ -27,18 +50,12 @@ public class Member1BackendTest {
         pass("ServiceResult keeps service-layer status/message/data contract");
     }
 
-    private static void testSecurityTokenUtil() {
-        String code = SecurityTokenUtil.generateInviteCode();
-        assertTrue(code.matches("[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}"), "invite code format");
-        assertEquals(
-                "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
-                SecurityTokenUtil.sha256Hex("abc"),
-                "sha256 known value"
-        );
-        assertEquals("", SecurityTokenUtil.sha256Hex(null), "sha256 null fallback");
-        pass("SecurityTokenUtil generates short codes and stable hashes");
-    }
-
+    /**
+     * 验证 User 模型的 CSV 序列化兼容性。
+     *
+     * 项目使用 CSV 作为轻量数据层，User.toCsv()/fromCsv() 就是账号数据的持久化协议。
+     * 这里专门放入带逗号的 displayName，确认 CSV 转义不会把字段拆坏。
+     */
     private static void testUserCsvRoundTrip() {
         User user = new User("member1_user", "secret", "member1@example.test", User.Role.TA);
         user.setUserId("user-001");
@@ -55,6 +72,16 @@ public class Member1BackendTest {
         pass("User CSV round-trip preserves account profile fields");
     }
 
+    /**
+     * 验证 UserDao 的核心认证行为。
+     *
+     * 这个测试会先清空临时测试目录中的用户 CSV，然后重新补齐固定演示账号。
+     * 重点不是测页面，而是测后端数据层是否满足登录注册的基础约束：
+     * - 三个演示账号能被初始化；
+     * - 用户名和邮箱都可以登录；
+     * - 新用户密码会被哈希，不明文保存；
+     * - 重复用户名会被拒绝。
+     */
     private static void testUserDaoDemoAccountsAndLogin() {
         UserDao dao = UserDao.getInstance();
         dao.deleteAll();
@@ -73,11 +100,15 @@ public class Member1BackendTest {
         pass("UserDao initializes demo accounts, verifies login, and rejects duplicates");
     }
 
+    /**
+     * 记录一个通过的测试点，方便答辩时从终端输出直接看到每一步验证结果。
+     */
     private static void pass(String message) {
         passed++;
         System.out.println("[member1] PASS - " + message);
     }
 
+    // 下面是极简断言工具。使用自定义断言是为了避免引入 JUnit 依赖。
     private static void assertTrue(boolean condition, String message) {
         if (!condition) {
             throw new AssertionError(message);
@@ -98,6 +129,12 @@ public class Member1BackendTest {
         }
     }
 
+    /**
+     * 验证某段逻辑必须抛出指定异常。
+     *
+     * 例如重复用户名注册必须抛 IllegalArgumentException；
+     * 如果没有抛异常，说明后端唯一性保护失效。
+     */
     private static void assertThrows(Class<? extends Throwable> expectedType, Runnable action, String message) {
         try {
             action.run();

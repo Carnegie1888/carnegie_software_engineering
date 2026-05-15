@@ -1,6 +1,6 @@
 /*
  * TA 职位详情页样式。
- * 覆盖岗位详情、申请弹窗、申请状态提示和 AI 匹配分析弹窗。
+ * 覆盖岗位详情、申请弹窗和申请状态提示。
  */
 @import url("../common/motion.css");
 @import url("../portal/portal-shell.css");
@@ -304,39 +304,6 @@ body.apply-modal-open {
     align-items: stretch;
 }
 
-.detail-ai-chat-button {
-    position: absolute;
-    left: 0;
-    top: calc(100% + 14px);
-    z-index: 2;
-    width: 34px;
-    height: 34px;
-    border: none;
-    border-radius: 50%;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #c7d2fe, #a5b4fc);
-    color: #fff;
-    box-shadow: none;
-    font-size: 11px;
-    line-height: 1;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    cursor: pointer;
-    transition: opacity 0.2s ease, background 0.2s ease;
-}
-
-.detail-ai-chat-button:hover {
-    opacity: 0.92;
-}
-
-.detail-ai-chat-button:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(165, 180, 252, 0.38);
-}
-
 .apply-form {
     display: flex;
     flex-direction: column;
@@ -500,165 +467,6 @@ body.apply-modal-open {
     margin-bottom: 14px;
 }
 
-.ai-match-inline-card {
-    margin-top: 18px;
-    scroll-margin-top: 18px;
-}
-
-.ai-match-inline-card.hidden {
-    display: none;
-}
-
-.ai-match-inline-panel {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    border: 1px solid var(--ui-border);
-    border-radius: var(--ui-radius-card);
-    background: linear-gradient(135deg, var(--role-ta-soft), var(--ui-surface) 54%);
-    padding: 16px;
-}
-
-.ai-match-inline-panel:focus-visible {
-    outline: none;
-}
-
-.ai-match-modal-header {
-    margin-bottom: 0;
-}
-
-.ai-match-loading {
-    border: 1px solid var(--ui-border);
-    border-radius: var(--ui-radius-control);
-    background: var(--ui-surface);
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.ai-match-loading.hidden {
-    display: none;
-}
-
-.ai-match-loading p {
-    margin: 0;
-    color: #1d1d1f;
-    font-size: 14px;
-    line-height: 1.55;
-}
-
-.ai-loading-spinner {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 2px solid color-mix(in srgb, var(--role-ta) 20%, transparent);
-    border-top-color: var(--role-ta);
-    animation: ai-spin 0.8s linear infinite;
-    flex-shrink: 0;
-}
-
-@keyframes ai-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.ai-match-result {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-}
-
-.ai-match-result.hidden {
-    display: none;
-}
-
-.ai-match-overview {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-}
-
-.ai-match-overview-item {
-    border: 1px solid var(--ui-border);
-    border-radius: var(--ui-radius-card);
-    background: var(--ui-surface);
-    padding: 12px 14px;
-}
-
-.ai-match-overview-item p {
-    margin: 0;
-    color: #6e6e73;
-    font-size: 12px;
-    line-height: 1.4;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    font-weight: 600;
-}
-
-.ai-match-overview-item strong {
-    margin-top: 8px;
-    display: block;
-    color: #1d1d1f;
-    font-size: 22px;
-    line-height: 1.2;
-    font-weight: 700;
-}
-
-.ai-match-block {
-    border: 1px solid var(--ui-border);
-    border-radius: var(--ui-radius-card);
-    background: var(--ui-surface);
-    padding: 12px 14px;
-}
-
-.ai-match-block h3 {
-    margin: 0;
-    color: #1d1d1f;
-    font-size: 15px;
-    line-height: 1.4;
-    font-weight: 650;
-}
-
-.ai-match-block p {
-    margin: 8px 0 0;
-    color: #3a3a3c;
-    font-size: 14px;
-    line-height: 1.65;
-    white-space: pre-wrap;
-}
-
-.ai-match-list {
-    margin: 8px 0 0;
-    padding-left: 18px;
-    color: #3a3a3c;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.ai-match-list li {
-    font-size: 14px;
-    line-height: 1.55;
-}
-
-.ai-match-actions {
-    display: flex;
-    justify-content: flex-end;
-    padding-top: 4px;
-}
-
-.ai-match-actions .ghost-btn {
-    width: auto;
-    min-width: 132px;
-    border-radius: 999px;
-}
-
 @media (max-width: 900px) {
     .detail-card {
         padding: 24px;
@@ -684,10 +492,6 @@ body.apply-modal-open {
         max-width: none;
     }
 
-    .detail-ai-chat-button {
-        left: 0;
-        top: calc(100% + 14px);
-    }
 }
 
 @media (max-width: 680px) {
@@ -718,14 +522,6 @@ body.apply-modal-open {
         font-size: 20px;
     }
 
-    .detail-ai-chat-button {
-        left: 0;
-        top: calc(100% + 12px);
-        width: 30px;
-        height: 30px;
-        font-size: 10px;
-    }
-
     .apply-modal {
         padding: 16px;
     }
@@ -733,10 +529,6 @@ body.apply-modal-open {
     .apply-modal-panel {
         padding: 20px 16px;
         border-radius: var(--ui-radius-card);
-    }
-
-    .ai-match-inline-card {
-        margin-top: 14px;
     }
 
     .apply-modal-header {
@@ -748,7 +540,4 @@ body.apply-modal-open {
         font-size: 24px;
     }
 
-    .ai-match-overview {
-        grid-template-columns: 1fr;
-    }
 }

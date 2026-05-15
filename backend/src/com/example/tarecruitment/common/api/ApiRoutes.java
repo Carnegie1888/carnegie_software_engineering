@@ -28,20 +28,16 @@ public final class ApiRoutes {
     // 站内通知接口，TA/MO/Admin 三类通知页共用同一个 Servlet。
     public static final String NOTIFICATIONS = "/api/notifications";
 
-    // Admin 工作台接口：统计卡片、邀请码管理和邀请注册校验。
+    // Admin 工作台接口：统计卡片、短邀请码管理和邀请注册。
     public static final String ADMIN_WORKLOAD_STATISTICS = "/api/admin/workload-statistics";
-    public static final String ADMIN_INVITATIONS = "/api/admin/invitations";
-    public static final String ADMIN_INVITATION_VALIDATION = "/api/admin/invitations/validation";
     public static final String ADMIN_INVITATION_ACCEPTANCE = "/api/admin/invitations/acceptance";
     public static final String ADMIN_CURRENT_INVITATION_CODE = "/api/admin/invitations/current-code";
 
-    // MO 侧 AI 接口：申请人推荐和单个申请匹配分析。
+    // MO 侧 AI 接口：申请人推荐。
     public static final String MO_APPLICANT_RECOMMENDATIONS = "/api/mo/applicant-recommendations";
-    public static final String MO_APPLICATION_MATCH_ANALYSES = "/api/mo/application-match-analyses";
 
-    // TA 侧 AI 接口：职位推荐搜索和职位详情匹配分析。
+    // TA 侧 AI 接口：职位推荐搜索。
     public static final String TA_JOB_RECOMMENDATIONS = "/api/ta/job-recommendations";
-    public static final String TA_JOB_MATCH_ANALYSES = "/api/ta/job-match-analyses";
 
     private ApiRoutes() {
     }

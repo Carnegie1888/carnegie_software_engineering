@@ -12,7 +12,7 @@
     var dictionaries = {
         "en": {
             common: {
-                portalBrand: "TA Hiring Portal",
+                portalBrand: "TA Hiring System",
                 utility: {
                     backToPortal: "Portal home"
                 },
@@ -27,7 +27,7 @@
                     createAdmin: "Create admin account"
                 },
                 footer: {
-                    copyright: "University Hiring System © 2026"
+                    copyright: "TA Hiring System © 2026"
                 },
                 password: {
                     show: "Show password",
@@ -36,7 +36,7 @@
             },
             index: {
                 page: {
-                    title: "TA Hiring Portal - Home"
+                    title: "TA Hiring System - Home"
                 },
                 nav: {
                     aria: "Main navigation",
@@ -48,81 +48,104 @@
                     faq: "FAQ"
                 },
                 hero: {
-                    badge: "University TA Hiring Platform",
-                    title: "Manage TA hiring in one clear workflow",
-                    subtitle: "A single portal for teaching assistants, module organizers, and admins to register, apply, review, and track outcomes.",
+                    badge: "Role-based TA hiring system",
+                    title: "Coordinate TA profiles, postings, reviews, and workload",
+                    subtitle: "A role-based system where TAs apply, MOs review applications, and admins manage workload, invite codes, and announcements.",
                     primary: "Get started",
                     secondary: "Sign in",
                     adminHint: "Need admin access?",
-                    adminLink: "Create admin account"
+                    adminLink: "Use admin invite code"
                 },
                 preview: {
-                    title: "Built on real workflows, not mock slides",
-                    subtitle: "The portal reflects implemented modules already available in this project.",
+                    title: "Current project modules at a glance",
+                    subtitle: "The homepage reflects the role pages and API flows implemented in this project.",
                     workflowAriaLabel: "Portal workflow preview",
                     jobKicker: "Open TA role",
                     jobMeta: "2 positions · 8 hours / week",
                     reviewKicker: "MO review queue",
-                    candidateStrong: "Strong match",
-                    candidateReview: "Needs review",
-                    adminKicker: "Admin workload",
-                    activeApplications: "active applications",
+                    candidateStrong: "Recommended applicant",
+                    candidateReview: "Manual review",
+                    adminKicker: "TA workload",
+                    activeApplications: "accepted TA work",
+                    workflowTitle: "Live role flow",
+                    workflowSubtitle: "CSV-backed Servlet/JSP project",
+                    taLaneTitle: "Applicant workspace",
+                    taLaneMeta: "Profile, jobs, applications",
+                    taItem1: "Profile and resume ready",
+                    taItem2: "Open jobs available",
+                    taItem3: "Application status tracked",
+                    moLaneTitle: "Organizer review",
+                    moLaneMeta: "Postings, applicants, decisions",
+                    moItem1: "Published TA postings",
+                    moItem2: "Applicant list by posting",
+                    moItem3: "Accept or reject applications",
+                    adminLaneTitle: "Admin operations",
+                    adminLaneMeta: "Workload, invite code, notices",
+                    adminItem1: "Accepted TA workload",
+                    adminItem2: "8-character invite code",
+                    adminItem3: "System announcements",
+                    stateReady: "Ready",
+                    stateOpen: "Open",
+                    stateReview: "Review",
+                    stateDecision: "Decision",
+                    stateActive: "Active",
+                    stateLive: "Live",
                     cardTaTitle: "TA workspace",
-                    cardTaDesc: "Create profile, browse openings, apply, and track application status.",
+                    cardTaDesc: "Maintain a profile, upload resume/photo, browse openings, apply, and track application status.",
                     cardMoTitle: "MO workspace",
-                    cardMoDesc: "Publish jobs, review applicants, shortlist candidates, and monitor progress.",
+                    cardMoDesc: "Publish postings, manage your jobs, review applications, and accept or reject candidates.",
                     cardAdminTitle: "Admin workspace",
-                    cardAdminDesc: "View workload and status distribution across the hiring pipeline."
+                    cardAdminDesc: "Review accepted TA workload, refresh invite codes, and publish announcements."
                 },
                 forTa: {
                     title: "For teaching assistants",
-                    lead: "Everything a TA needs from profile setup to final decision tracking.",
+                    lead: "Everything a TA needs from profile setup to application status tracking.",
                     item1: "Build and update your profile with resume and skills.",
-                    item2: "Search and filter open TA positions by keyword and status.",
-                    item3: "Submit applications and check pending, accepted, or rejected updates.",
+                    item2: "Search open positions, or request optional AI job recommendations.",
+                    item3: "Submit applications, open job details, and check pending, accepted, rejected, or withdrawn updates.",
                     cta: "Sign in as TA"
                 },
                 forMo: {
                     title: "For module organizers",
-                    lead: "Publish openings, evaluate applicants, and close hiring loops quickly.",
-                    item1: "Create postings with title, course, skills, slots, and deadline.",
-                    item2: "Review applicant profiles and attached materials in one list.",
-                    item3: "Accept or reject applicants while tracking overall review progress.",
+                    lead: "Publish openings, manage your postings, and review applications from one workflow.",
+                    item1: "Create and maintain postings with course, skills, slots, workload, salary, and deadline.",
+                    item2: "Open applicant lists from your postings and review profiles, resumes, and cover letters.",
+                    item3: "Accept or reject applications, with optional AI recommendations and analysis as support.",
                     cta: "Sign in as MO"
                 },
                 forAdmin: {
                     title: "For administrators",
-                    lead: "Get a system-level view of workload and status distribution.",
-                    item1: "Monitor active jobs, applications, and per-status breakdown.",
-                    item2: "Inspect organizer workloads and key operational trends.",
-                    item3: "Export workload snapshots for reporting and planning.",
+                    lead: "Manage the operational pieces that support the hiring workflow.",
+                    item1: "Review accepted TA workload by TA, job, course, weekly hours, and active period.",
+                    item2: "View or refresh the current 8-character admin invite code.",
+                    item3: "Publish announcements that TA, MO, and Admin users can read.",
                     cta: "Sign in as Admin"
                 },
                 process: {
                     title: "From registration to final offer",
                     lead: "The homepage mirrors the current end-to-end process in the system.",
                     step1Title: "1. Register account",
-                    step1Desc: "TA/MO use standard registration. Admin uses a dedicated admin registration page.",
+                    step1Desc: "TA/MO use standard registration. Admin accounts are created with an 8-character invite code.",
                     step2Title: "2. Complete profile or post job",
                     step2Desc: "TAs prepare profile details. MOs publish openings with requirements and deadlines.",
                     step3Title: "3. Apply and review",
                     step3Desc: "TAs submit applications. MOs review applicants and make selection decisions.",
                     step4Title: "4. Track status and workload",
-                    step4Desc: "TAs monitor application outcomes, while admins monitor global workload statistics."
+                    step4Desc: "TAs monitor outcomes, MOs complete decisions, and admins review accepted TA workload."
                 },
                 ai: {
-                    title: "AI support for organizer decisions",
-                    lead: "Current AI modules are available in the MO area.",
-                    item1: "AI recommendations help MOs review candidates faster.",
-                    item2: "Detail analysis explains how one application fits a job.",
-                    item3: "Use AI insights together with manual review before selecting finalists."
+                    title: "Optional AI recommendation and analysis",
+                    lead: "AI is an add-on to TA and MO workflows, not a separate workflow.",
+                    item1: "TAs can request job recommendations based on their profile and open positions.",
+                    item2: "MOs can request applicant recommendations for their published jobs.",
+                    item3: "TA/MO detail pages can request analysis; if AI is unavailable, manual review still works."
                 },
                 faq: {
                     title: "Frequently asked questions",
                     q1: "Do I need to visit this page every time?",
                     a1: "No. Returning users can open the login page directly and continue from there.",
                     q2: "Which role should I choose?",
-                    a2: "Choose TA for applicants, MO for module organizers, and Admin only for platform managers.",
+                    a2: "Choose TA for applicants, MO for module organizers, and Admin only for platform managers with an invite code.",
                     q3: "Can I switch language later?",
                     a3: "Yes. Use the top-right language switch at any time. Your choice is remembered."
                 },
@@ -138,7 +161,7 @@
                     title: "Login - TA Hiring System"
                 },
                 hero: {
-                    title: "TA Hiring Portal",
+                    title: "TA Hiring System",
                     subtitle: "Sign in to your account"
                 },
                 form: {
@@ -189,7 +212,7 @@
                 },
                 hero: {
                     title: "Create your account",
-                    subtitle: "Join the TA Hiring Portal in a few steps"
+                    subtitle: "Join TA Hiring System in a few steps"
                 },
                 form: {
                     aria: "Registration form",
@@ -247,34 +270,10 @@
                     enterConfirmPassword: "Please confirm your password.",
                     passwordMismatch: "Passwords do not match.",
                     selectRole: "Please select a role.",
-                    adminUsePage: "Admin accounts are created from invitation links.",
+                    adminUsePage: "Admin accounts are created from the invite code page.",
                     failed: "Registration failed. Please check your information and try again.",
                     successRedirect: "Registration successful! Redirecting to login...",
                     networkError: "Network error. Please try again."
-                }
-            },
-            adminRegister: {
-                page: {
-                    title: "Admin Register - TA Hiring System"
-                },
-                hero: {
-                    title: "Admin registration is invitation-only",
-                    subtitle: "Ask an existing admin to send you an invitation link by email."
-                },
-                form: {
-                    aria: "Admin invitation notice"
-                },
-                notice: {
-                    primary: "Direct admin self-registration has been disabled for security reasons.",
-                    lead: "If you already received an invitation email, open",
-                    link: "Admin invitation page",
-                    tail: "and complete account activation with your invite code."
-                },
-                links: {
-                    needStandard: "Need TA or MO account?",
-                    standardLink: "Use standard registration",
-                    haveAccount: "Already have an account?",
-                    backLogin: "Back to login"
                 }
             },
             adminInvite: {
@@ -314,23 +313,11 @@
                     confirmTooltip: "Re-enter your password to confirm.",
                     submit: "Create admin account"
                 },
-                status: {
-                    checkingToken: "Checking invitation token...",
-                    noToken: "No invitation token detected. Enter your email and invite code.",
-                    invalidOrExpired: "Invitation link is invalid or expired. You can still use email + invite code.",
-                    validated: "Invitation validated.",
-                    expiresAtPrefix: " Expires at: ",
-                    validateFailed: "Could not validate invitation link. You can use email + invite code.",
-                    completed: "Invitation completed successfully."
-                },
                 links: {
                     haveAccount: "Already have an account?",
                     backLogin: "Back to login"
                 },
                 msg: {
-                    invalidEmail: "Please enter a valid email address.",
-                    needTokenOrCode: "Please provide invitation token or invite code.",
-                    invalidUsername: "Username must start with a letter and contain 3-20 letters, numbers, or underscores.",
                     passwordTooShort: "Password must be at least 8 characters.",
                     passwordTooLong: "Password is too long.",
                     passwordMismatch: "Passwords do not match.",
@@ -397,7 +384,6 @@
                     },
                     mo: {
                         aria: "MO portal navigation",
-                        applicants: "Applicants",
                         myJobs: "My Postings",
                         postJob: "Post Job",
                         notifications: "Notifications"
@@ -427,12 +413,6 @@
                     },
                     moDashboard: {
                         title: "MO Dashboard - Post TA Jobs"
-                    },
-                    moOverview: {
-                        title: "MO Overview - TA Hiring System"
-                    },
-                    moApplicantSelection: {
-                        title: "Applicant review - TA Hiring System"
                     },
                     adminDashboard: {
                         title: "TA Workload - TA Hiring System"
@@ -682,18 +662,6 @@
                     coverLetterPlaceholder: "Briefly explain your relevant experience, strengths, and availability.",
                     coverLetter: "Cover letter",
                     applyNow: "Apply for this job",
-                    aiChat: "Ask AI",
-                    aiMatchTitle: "AI matching analysis",
-                    aiMatchSubtitle: "Analyze fit between this job and your profile using non-sensitive information.",
-                    aiMatchScoreLabel: "Overall score",
-                    aiMatchLevelLabel: "Level",
-                    aiMatchSummaryLabel: "Summary",
-                    aiMatchStrengthsLabel: "Strengths",
-                    aiMatchRisksLabel: "Risks",
-                    aiMatchSuggestionsLabel: "Suggestions",
-                    aiMatchJobEvidenceLabel: "Job evidence",
-                    aiMatchProfileEvidenceLabel: "Profile evidence",
-                    aiMatchRefresh: "Re-analyze",
                     onlyTaHint: "Only TA accounts can submit applications. If you have already applied, this panel will show your latest status."
                 },
                 taApplicationStatus: {
@@ -856,16 +824,6 @@
                     backToMyJobs: "← My postings",
                     backToApplicants: "← Applicant list"
                 },
-                moOverview: {
-                    subtitle: "Track hiring activity, then jump directly to posting and applicant review workflows.",
-                    activeJobs: "Active jobs",
-                    totalApplicants: "Total applicants",
-                    pendingReview: "Pending review",
-                    offersSent: "Offers sent",
-                    recentActivity: "Recent activity",
-                    viewApplicants: "View applicants",
-                    loadingActivity: "Loading activity..."
-                },
                 moApplicantSelection: {
                     subtitle: "Review and manage all candidate applications.",
                     panelAria: "Applicant selection panel",
@@ -940,7 +898,6 @@
                     viewAction: "View",
                     hireApplicant: "Hire applicant",
                     rejectApplicant: "Reject",
-                    startReview: "Start review",
                     processing: "Processing...",
                     alreadyReviewed: "This application has already been reviewed.",
                     noCoverLetter: "No cover letter provided.",
@@ -950,28 +907,6 @@
                     noExperience: "No experience provided.",
                     noMotivation: "No motivation statement provided.",
                     resumeNotUploaded: "Resume not uploaded",
-                    aiChat: "Ask AI",
-                    aiShow: "Match",
-                    aiHide: "Hide AI",
-                    aiAnalyzing: "AI...",
-                    aiMatchTitle: "AI matching analysis",
-                    aiMatchSubtitle: "Analyze fit between this applicant, cover letter, and job using non-sensitive information.",
-                    aiMatchScoreLabel: "Overall score",
-                    aiMatchLevelLabel: "Level",
-                    aiMatchSummaryLabel: "Summary",
-                    aiMatchStrengthsLabel: "Strengths",
-                    aiMatchRisksLabel: "Risks",
-                    aiMatchSuggestionsLabel: "Suggestions",
-                    aiMatchJobEvidenceLabel: "Job evidence",
-                    aiMatchProfileEvidenceLabel: "Profile evidence",
-                    aiMatchRefresh: "Re-analyze",
-                    progressUpdateFailed: "Unable to update progress.",
-                    reviewStarted: "Review started.",
-                    progressUpdateNetworkError: "Network error while updating progress.",
-                    applicationUpdateFailed: "Unable to update this application.",
-                    applicationAcceptedSuccess: "Application accepted.",
-                    applicationRejectedSuccess: "Application rejected.",
-                    applicationUpdateNetworkError: "Network error while updating application.",
                     ariaLabel: "Applicant list"
                 },
                 adminDashboard: {
@@ -1106,18 +1041,6 @@
                     moShort: "MO",
                     submitting: "Submitting...",
                     jobIdMissing: "Job ID is missing.",
-                    sendingInvitation: "Sending...",
-                    inviteInvalidEmail: "Please enter a valid invitee email address.",
-                    inviteHoursRange: "Expiry hours must be between 1 and 168.",
-                    inviteCreateFailed: "Failed to create invitation.",
-                    inviteCreatedSuccess: "Invitation created successfully.",
-                    inviteCreateNetworkError: "Network error while creating invitation.",
-                    inviteResultLink: "Invite link:",
-                    inviteResultCode: "Invite code:",
-                    inviteResultExpiresAt: "Expires at:",
-                    inviteResultEmailDelivery: "Email delivery:",
-                    inviteResultDeliveryDetail: "Delivery detail:",
-                    inviteResultEmailPreview: "Email preview",
                     applicationSubmitted: "Application has been submitted.",
                     applicationSubmittedRedirect: "Application submitted successfully. Redirecting to application status...",
                     failedSubmitApplication: "Failed to submit application. Please try again.",
@@ -1193,36 +1116,6 @@
                     applicationWithdrawn: "Application withdrawn",
                     applicationUpdated: "Application updated",
                     unknownApplicant: "Unknown applicant",
-                    loadingMatchResults: "Loading match results...",
-                    unableLoadJobsMatching: "Unable to load jobs for matching.",
-                    unableLoadApplicationMatches: "Unable to load application matches.",
-                    networkErrorLoadingMatchData: "Network error while loading match data.",
-                    noApplicantsForJob: "No applicants found for selected job.",
-                    noMatchDataTitle: "No match data available",
-                    askCandidatesThenLoadMatch: "Ask candidates to apply first, then load match results again.",
-                    skillScore: "Skill score",
-                    keywordScore: "Keyword score",
-                    matchedColon: "Matched:",
-                    missingColon: "Missing:",
-                    keywordColon: "Keyword:",
-                    gapKeywordColon: "Gap keyword:",
-                    noStructuredSkillData: "No structured skill data available",
-                    noKeywordInsights: "No keyword insights available",
-                    aiEnhancedApplied: "AI-enhanced matching applied.",
-                    unableLoadJobsGapAnalysis: "Unable to load jobs for gap analysis.",
-                    noGapSkillsTitle: "No gap skills available",
-                    noFrequencyData: "No frequency data available.",
-                    noScoreBucketData: "No score bucket data available.",
-                    repeatedGapSkillHint: "This skill appears as a repeated gap across applicants for the selected job.",
-                    unknownSkill: "Unknown Skill",
-                    gapSkill: "gap skill",
-                    found: "Found",
-                    applicantsSuffix: "applicant(s)",
-                    recommendTrainingFor: "Recommend creating a short training module for",
-                    topPriorityFor: "Top priority: add a focused screening question and onboarding plan for",
-                    considerPracticalCheckFor: "Consider a quick practical check for",
-                    beforeInterviewRounds: "before interview rounds.",
-                    duringCandidateReview: "during candidate review.",
                     failedLoadApplicationTotals: "Failed to load application totals.",
                     failedLoadMoWorkloads: "Failed to load MO workloads.",
                     failedLoadTaWorkloads: "Failed to load TA workloads.",
@@ -1246,23 +1139,7 @@
                     startAfterEnd: "Start time cannot be after end time.",
                     networkErrorTryAgain: "Network error. Please try again.",
                     networkErrorMoment: "Network error. Please try again in a moment.",
-                    currentCompleteness: "Current completeness:",
-                    loadingAiAnalysis: "Analyzing your profile and this job...",
-                    loadingMoAiAnalysis: "Analyzing applicant profile and this job...",
-                    aiAnalysisFailed: "Unable to generate AI analysis right now.",
-                    moAiAnalysisFailed: "Unable to generate AI analysis right now.",
-                    aiAnalysisNetworkError: "Network error while requesting AI analysis.",
-                    moAiAnalysisNetworkError: "Network error while requesting AI analysis.",
-                    moAiNoResult: "No analysis result is available yet.",
-                    aiNoSummary: "No summary is available yet.",
-                    aiNoStrengths: "No clear strengths identified.",
-                    aiNoRisks: "No obvious risks identified.",
-                    aiNoSuggestions: "No additional suggestions at this time.",
-                    aiNoJobEvidence: "No job evidence captured.",
-                    aiNoProfileEvidence: "No profile evidence captured.",
-                    aiMatchLevelHigh: "High",
-                    aiMatchLevelMedium: "Medium",
-                    aiMatchLevelLow: "Low"
+                    currentCompleteness: "Current completeness:"
                 }
             },
             server: {
@@ -1302,14 +1179,8 @@
                     codeInvalidOrExpired: "Invite code is invalid or expired.",
                     accountCreated: "Admin account created.",
                     accountCreateFailed: "Failed to create admin account.",
-                    adminOnlyCreate: "Only admin users can create invite codes.",
                     adminAccessRequired: "Admin access is required.",
-                    created: "Invite code created.",
-                    invalidUsedOrExpired: "Invite code is invalid, used, or expired.",
-                    valid: "Invite code is valid.",
-                    codeRotated: "Invite code refreshed.",
-                    emailSent: "Invite email sent.",
-                    sendmailNotConfigured: "Email delivery is not configured."
+                    codeRotated: "Invite code refreshed."
                 },
                 account: {
                     profileRetrieved: "Account profile loaded.",
@@ -1371,10 +1242,8 @@
                     accepted: "Application accepted.",
                     rejected: "Application rejected.",
                     withdrawn: "Application withdrawn.",
-                    reviewStarted: "Review started.",
                     actionRequired: "Action is required.",
                     jobNotFound: "Job not found for this application.",
-                    reviewStartUnavailable: "Cannot start review because the application is not pending.",
                     onlyTaApply: "Only TA accounts can submit applications.",
                     alreadyApplied: "You have already applied for this job.",
                     alreadyReviewed: "This application has already been reviewed.",
@@ -1424,7 +1293,7 @@
         },
         "zh-CN": {
             common: {
-                portalBrand: "TA 招聘门户",
+                portalBrand: "TA Hiring System",
                 utility: {
                     backToPortal: "返回门户首页"
                 },
@@ -1439,7 +1308,7 @@
                     createAdmin: "创建管理员账号"
                 },
                 footer: {
-                    copyright: "University Hiring System © 2026"
+                    copyright: "TA Hiring System © 2026"
                 },
                 password: {
                     show: "显示密码",
@@ -1448,7 +1317,7 @@
             },
             index: {
                 page: {
-                    title: "TA 招聘门户 - 首页"
+                    title: "TA Hiring System - 首页"
                 },
                 nav: {
                     aria: "主导航",
@@ -1460,81 +1329,104 @@
                     faq: "常见问题"
                 },
                 hero: {
-                    badge: "大学 TA 招聘平台",
-                    title: "用一条清晰流程管理 TA 招聘",
-                    subtitle: "面向助教申请人、课程负责人和管理员的一体化门户，覆盖注册、申请、审核与结果跟踪。",
+                    badge: "基于角色的 TA 招聘系统",
+                    title: "协同管理 TA 档案、岗位、审核与工作量",
+                    subtitle: "系统按 TA、MO 和 Admin 三类角色组织流程：TA 申请职位，MO 审核申请，Admin 管理工作量、邀请码和公告。",
                     primary: "开始使用",
                     secondary: "前往登录",
                     adminHint: "需要管理员权限？",
-                    adminLink: "创建管理员账号"
+                    adminLink: "使用管理员邀请码"
                 },
                 preview: {
-                    title: "基于真实业务流程，而不是演示稿",
-                    subtitle: "门户首页展示的内容都来自当前项目里已经实现的模块。",
+                    title: "当前项目模块概览",
+                    subtitle: "首页描述的内容对应当前项目已经实现的角色页面和 API 流程。",
                     workflowAriaLabel: "门户流程预览",
                     jobKicker: "开放 TA 岗位",
                     jobMeta: "2 个名额 · 每周 8 小时",
                     reviewKicker: "MO 审核队列",
-                    candidateStrong: "高度匹配",
-                    candidateReview: "需要复核",
-                    adminKicker: "管理员工作量",
-                    activeApplications: "活跃申请",
+                    candidateStrong: "推荐申请人",
+                    candidateReview: "人工复核",
+                    adminKicker: "TA 工作量",
+                    activeApplications: "已接受 TA 工作",
+                    workflowTitle: "实时角色流程",
+                    workflowSubtitle: "基于 CSV 的 Servlet/JSP 项目",
+                    taLaneTitle: "申请人工作区",
+                    taLaneMeta: "档案、职位、申请",
+                    taItem1: "档案和简历已准备",
+                    taItem2: "开放岗位可浏览",
+                    taItem3: "申请状态可跟踪",
+                    moLaneTitle: "课程负责人审核",
+                    moLaneMeta: "岗位、申请人、决策",
+                    moItem1: "已发布 TA 岗位",
+                    moItem2: "按岗位查看申请人",
+                    moItem3: "接受或拒绝申请",
+                    adminLaneTitle: "管理员运营",
+                    adminLaneMeta: "工作量、邀请码、公告",
+                    adminItem1: "已接受 TA 工作量",
+                    adminItem2: "8 位管理员邀请码",
+                    adminItem3: "系统公告",
+                    stateReady: "就绪",
+                    stateOpen: "开放",
+                    stateReview: "审核",
+                    stateDecision: "决策",
+                    stateActive: "进行中",
+                    stateLive: "生效",
                     cardTaTitle: "TA 工作台",
-                    cardTaDesc: "创建档案、浏览职位、提交申请，并跟踪申请状态。",
+                    cardTaDesc: "维护档案、上传简历/头像、浏览职位、提交申请，并跟踪申请状态。",
                     cardMoTitle: "MO 工作台",
-                    cardMoDesc: "发布职位、查看申请人、筛选候选人并跟踪招聘进展。",
+                    cardMoDesc: "发布岗位、管理自己的岗位、审核申请，并接受或拒绝候选人。",
                     cardAdminTitle: "管理员工作台",
-                    cardAdminDesc: "查看招聘流程中的工作量和状态分布统计。"
+                    cardAdminDesc: "查看已接受的 TA 工作量、刷新邀请码，并发布公告。"
                 },
                 forTa: {
                     title: "面向助教申请人",
-                    lead: "从档案准备到录用结果，TA 全流程都可以在系统内完成。",
+                    lead: "从档案准备到申请状态跟踪，TA 常用流程都可以在系统内完成。",
                     item1: "创建并维护个人档案、简历和技能信息。",
-                    item2: "按关键词和状态搜索、筛选开放岗位。",
-                    item3: "提交申请并跟踪待处理、通过或拒绝等状态。",
+                    item2: "搜索开放岗位，也可以请求可选的 AI 职位推荐。",
+                    item3: "提交申请、查看职位详情，并跟踪待处理、通过、拒绝或撤回等状态。",
                     cta: "以 TA 身份登录"
                 },
                 forMo: {
                     title: "面向课程负责人（MO）",
-                    lead: "快速发布岗位、评估申请人，并完成招聘闭环。",
-                    item1: "发布包含课程、技能、名额和截止时间的职位。",
-                    item2: "在统一列表中查看申请人档案和材料。",
-                    item3: "执行录取/拒绝决策并跟踪审核进度。",
+                    lead: "发布岗位、管理自己的岗位，并在同一流程中审核申请。",
+                    item1: "创建和维护包含课程、技能、名额、工作量、薪酬和截止时间的岗位。",
+                    item2: "从自己的岗位进入申请人列表，查看档案、简历和求职信。",
+                    item3: "接受或拒绝申请，也可以把 AI 推荐与分析作为辅助参考。",
                     cta: "以 MO 身份登录"
                 },
                 forAdmin: {
                     title: "面向系统管理员",
-                    lead: "从全局视角查看招聘工作量和处理分布。",
-                    item1: "监控活跃岗位、申请总量和状态分布。",
-                    item2: "查看各位 MO 的工作负载与运营趋势。",
-                    item3: "导出统计快照用于汇报和规划。",
+                    lead: "管理支撑招聘流程运行的后台能力。",
+                    item1: "按 TA、岗位、课程、每周工时和生效周期查看已接受的 TA 工作量。",
+                    item2: "查看或刷新当前 8 位管理员邀请码。",
+                    item3: "发布 TA、MO 和 Admin 都能阅读的系统公告。",
                     cta: "以管理员身份登录"
                 },
                 process: {
                     title: "从注册到最终录用的全流程",
                     lead: "首页展示的流程与系统当前实现的端到端能力一致。",
                     step1Title: "1. 注册账号",
-                    step1Desc: "TA/MO 使用普通注册，管理员使用独立的管理员注册页。",
+                    step1Desc: "TA/MO 使用普通注册，管理员账号通过 8 位邀请码创建。",
                     step2Title: "2. 完善档案或发布职位",
                     step2Desc: "TA 完善个人资料，MO 发布带要求和截止时间的岗位。",
                     step3Title: "3. 申请与审核",
                     step3Desc: "TA 提交申请，MO 审核候选人并做出录用决策。",
                     step4Title: "4. 跟踪状态与工作量",
-                    step4Desc: "TA 跟踪申请结果，管理员跟踪平台整体工作量统计。"
+                    step4Desc: "TA 跟踪申请结果，MO 完成审核决策，Admin 查看已接受的 TA 工作量。"
                 },
                 ai: {
-                    title: "AI 辅助招聘决策",
-                    lead: "当前 AI 功能主要在 MO 工作区使用。",
-                    item1: "AI 推荐帮助 MO 更快筛选候选人。",
-                    item2: "详情分析解释单个申请与岗位的匹配情况。",
-                    item3: "建议将 AI 结果与人工审核结合后再做最终筛选。"
+                    title: "可选的 AI 推荐与分析",
+                    lead: "AI 是 TA 和 MO 流程中的可选辅助，不是单独的独立流程。",
+                    item1: "TA 可以基于个人档案和开放岗位请求职位推荐。",
+                    item2: "MO 可以针对自己发布的岗位请求申请人推荐。",
+                    item3: "TA/MO 详情页可以请求分析；AI 不可用时，人工审核流程仍可继续。"
                 },
                 faq: {
                     title: "常见问题",
                     q1: "每次都必须先访问这个首页吗？",
                     a1: "不需要。老用户可以直接打开登录页继续使用。",
                     q2: "我应该选择哪个角色？",
-                    a2: "申请人请选择 TA，课程负责人请选择 MO，平台管理人员才选择 Admin。",
+                    a2: "申请人请选择 TA，课程负责人请选择 MO，只有拿到邀请码的平台管理人员才选择 Admin。",
                     q3: "之后还能切换语言吗？",
                     a3: "可以。右上角可随时切换语言，系统会记住你的选择。"
                 },
@@ -1550,7 +1442,7 @@
                     title: "登录 - TA 招聘系统"
                 },
                 hero: {
-                    title: "TA 招聘门户",
+                    title: "TA Hiring System",
                     subtitle: "登录你的账号"
                 },
                 form: {
@@ -1601,7 +1493,7 @@
                 },
                 hero: {
                     title: "创建账号",
-                    subtitle: "几步加入 TA 招聘门户"
+                    subtitle: "几步开始使用 TA Hiring System"
                 },
                 form: {
                     aria: "注册表单",
@@ -1659,34 +1551,10 @@
                     enterConfirmPassword: "请确认密码。",
                     passwordMismatch: "两次输入的密码不一致。",
                     selectRole: "请选择角色。",
-                    adminUsePage: "管理员账号需通过邀请链接开通。",
+                    adminUsePage: "管理员账号需通过邀请码页面开通。",
                     failed: "注册失败，请检查信息后重试。",
                     successRedirect: "注册成功，正在跳转登录页...",
                     networkError: "网络异常，请稍后重试。"
-                }
-            },
-            adminRegister: {
-                page: {
-                    title: "管理员注册 - TA 招聘系统"
-                },
-                hero: {
-                    title: "管理员账号采用邀请制开通",
-                    subtitle: "请联系现有管理员发送邀请邮件"
-                },
-                form: {
-                    aria: "管理员邀请说明"
-                },
-                notice: {
-                    primary: "出于安全原因，系统已关闭管理员公开自助注册。",
-                    lead: "如果你已经收到邀请邮件，请打开",
-                    link: "管理员邀请页面",
-                    tail: "并使用邀请码完成账号开通。"
-                },
-                links: {
-                    needStandard: "需要 TA 或 MO 账号？",
-                    standardLink: "使用普通注册",
-                    haveAccount: "已有账号？",
-                    backLogin: "返回登录"
                 }
             },
             adminInvite: {
@@ -1726,23 +1594,11 @@
                     confirmTooltip: "再次输入密码以确认。",
                     submit: "创建管理员账号"
                 },
-                status: {
-                    checkingToken: "正在校验邀请令牌...",
-                    noToken: "未检测到邀请令牌，请输入邮箱和邀请码。",
-                    invalidOrExpired: "邀请链接无效或已过期，你仍可使用邮箱 + 邀请码。",
-                    validated: "邀请校验通过。",
-                    expiresAtPrefix: " 过期时间：",
-                    validateFailed: "无法校验邀请链接，你可以使用邮箱 + 邀请码。",
-                    completed: "邀请注册已完成。"
-                },
                 links: {
                     haveAccount: "已有账号？",
                     backLogin: "返回登录"
                 },
                 msg: {
-                    invalidEmail: "请输入有效的邮箱地址。",
-                    needTokenOrCode: "请提供邀请令牌或邀请码。",
-                    invalidUsername: "用户名需以字母开头，长度 3-20，仅允许字母、数字和下划线。",
                     passwordTooShort: "密码长度至少为 8 位。",
                     passwordTooLong: "密码过长。",
                     passwordMismatch: "两次输入的密码不一致。",
@@ -1804,13 +1660,11 @@
                         aria: "TA 门户导航",
                         jobs: "职位列表",
                         status: "我的申请",
-                        aiMatch: "AI 匹配",
                         profile: "个人档案",
                         notifications: "通知"
                     },
                     mo: {
                         aria: "MO 门户导航",
-                        applicants: "申请人",
                         myJobs: "我的发布",
                         postJob: "发布新职位",
                         notifications: "通知"
@@ -1840,12 +1694,6 @@
                     },
                     moDashboard: {
                         title: "MO 仪表盘 - 发布 TA 职位"
-                    },
-                    moOverview: {
-                        title: "MO 概览 - TA 招聘系统"
-                    },
-                    moApplicantSelection: {
-                        title: "申请审核 - TA 招聘系统"
                     },
                     adminDashboard: {
                         title: "TA工作量 - TA 招聘系统"
@@ -2095,18 +1943,6 @@
                     coverLetterPlaceholder: "简要说明你的相关经历、优势以及可投入时间。",
                     coverLetter: "求职信",
                     applyNow: "申请该职位",
-                    aiChat: "AI 对话",
-                    aiMatchTitle: "AI 匹配分析",
-                    aiMatchSubtitle: "基于当前职位与个人非敏感档案信息，给出匹配度分析。",
-                    aiMatchScoreLabel: "综合分数",
-                    aiMatchLevelLabel: "匹配等级",
-                    aiMatchSummaryLabel: "总体结论",
-                    aiMatchStrengthsLabel: "匹配优势",
-                    aiMatchRisksLabel: "潜在风险",
-                    aiMatchSuggestionsLabel: "提升建议",
-                    aiMatchJobEvidenceLabel: "岗位依据",
-                    aiMatchProfileEvidenceLabel: "档案依据",
-                    aiMatchRefresh: "重新分析",
                     onlyTaHint: "仅 TA 账号可提交申请。若你已申请，本面板将显示最新状态。"
                 },
                 taApplicationStatus: {
@@ -2269,16 +2105,6 @@
                     backToMyJobs: "← 我的发布",
                     backToApplicants: "← 申请人列表"
                 },
-                moOverview: {
-                    subtitle: "先查看招聘活动，再快速跳转到发布与申请审核流程。",
-                    activeJobs: "活跃职位",
-                    totalApplicants: "申请总数",
-                    pendingReview: "待审核",
-                    offersSent: "已发录用",
-                    recentActivity: "最近活动",
-                    viewApplicants: "查看申请人",
-                    loadingActivity: "正在加载活动..."
-                },
                 moApplicantSelection: {
                     subtitle: "审核并管理所有候选人的申请。",
                     panelAria: "申请人筛选面板",
@@ -2353,7 +2179,6 @@
                     viewAction: "查看",
                     hireApplicant: "录用申请人",
                     rejectApplicant: "拒绝",
-                    startReview: "开始审核",
                     processing: "处理中...",
                     alreadyReviewed: "该申请已审核完毕。",
                     noCoverLetter: "未填写求职信。",
@@ -2363,28 +2188,6 @@
                     noExperience: "未填写相关经历。",
                     noMotivation: "未填写申请动机。",
                     resumeNotUploaded: "未上传简历",
-                    aiChat: "AI 匹配",
-                    aiShow: "匹配",
-                    aiHide: "收起 AI",
-                    aiAnalyzing: "AI 分析中...",
-                    aiMatchTitle: "AI 匹配分析",
-                    aiMatchSubtitle: "基于岗位要求、申请人非敏感档案与求职信内容，给出匹配度分析。",
-                    aiMatchScoreLabel: "综合分数",
-                    aiMatchLevelLabel: "匹配等级",
-                    aiMatchSummaryLabel: "总体结论",
-                    aiMatchStrengthsLabel: "匹配优势",
-                    aiMatchRisksLabel: "潜在风险",
-                    aiMatchSuggestionsLabel: "提升建议",
-                    aiMatchJobEvidenceLabel: "岗位依据",
-                    aiMatchProfileEvidenceLabel: "候选人依据",
-                    aiMatchRefresh: "重新分析",
-                    progressUpdateFailed: "无法更新审核进度。",
-                    reviewStarted: "已开始审核。",
-                    progressUpdateNetworkError: "更新审核进度时网络异常。",
-                    applicationUpdateFailed: "无法更新该申请。",
-                    applicationAcceptedSuccess: "申请已通过。",
-                    applicationRejectedSuccess: "申请已拒绝。",
-                    applicationUpdateNetworkError: "更新申请时网络异常。",
                     ariaLabel: "申请人列表"
                 },
                 adminDashboard: {
@@ -2519,18 +2322,6 @@
                     moShort: "MO",
                     submitting: "提交中...",
                     jobIdMissing: "缺少职位编号。",
-                    sendingInvitation: "发送中...",
-                    inviteInvalidEmail: "请输入有效的被邀请人邮箱地址。",
-                    inviteHoursRange: "有效期小时数必须在 1 到 168 之间。",
-                    inviteCreateFailed: "创建邀请失败。",
-                    inviteCreatedSuccess: "邀请创建成功。",
-                    inviteCreateNetworkError: "创建邀请时网络异常。",
-                    inviteResultLink: "邀请链接：",
-                    inviteResultCode: "邀请码：",
-                    inviteResultExpiresAt: "过期时间：",
-                    inviteResultEmailDelivery: "邮件投递：",
-                    inviteResultDeliveryDetail: "投递详情：",
-                    inviteResultEmailPreview: "邮件预览",
                     applicationSubmitted: "申请已提交。",
                     applicationSubmittedRedirect: "申请提交成功，正在跳转到申请状态页...",
                     failedSubmitApplication: "提交申请失败，请稍后重试。",
@@ -2606,36 +2397,6 @@
                     applicationWithdrawn: "申请已撤回",
                     applicationUpdated: "申请已更新",
                     unknownApplicant: "未知申请人",
-                    loadingMatchResults: "正在加载匹配结果...",
-                    unableLoadJobsMatching: "无法加载用于匹配分析的职位。",
-                    unableLoadApplicationMatches: "无法加载申请匹配结果。",
-                    networkErrorLoadingMatchData: "加载匹配数据时网络异常。",
-                    noApplicantsForJob: "所选职位暂无申请人。",
-                    noMatchDataTitle: "暂无匹配数据",
-                    askCandidatesThenLoadMatch: "请先让候选人提交申请，再重新加载匹配结果。",
-                    skillScore: "技能分",
-                    keywordScore: "关键词分",
-                    matchedColon: "已匹配：",
-                    missingColon: "缺失：",
-                    keywordColon: "关键词：",
-                    gapKeywordColon: "缺口关键词：",
-                    noStructuredSkillData: "暂无结构化技能数据",
-                    noKeywordInsights: "暂无关键词洞察",
-                    aiEnhancedApplied: "已应用 AI 增强匹配。",
-                    unableLoadJobsGapAnalysis: "无法加载用于缺口分析的职位。",
-                    noGapSkillsTitle: "暂无缺口技能",
-                    noFrequencyData: "暂无频次数据。",
-                    noScoreBucketData: "暂无分桶数据。",
-                    repeatedGapSkillHint: "该技能在所选职位申请人中多次出现缺口。",
-                    unknownSkill: "未知技能",
-                    gapSkill: "缺口技能",
-                    found: "发现",
-                    applicantsSuffix: "位申请人",
-                    recommendTrainingFor: "建议为其设计简短训练模块：",
-                    topPriorityFor: "优先建议：为其增加聚焦筛选问题与入职计划：",
-                    considerPracticalCheckFor: "建议增加快速实践检查：",
-                    beforeInterviewRounds: "（用于面试前轮次）。",
-                    duringCandidateReview: "（用于候选人评审阶段）。",
                     failedLoadApplicationTotals: "加载申请总量失败。",
                     failedLoadMoWorkloads: "加载 MO 工作量失败。",
                     failedLoadTaWorkloads: "加载 TA 工作量失败。",
@@ -2659,23 +2420,7 @@
                     startAfterEnd: "开始时间不能晚于结束时间。",
                     networkErrorTryAgain: "网络异常，请重试。",
                     networkErrorMoment: "网络异常，请稍后重试。",
-                    currentCompleteness: "当前完整度：",
-                    loadingAiAnalysis: "正在分析你的档案与当前职位...",
-                    loadingMoAiAnalysis: "正在分析申请人档案与当前职位...",
-                    aiAnalysisFailed: "当前无法生成 AI 匹配分析。",
-                    moAiAnalysisFailed: "当前无法生成 AI 匹配分析。",
-                    aiAnalysisNetworkError: "请求 AI 分析时网络异常，请稍后重试。",
-                    moAiAnalysisNetworkError: "请求 AI 分析时网络异常，请稍后重试。",
-                    moAiNoResult: "暂未生成分析结果。",
-                    aiNoSummary: "暂未生成总结。",
-                    aiNoStrengths: "暂未识别明显优势。",
-                    aiNoRisks: "暂未识别明显风险。",
-                    aiNoSuggestions: "当前暂无额外建议。",
-                    aiNoJobEvidence: "暂无岗位依据。",
-                    aiNoProfileEvidence: "暂无档案依据。",
-                    aiMatchLevelHigh: "高",
-                    aiMatchLevelMedium: "中",
-                    aiMatchLevelLow: "低"
+                    currentCompleteness: "当前完整度："
                 }
             },
             server: {
@@ -2715,14 +2460,8 @@
                     codeInvalidOrExpired: "邀请码无效或已过期。",
                     accountCreated: "管理员账号创建成功。",
                     accountCreateFailed: "创建管理员账号失败。",
-                    adminOnlyCreate: "只有管理员可以创建邀请码。",
                     adminAccessRequired: "需要管理员权限。",
-                    created: "邀请码已创建。",
-                    invalidUsedOrExpired: "邀请码无效、已使用或已过期。",
-                    valid: "邀请码有效。",
-                    codeRotated: "邀请码已刷新。",
-                    emailSent: "邀请邮件已发送。",
-                    sendmailNotConfigured: "邮件发送未配置。"
+                    codeRotated: "邀请码已刷新。"
                 },
                 account: {
                     profileRetrieved: "账号资料已加载。",
@@ -2784,10 +2523,8 @@
                     accepted: "申请已通过。",
                     rejected: "申请已拒绝。",
                     withdrawn: "申请已撤回。",
-                    reviewStarted: "已开始审核。",
                     actionRequired: "缺少操作类型。",
                     jobNotFound: "未找到该申请对应的职位。",
-                    reviewStartUnavailable: "只有待处理申请才能开始审核。",
                     onlyTaApply: "仅 TA 账号可提交申请。",
                     alreadyApplied: "你已经申请过该职位。",
                     alreadyReviewed: "该申请已审核完毕。",
@@ -2979,12 +2716,7 @@
         "only admin users can create invite codes": "server.adminInvite.adminOnlyCreate",
         "admin access required": "server.adminInvite.adminAccessRequired",
         "admin access is required": "server.adminInvite.adminAccessRequired",
-        "invite code created": "server.adminInvite.created",
-        "invite code is invalid, used, or expired": "server.adminInvite.invalidUsedOrExpired",
-        "invite code is valid": "server.adminInvite.valid",
         "invite code refreshed": "server.adminInvite.codeRotated",
-        "invite email sent": "server.adminInvite.emailSent",
-        "sendmail not configured": "server.adminInvite.sendmailNotConfigured",
         "account profile retrieved successfully": "server.account.profileRetrieved",
         "account profile updated successfully": "server.account.profileUpdated",
         "only ta accounts can update account profile": "server.account.onlyTaMoUpdate",
@@ -3097,10 +2829,8 @@
         "application withdrawn": "server.application.withdrawn",
         "application withdrawn successfully": "server.application.withdrawn",
         "failed to withdraw application": "server.application.withdrawFailed",
-        "review started": "server.application.reviewStarted",
         "action is required": "server.application.actionRequired",
         "job not found for this application": "server.application.jobNotFound",
-        "cannot start review (application must be pending and in submitted stage)": "server.application.reviewStartUnavailable",
         "only ta accounts can submit applications": "server.application.onlyTaApply",
         "you have already applied for this job": "server.application.alreadyApplied",
         "cover letter must be 2000 characters or fewer": "portal.dynamic.coverLetterTooLong",

@@ -74,10 +74,8 @@ TA Hiring System 的 JSON 和文件资源接口统一放在 `/api/...` 下。JSP
 | 功能 | Method | Path | 权限 |
 |---|---|---|---|
 | TA 工作量统计 | GET | `/api/admin/workload-statistics` | Admin |
-| 创建管理员邀请 | POST | `/api/admin/invitations` | Admin |
-| 校验管理员邀请 | GET | `/api/admin/invitations/validation` | 公开 |
-| 接受管理员邀请 | POST | `/api/admin/invitations/acceptance` | 公开 |
-| 当前邀请码 | GET/POST | `/api/admin/invitations/current-code` | Admin |
+| 接受管理员短邀请码注册 | POST | `/api/admin/invitations/acceptance` | 公开 |
+| 当前短邀请码 | GET/POST | `/api/admin/invitations/current-code` | Admin |
 
 ## 8. Notifications
 
@@ -92,8 +90,6 @@ TA Hiring System 的 JSON 和文件资源接口统一放在 `/api/...` 下。JSP
 | 功能 | Method | Path | 权限 |
 |---|---|---|---|
 | MO 申请人推荐 | POST | `/api/mo/applicant-recommendations` | MO |
-| MO 申请分析 | POST | `/api/mo/application-match-analyses` | MO |
 | TA 职位推荐 | POST | `/api/ta/job-recommendations` | TA |
-| TA 职位匹配分析 | POST | `/api/ta/job-match-analyses` | TA |
 
-AI 分析配置模板为 `frontend/webapp/WEB-INF/ai/match-analysis.properties.template`；本地密钥文件为 `match-analysis.local.properties`，不应提交到 git。
+AI 推荐配置模板为 `frontend/webapp/WEB-INF/ai/deepseek.properties.template`；本地密钥文件为 `deepseek.local.properties`，不应提交到 git。

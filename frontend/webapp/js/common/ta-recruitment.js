@@ -262,12 +262,6 @@
             workloadStatistics: function (query) {
                 return appendQuery(apiPath("/api/admin/workload-statistics"), query);
             },
-            invitations: function () {
-                return apiPath("/api/admin/invitations");
-            },
-            invitationValidation: function (query) {
-                return appendQuery(apiPath("/api/admin/invitations/validation"), query);
-            },
             invitationAcceptance: function () {
                 return apiPath("/api/admin/invitations/acceptance");
             },
@@ -275,22 +269,16 @@
                 return apiPath("/api/admin/invitations/current-code");
             }
         },
-        // mo 路由覆盖 MO 侧申请人推荐和单申请匹配分析。
+        // mo 路由覆盖 MO 侧申请人推荐。
         mo: {
             applicantRecommendations: function () {
                 return apiPath("/api/mo/applicant-recommendations");
-            },
-            applicationMatchAnalyses: function () {
-                return apiPath("/api/mo/application-match-analyses");
             }
         },
-        // ta 路由覆盖 TA 侧职位推荐和职位详情匹配分析。
+        // ta 路由覆盖 TA 侧职位推荐。
         ta: {
             jobRecommendations: function () {
                 return apiPath("/api/ta/job-recommendations");
-            },
-            jobMatchAnalyses: function () {
-                return apiPath("/api/ta/job-match-analyses");
             }
         },
         notifications: function () {

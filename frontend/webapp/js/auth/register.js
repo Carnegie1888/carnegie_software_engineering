@@ -112,7 +112,7 @@
             return;
         }
         if (!isAdminOnlyPage && role === "ADMIN") {
-            showMessage(t("register.msg.adminUsePage", "Admin accounts are created from invitation links."), "error");
+            showMessage(t("register.msg.adminUsePage", "Admin accounts are created from the invite code page."), "error");
             return;
         }
 

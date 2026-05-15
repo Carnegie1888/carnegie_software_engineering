@@ -2,8 +2,8 @@
 
 基于 `Servlet + JSP + 原生 JavaScript + CSS + CSV` 的教学场景 TA 招聘系统。项目面向三类角色：
 
-- **TA**：维护个人档案、上传头像/简历、浏览职位、提交申请、查看申请进度和职位 AI 匹配分析。
-- **MO**：发布与维护职位、查看候选人、处理申请、使用 AI 推荐/匹配分析辅助筛选。
+- **TA**：维护个人档案、上传头像/简历、浏览职位、提交申请、查看申请进度和职位 AI 推荐。
+- **MO**：发布与维护职位、查看候选人、处理申请、使用 AI 推荐辅助筛选。
 - **Admin**：查看 TA 工作量统计、管理通知、生成管理员注册邀请码。
 
 ## 技术栈
@@ -15,7 +15,7 @@
 | 前端      | JSP、HTML、CSS、原生 JavaScript          |
 | 构建/运行 | `scripts/dev.sh` / `scripts/dev.bat` |
 | 持久化    | CSV 文件 + 本地上传文件目录              |
-| AI        | AI 推荐搜索、详情 AI 分析                |
+| AI        | AI 推荐搜索                              |
 | 多语言    | 中英文双语前端文案                       |
 
 本项目不依赖 Maven、Gradle、Spring、数据库或前端构建工具。开发脚本会直接用 `javac` 编译 `backend/src/**/*.java`，再把 `frontend/webapp` 部署到 Tomcat。
@@ -111,7 +111,7 @@ scripts\dev.bat
 | 角色  | 主要页面                                                                                                                      |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------- |
 | TA    | `/jsp/ta/dashboard.jsp`、`/jsp/ta/job-list.jsp`、`/jsp/ta/application-status.jsp`、`/jsp/ta/notifications.jsp`        |
-| MO    | `/jsp/mo/dashboard.jsp`、`/jsp/mo/applicant-selection.jsp`、`/jsp/mo/notifications.jsp` |
+| MO    | `/jsp/mo/dashboard.jsp`、`/jsp/mo/notifications.jsp` |
 | Admin | `/jsp/admin/dashboard.jsp`、`/jsp/admin/invite.jsp`、`/jsp/admin/notifications.jsp`                                     |
 
 ## 演示账号
@@ -144,8 +144,8 @@ logs/app.log
 
 | 角色  | 前端可见功能                                                                                                        |
 | ----- | ------------------------------------------------------------------------------------------------------------------- |
-| TA    | 登录/注册、维护账号和 TA 档案、上传头像/简历、浏览职位、提交申请、查看申请状态、查看职位推荐和 AI matching analysis |
-| MO    | 登录/注册、发布/编辑/删除职位、查看候选人、处理申请、查看申请人推荐和申请匹配分析                                   |
+| TA    | 登录/注册、维护账号和 TA 档案、上传头像/简历、浏览职位、提交申请、查看申请状态、查看职位推荐 |
+| MO    | 登录/注册、发布/编辑/删除职位、查看候选人、处理申请、查看申请人推荐                                   |
 | Admin | 登录、查看 TA 工作量统计、查看通知、查看/刷新当前 8 位管理员邀请码                                                  |
 
 Admin 新账号通过 `/admin-invite.jsp` 输入 8 位邀请码创建；当前邀请码在 Admin 的 `/jsp/admin/invite.jsp` 页面查看或刷新。

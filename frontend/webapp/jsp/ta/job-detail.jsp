@@ -13,7 +13,7 @@
     }
     String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "T";
 %>
-<%-- TA 职位详情页：从 URL id 读取岗位，支持申请和 AI 匹配分析。 --%>
+<%-- TA 职位详情页：从 URL id 读取岗位并支持申请。 --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>

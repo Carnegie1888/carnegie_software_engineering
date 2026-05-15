@@ -94,12 +94,11 @@ User user = (User) session.getAttribute("user");
 PUBLIC_PATHS = {
     "/", "/index.jsp",
     "/login.jsp", "/register.jsp",
-    "/admin-invite.jsp", "/admin-register.jsp",
+    "/admin-invite.jsp",
     "/api/auth/login",
     "/api/auth/register",
     "/api/auth/logout",
     "/api/auth/availability",
-    "/api/admin/invitations/validation",
     "/api/admin/invitations/acceptance",
     "/api/jobs"  // 职位公开列表
 }
@@ -303,14 +302,13 @@ System.out.println("[AuthFilter] User " + user.getUsername() +
     " accessed " + path);
 ```
 
-### 8.2 邀请链接安全
+### 8.2 短邀请码安全
 
-邀请链接使用一次性 Token：
+管理员入口使用 8 位短邀请码，由服务端密钥和时间窗口生成：
 
 ```java
-// 生成邀请链接
-String token = UUID.randomUUID().toString();
-String inviteLink = baseUrl + "/admin-invite.jsp?token=" + token;
+String code = InviteCodeService.getInstance().getCurrentCode();
+boolean valid = InviteCodeService.getInstance().isValidCode(code);
 ```
 
 ---

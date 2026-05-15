@@ -46,22 +46,6 @@ public final class JsonResponseUtil {
         writeJsonResponse(response, status, success, message, data);
     }
 
-    public static String object(Object... keyValues) {
-        java.util.LinkedHashMap<String, Object> data = new java.util.LinkedHashMap<>();
-        if (keyValues == null) {
-            return toJsonValue(data);
-        }
-        if (keyValues.length % 2 != 0) {
-            throw new IllegalArgumentException("object() requires an even number of arguments");
-        }
-        for (int i = 0; i < keyValues.length; i += 2) {
-            String key = String.valueOf(keyValues[i]);
-            Object value = keyValues[i + 1];
-            data.put(key, value);
-        }
-        return toJsonValue(data);
-    }
-
     public static Map<String, Object> objectMap(Object... keyValues) {
         java.util.LinkedHashMap<String, Object> data = new java.util.LinkedHashMap<>();
         if (keyValues == null) {
@@ -76,40 +60,6 @@ public final class JsonResponseUtil {
             data.put(key, value);
         }
         return data;
-    }
-
-    public static Map<String, Object> rawObject(String rawMembers) {
-        // 遗留/待移除：兼容旧代码传入原始 JSON 成员片段；新增代码不要使用。
-        java.util.LinkedHashMap<String, Object> wrapper = new java.util.LinkedHashMap<>();
-        if (rawMembers == null || rawMembers.trim().isEmpty()) {
-            return wrapper;
-        }
-        wrapper.put("__RAW_OBJECT__", rawMembers.trim());
-        return wrapper;
-    }
-
-    public static void writeResponse(HttpServletResponse response,
-                                     int status,
-                                     boolean success,
-                                     String message,
-                                     String rawData) throws IOException {
-        // 遗留/待移除：rawData 直接拼入响应体，只有已知安全的旧调用可以使用。
-        if (rawData == null) {
-            writeJsonResponse(response, status, success, message, null);
-            return;
-        }
-        response.setStatus(status);
-        response.setContentType("application/json;charset=UTF-8");
-
-        StringBuilder json = new StringBuilder(256);
-        json.append("{");
-        json.append("\"success\":").append(success);
-        json.append(",\"message\":\"").append(escapeJson(message)).append("\"");
-        json.append(",").append(rawData);
-        json.append("}");
-
-        PrintWriter out = response.getWriter();
-        out.write(json.toString());
     }
 
     public static String escapeJson(String str) {

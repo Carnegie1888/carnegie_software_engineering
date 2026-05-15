@@ -9,7 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="<%= contextPath %>/js/common/locale-bootstrap.js"></script>
-    <title data-i18n="index.page.title">TA Hiring Portal - Home</title>
+    <title data-i18n="index.page.title">TA Hiring System - Home</title>
     <link rel="stylesheet" href="<%= contextPath %>/css/portal/portal-home.css">
 </head>
 <body>
@@ -17,7 +17,7 @@
         <div class="home-header-inner">
             <a class="home-brand" href="<%= contextPath %>/">
                 <span class="home-brand-mark" aria-hidden="true">TA</span>
-                <span data-i18n="common.portalBrand">TA Hiring Portal</span>
+                <span data-i18n="common.portalBrand">TA Hiring System</span>
             </a>
 
             <nav class="home-nav" data-i18n-aria-label="index.nav.aria">
@@ -45,10 +45,10 @@
 
         <section id="overview" class="home-hero">
             <div class="hero-copy">
-                <p class="hero-badge" data-i18n="index.hero.badge">University TA Hiring Platform</p>
-                <h1 data-i18n="index.hero.title">Manage TA hiring in one clear workflow</h1>
+                <p class="hero-badge" data-i18n="index.hero.badge">Role-based TA hiring system</p>
+                <h1 data-i18n="index.hero.title">Coordinate TA profiles, postings, reviews, and workload</h1>
                 <p class="hero-subtitle" data-i18n="index.hero.subtitle">
-                    A single portal for teaching assistants, module organizers, and admins to register, apply, review, and track outcomes.
+                    A role-based system where TAs apply, MOs review applications, and admins manage workload, invite codes, and announcements.
                 </p>
                 <div class="hero-actions">
                     <a class="home-link-btn primary" href="<%= contextPath %>/register.jsp" data-i18n="index.hero.primary">Get started</a>
@@ -56,41 +56,56 @@
                 </div>
                 <p class="hero-admin">
                     <span data-i18n="index.hero.adminHint">Need admin access?</span>
-                    <a href="<%= contextPath %>/admin-invite.jsp" data-i18n="index.hero.adminLink">Create admin account</a>
+                    <a href="<%= contextPath %>/admin-invite.jsp" data-i18n="index.hero.adminLink">Use admin invite code</a>
                 </p>
             </div>
-            <div class="hero-console-preview" aria-label="TA hiring workflow preview" data-i18n-aria-label="index.preview.workflowAriaLabel">
-                <div class="preview-window-bar" aria-hidden="true">
-                    <span></span><span></span><span></span>
+            <div class="hero-workflow-board" aria-label="TA hiring workflow preview" data-i18n-aria-label="index.preview.workflowAriaLabel">
+                <div class="board-heading">
+                    <p data-i18n="index.preview.workflowTitle">Live role flow</p>
+                    <span data-i18n="index.preview.workflowSubtitle">CSV-backed Servlet/JSP project</span>
                 </div>
-                <div class="preview-workflow">
-                    <article class="preview-job-card">
-                        <p class="preview-kicker" data-i18n="index.preview.jobKicker">Open TA role</p>
-                        <h3>EBU6304 Software Engineering</h3>
-                        <p data-i18n="index.preview.jobMeta">2 positions · 8 hours / week</p>
-                        <div class="preview-skill-row">
-                            <span>Java</span>
-                            <span>JSP</span>
-                            <span>SQL</span>
-                        </div>
+                <div class="workflow-lanes">
+                    <article class="workflow-lane lane-ta">
+                        <header>
+                            <span class="lane-code">TA</span>
+                            <div>
+                                <h3 data-i18n="index.preview.taLaneTitle">Applicant workspace</h3>
+                                <p data-i18n="index.preview.taLaneMeta">Profile, jobs, applications</p>
+                            </div>
+                        </header>
+                        <ul>
+                            <li><span data-i18n="index.preview.taItem1">Profile and resume ready</span><b data-i18n="index.preview.stateReady">Ready</b></li>
+                            <li><span data-i18n="index.preview.taItem2">Open jobs available</span><b data-i18n="index.preview.stateOpen">Open</b></li>
+                            <li><span data-i18n="index.preview.taItem3">Application status tracked</span><b data-i18n="index.preview.stateActive">Active</b></li>
+                        </ul>
                     </article>
-                    <article class="preview-review-card">
-                        <p class="preview-kicker" data-i18n="index.preview.reviewKicker">MO review queue</p>
-                        <div class="preview-candidate-row">
-                            <span class="candidate-avatar">L</span>
-                            <div><strong>Li Ming</strong><small data-i18n="index.preview.candidateStrong">Strong match</small></div>
-                            <b>91</b>
-                        </div>
-                        <div class="preview-candidate-row">
-                            <span class="candidate-avatar">A</span>
-                            <div><strong>Ava Chen</strong><small data-i18n="index.preview.candidateReview">Needs review</small></div>
-                            <b>76</b>
-                        </div>
+                    <article class="workflow-lane lane-mo">
+                        <header>
+                            <span class="lane-code">MO</span>
+                            <div>
+                                <h3 data-i18n="index.preview.moLaneTitle">Organizer review</h3>
+                                <p data-i18n="index.preview.moLaneMeta">Postings, applicants, decisions</p>
+                            </div>
+                        </header>
+                        <ul>
+                            <li><span data-i18n="index.preview.moItem1">Published TA postings</span><b data-i18n="index.preview.stateOpen">Open</b></li>
+                            <li><span data-i18n="index.preview.moItem2">Applicant list by posting</span><b data-i18n="index.preview.stateReview">Review</b></li>
+                            <li><span data-i18n="index.preview.moItem3">Accept or reject applications</span><b data-i18n="index.preview.stateDecision">Decision</b></li>
+                        </ul>
                     </article>
-                    <article class="preview-admin-card">
-                        <p class="preview-kicker" data-i18n="index.preview.adminKicker">Admin workload</p>
-                        <div class="preview-meter"><span style="width: 72%"></span></div>
-                        <div class="preview-metrics"><strong>38</strong><small data-i18n="index.preview.activeApplications">active applications</small></div>
+                    <article class="workflow-lane lane-admin">
+                        <header>
+                            <span class="lane-code">AD</span>
+                            <div>
+                                <h3 data-i18n="index.preview.adminLaneTitle">Admin operations</h3>
+                                <p data-i18n="index.preview.adminLaneMeta">Workload, invite code, notices</p>
+                            </div>
+                        </header>
+                        <ul>
+                            <li><span data-i18n="index.preview.adminItem1">Accepted TA workload</span><b data-i18n="index.preview.stateActive">Active</b></li>
+                            <li><span data-i18n="index.preview.adminItem2">8-character invite code</span><b data-i18n="index.preview.stateReady">Ready</b></li>
+                            <li><span data-i18n="index.preview.adminItem3">System announcements</span><b data-i18n="index.preview.stateLive">Live</b></li>
+                        </ul>
                     </article>
                 </div>
             </div>
@@ -98,54 +113,54 @@
 
         <section class="home-preview">
             <div class="section-head">
-                <h2 data-i18n="index.preview.title">Built on real workflows, not mock slides</h2>
-                <p data-i18n="index.preview.subtitle">The portal reflects implemented modules already available in this project.</p>
+                <h2 data-i18n="index.preview.title">Current project modules at a glance</h2>
+                <p data-i18n="index.preview.subtitle">The homepage reflects the role pages and API flows implemented in this project.</p>
             </div>
             <div class="preview-grid">
                 <article class="preview-card">
                     <h3 data-i18n="index.preview.cardTaTitle">TA workspace</h3>
-                    <p data-i18n="index.preview.cardTaDesc">Create profile, browse openings, apply, and track application status.</p>
+                    <p data-i18n="index.preview.cardTaDesc">Maintain a profile, upload resume/photo, browse openings, apply, and track application status.</p>
                 </article>
                 <article class="preview-card">
                     <h3 data-i18n="index.preview.cardMoTitle">MO workspace</h3>
-                    <p data-i18n="index.preview.cardMoDesc">Publish jobs, review applicants, shortlist candidates, and monitor progress.</p>
+                    <p data-i18n="index.preview.cardMoDesc">Publish postings, manage your jobs, review applications, and accept or reject candidates.</p>
                 </article>
                 <article class="preview-card">
                     <h3 data-i18n="index.preview.cardAdminTitle">Admin workspace</h3>
-                    <p data-i18n="index.preview.cardAdminDesc">View workload and status distribution across the hiring pipeline.</p>
+                    <p data-i18n="index.preview.cardAdminDesc">Review accepted TA workload, refresh invite codes, and publish announcements.</p>
                 </article>
             </div>
         </section>
 
-        <section id="for-ta" class="role-section">
+        <section id="for-ta" class="role-section role-ta">
             <h2 data-i18n="index.forTa.title">For teaching assistants</h2>
-            <p class="role-lead" data-i18n="index.forTa.lead">Everything a TA needs from profile setup to final decision tracking.</p>
+            <p class="role-lead" data-i18n="index.forTa.lead">Everything a TA needs from profile setup to application status tracking.</p>
             <ul>
                 <li data-i18n="index.forTa.item1">Build and update your profile with resume and skills.</li>
-                <li data-i18n="index.forTa.item2">Search and filter open TA positions by keyword and status.</li>
-                <li data-i18n="index.forTa.item3">Submit applications and check pending, accepted, or rejected updates.</li>
+                <li data-i18n="index.forTa.item2">Search open positions, or request optional AI job recommendations.</li>
+                <li data-i18n="index.forTa.item3">Submit applications, open job details, and check pending, accepted, rejected, or withdrawn updates.</li>
             </ul>
             <a class="inline-link" href="<%= contextPath %>/login.jsp" data-i18n="index.forTa.cta">Sign in as TA</a>
         </section>
 
-        <section id="for-mo" class="role-section">
+        <section id="for-mo" class="role-section role-mo">
             <h2 data-i18n="index.forMo.title">For module organizers</h2>
-            <p class="role-lead" data-i18n="index.forMo.lead">Publish openings, evaluate applicants, and close hiring loops quickly.</p>
+            <p class="role-lead" data-i18n="index.forMo.lead">Publish openings, manage your postings, and review applications from one workflow.</p>
             <ul>
-                <li data-i18n="index.forMo.item1">Create postings with title, course, skills, slots, and deadline.</li>
-                <li data-i18n="index.forMo.item2">Review applicant profiles and attached materials in one list.</li>
-                <li data-i18n="index.forMo.item3">Accept or reject applicants while tracking overall review progress.</li>
+                <li data-i18n="index.forMo.item1">Create and maintain postings with course, skills, slots, workload, salary, and deadline.</li>
+                <li data-i18n="index.forMo.item2">Open applicant lists from your postings and review profiles, resumes, and cover letters.</li>
+                <li data-i18n="index.forMo.item3">Accept or reject applications, with optional AI recommendations and analysis as support.</li>
             </ul>
             <a class="inline-link" href="<%= contextPath %>/login.jsp" data-i18n="index.forMo.cta">Sign in as MO</a>
         </section>
 
-        <section id="for-admin" class="role-section">
+        <section id="for-admin" class="role-section role-admin">
             <h2 data-i18n="index.forAdmin.title">For administrators</h2>
-            <p class="role-lead" data-i18n="index.forAdmin.lead">Get a system-level view of workload and status distribution.</p>
+            <p class="role-lead" data-i18n="index.forAdmin.lead">Manage the operational pieces that support the hiring workflow.</p>
             <ul>
-                <li data-i18n="index.forAdmin.item1">Monitor active jobs, applications, and per-status breakdown.</li>
-                <li data-i18n="index.forAdmin.item2">Inspect organizer workloads and key operational trends.</li>
-                <li data-i18n="index.forAdmin.item3">Export workload snapshots for reporting and planning.</li>
+                <li data-i18n="index.forAdmin.item1">Review accepted TA workload by TA, job, course, weekly hours, and active period.</li>
+                <li data-i18n="index.forAdmin.item2">View or refresh the current 8-character admin invite code.</li>
+                <li data-i18n="index.forAdmin.item3">Publish announcements that TA, MO, and Admin users can read.</li>
             </ul>
             <a class="inline-link" href="<%= contextPath %>/login.jsp" data-i18n="index.forAdmin.cta">Sign in as Admin</a>
         </section>
@@ -158,7 +173,7 @@
             <div class="process-grid">
                 <article class="process-card">
                     <h3 data-i18n="index.process.step1Title">1. Register account</h3>
-                    <p data-i18n="index.process.step1Desc">TA/MO use standard registration. Admin uses a dedicated admin registration page.</p>
+                    <p data-i18n="index.process.step1Desc">TA/MO use standard registration. Admin accounts are created with an 8-character invite code.</p>
                 </article>
                 <article class="process-card">
                     <h3 data-i18n="index.process.step2Title">2. Complete profile or post job</h3>
@@ -170,20 +185,20 @@
                 </article>
                 <article class="process-card">
                     <h3 data-i18n="index.process.step4Title">4. Track status and workload</h3>
-                    <p data-i18n="index.process.step4Desc">TAs monitor application outcomes, while admins monitor global workload statistics.</p>
+                    <p data-i18n="index.process.step4Desc">TAs monitor outcomes, MOs complete decisions, and admins review accepted TA workload.</p>
                 </article>
             </div>
         </section>
 
         <section class="ai-section">
             <div class="section-head">
-                <h2 data-i18n="index.ai.title">AI support for organizer decisions</h2>
-                <p data-i18n="index.ai.lead">Current AI modules are available in the MO area.</p>
+                <h2 data-i18n="index.ai.title">Optional AI recommendation and analysis</h2>
+                <p data-i18n="index.ai.lead">AI is an add-on to TA and MO workflows, not a separate workflow.</p>
             </div>
             <ul class="ai-list">
-                <li data-i18n="index.ai.item1">AI recommendations help MOs review candidates faster.</li>
-                <li data-i18n="index.ai.item2">Detail analysis explains how one application fits a job.</li>
-                <li data-i18n="index.ai.item3">Use AI insights together with manual review before selecting finalists.</li>
+                <li data-i18n="index.ai.item1">TAs can request job recommendations based on their profile and open positions.</li>
+                <li data-i18n="index.ai.item2">MOs can request applicant recommendations for their published jobs.</li>
+                <li data-i18n="index.ai.item3">TA/MO detail pages can request analysis; if AI is unavailable, manual review still works.</li>
             </ul>
         </section>
 
@@ -195,7 +210,7 @@
             </article>
             <article class="faq-item">
                 <h3 data-i18n="index.faq.q2">Which role should I choose?</h3>
-                <p data-i18n="index.faq.a2">Choose TA for applicants, MO for module organizers, and Admin only for platform managers.</p>
+                <p data-i18n="index.faq.a2">Choose TA for applicants, MO for module organizers, and Admin only for platform managers with an invite code.</p>
             </article>
             <article class="faq-item">
                 <h3 data-i18n="index.faq.q3">Can I switch language later?</h3>
@@ -204,7 +219,7 @@
         </section>
 
         <footer class="home-footer">
-            <p data-i18n="common.footer.copyright">University Hiring System © 2026</p>
+            <p data-i18n="common.footer.copyright">TA Hiring System © 2026</p>
         </footer>
     </main>
 

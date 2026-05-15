@@ -4,7 +4,7 @@
 
 本文档是 TA Hiring System 的技术文档集合，提供系统的整体架构设计和各功能模块的详细技术实现说明。
 
-**项目背景**：这是一个面向计算机科学硕士课程的 TA (Teaching Assistant) 招聘管理系统，允许学生申请 TA 职位，模块负责人 (MO) 发布职位并审核申请，系统还集成了 AI 推荐搜索和详情分析功能。
+**项目背景**：这是一个面向计算机科学硕士课程的 TA (Teaching Assistant) 招聘管理系统，允许学生申请 TA 职位，模块负责人 (MO) 发布职位并审核申请，系统还集成了 AI 推荐搜索功能。
 
 ---
 
@@ -32,7 +32,7 @@
 | [ta-profile.md](./modules/ta-profile.md) | TA 档案管理模块 |
 | [job-management.md](./modules/job-management.md) | 职位管理模块 |
 | [application-review.md](./modules/application-review.md) | 申请审核模块 |
-| [ai-matching.md](./modules/ai-matching.md) | AI 推荐与详情分析模块 |
+| [ai-matching.md](./modules/ai-matching.md) | AI 推荐模块 |
 | [admin-workload.md](./modules/admin-workload.md) | 管理员工作量统计模块 |
 | [admin-invite.md](./modules/admin-invite.md) | 管理员邀请模块 |
 
@@ -54,7 +54,7 @@
 | 前端 | JSP, HTML5, CSS3, Vanilla JavaScript |
 | 构建/运行 | 脚本直跑 |
 | 持久化 | CSV 文件存储 |
-| AI | DashScope / DeepSeek 兼容 API (可选) |
+| AI | DeepSeek 兼容 API (可选) |
 | 多语言 | 中英文双语 |
 
 ---
@@ -68,7 +68,7 @@ backend/src/com/example/tarecruitment/
 ├── profile/            # TA 档案、简历和头像访问
 ├── job/                # 职位模型、DAO 和 HTTP 接口
 ├── application/        # 申请记录与申请流程
-├── ai/                 # AI 客户端、服务和分析接口
+├── ai/                 # AI 推荐客户端、服务和接口
 ├── admin/              # 管理员邀请和工作量统计
 ├── notification/       # 通知模型、DAO 和接口
 └── demo/               # 演示账号和演示数据初始化
@@ -107,7 +107,7 @@ docs/deliverables/technical/javadocs/index.html
 |------|------|----------|
 | **TA** | Teaching Assistant 申请人 | 创建档案、浏览职位、提交申请、查看申请状态 |
 | **MO** | Module Owner 模块负责人 | 发布职位、管理申请、AI 推荐和申请分析 |
-| **ADMIN** | 系统管理员 | 工作量统计、发送邀请链接 |
+| **ADMIN** | 系统管理员 | TA 工作量统计、管理短邀请码 |
 
 ---
 

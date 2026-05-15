@@ -94,29 +94,10 @@ public final class ApiResponses {
     }
 
     /**
-     * 直接写 raw JSON 片段。
-     */
-    public static void writeRaw(HttpServletResponse response,
-                                int status,
-                                boolean success,
-                                String message,
-                                String rawData) throws IOException {
-        // 遗留/待移除：少数旧代码曾经直接传 JSON 片段。新接口应使用 write(..., Object data)。
-        JsonResponseUtil.writeResponse(response, status, success, message, rawData);
-    }
-
-    /**
      * 便捷构造 LinkedHashMap，保持响应字段顺序稳定。
      */
     public static Map<String, Object> objectMap(Object... keyValues) {
         return JsonResponseUtil.objectMap(keyValues);
-    }
-
-    /**
-     * 遗留/待移除：构造原始 JSON 对象片段。新代码优先用 objectMap。
-     */
-    public static Map<String, Object> rawObject(String rawMembers) {
-        return JsonResponseUtil.rawObject(rawMembers);
     }
 
     /**

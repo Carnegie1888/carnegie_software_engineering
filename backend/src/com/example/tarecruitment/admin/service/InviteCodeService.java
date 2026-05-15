@@ -15,8 +15,8 @@ import java.security.SecureRandom;
 /**
  * InviteCodeService - 基于时间窗口的邀请码生成与校验。
  *
- * 当前前端页面是 /jsp/admin/invite.jsp：页面直接展示一个可刷新的 8 位邀请码，
- * /admin-register.jsp 提交注册时也只校验这个短码。
+     * 当前前端页面是 /jsp/admin/invite.jsp：页面直接展示一个可刷新的 8 位邀请码；
+     * /admin-invite.jsp 提交注册时校验这个短码并创建管理员账号。
  *
  * 每 10 分钟产生一个新码（HMAC-SHA256 + 服务端密钥）。校验时接受当前窗口及前后各一个窗口，
  * 这样可以避免用户刚好卡在倒计时边界时失败。管理员点击刷新时会增加 rotationOffset，

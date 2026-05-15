@@ -25,19 +25,19 @@ TA Hiring System 采用传统的 **三层架构 (Three-Tier Architecture)**，�
 │  │  ┌─────────────────────────────────────────────────────────┐││
 │  │  │                    Servlets                             │││
 │  │  │  LoginServlet, RegisterServlet, JobServlet, ApplicationServlet│││
-│  │  │  ApplicantProfileServlet, AdminInviteServlet, WorkloadStats... │││
+│  │  │  ApplicantProfileServlet, AdminInviteAcceptServlet, WorkloadStats... │││
 │  │  └─────────────────────────────────────────────────────────┘││
 │  │                            │                                 ││
 │  │  ┌─────────────────────────┴───────────────────────────────┐││
 │  │  │                   Service Layer                          │││
-│  │  │  WorkloadStatsService, AdminInviteEmailService,          │││
-│  │  │  TaJobMatchAnalysisService                               │││
+│  │  │  WorkloadStatsService, InviteCodeService,                │││
+│  │  │  MoApplicantAiSearchService, TaJobAiSearchService        │││
 │  │  └─────────────────────────────────────────────────────────┘││
 │  │                            │                                 ││
 │  │  ┌─────────────────────────┴───────────────────────────────┐││
 │  │  │                    DAO Layer                            │││
 │  │  │  UserDao, JobDao, ApplicantDao, ApplicationDao,          │││
-│  │  │  AdminInviteDao                                          │││
+│  │  │  NotificationDao                                         │││
 │  │  └─────────────────────────────────────────────────────────┘││
 │  └─────────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────────┘
@@ -67,7 +67,7 @@ TA Hiring System 采用传统的 **三层架构 (Three-Tier Architecture)**，�
 | **JSP** | JSP 2.x | 适合服务器端渲染，与 Servlet 配合良好 |
 | **Tomcat** | Apache Tomcat 11.x | 主流轻量级 Servlet 容器 |
 | **存储** | CSV 文件 | 简化部署，适合小型项目，无需 DB |
-| **AI** | DashScope API | 通用的 AI 接口，支持国产大模型 |
+| **AI** | DeepSeek 兼容 API | 用于前端可见的 AI 推荐搜索 |
 
 ---
 
@@ -82,7 +82,7 @@ TA Hiring System 采用传统的 **三层架构 (Three-Tier Architecture)**，�
 | **TA档案模块** | `profile/web`, `profile/dao`, `profile/model`, `profile/service`, `profile/mapper`, `profile/validator` | TA 申请人信息、简历和头像管理 |
 | **职位模块** | `job/web`, `job/service`, `job/mapper`, `job/validator`, `job/dao`, `job/model` | 职位 CRUD 操作 |
 | **申请模块** | `application/web`, `application/service`, `application/mapper`, `application/validator`, `application/dao`, `application/model` | 申请提交、申请材料读取与审核流转 |
-| **AI模块** | `ai/web`, `ai/service`, `ai/client` | AI 推荐搜索、职位/申请详情分析 |
+| **AI模块** | `ai/web`, `ai/service`, `ai/client` | MO 申请人推荐和 TA 职位推荐 |
 | **管理员模块** | `admin/web`, `admin/service`, `admin/dao`, `admin/model` | 邀请与统计功能 |
 
 ### 2.2 层次依赖关系
@@ -199,12 +199,12 @@ frontend/webapp/
     │   └── application-detail.jsp  # 申请详情
     │
     ├── mo/             # MO 角色页面
-    │   ├── dashboard.jsp           # MO 管理仪表盘
-    │   └── applicant-selection.jsp # 候选人筛选
+    │   ├── dashboard.jsp           # MO 管理仪表盘和申请人审核子视图
+    │   └── notifications.jsp       # MO 通知
     │
     └── admin/          # Admin 角色页面
         ├── dashboard.jsp           # 统计仪表盘
-        └── invite.jsp              # 邀请发送
+        └── invite.jsp              # 短邀请码管理
 ```
 
 ### 4.2 AJAX 交互模式
@@ -240,15 +240,16 @@ set TA_HIRING_DATA_DIR=%CATALINA_HOME%\data
 
 ### 5.2 AI 配置
 
-详情 AI 分析使用配置文件：
+AI 推荐搜索使用配置文件：
 ```
-frontend/webapp/WEB-INF/ai/match-analysis.properties.template
+frontend/webapp/WEB-INF/ai/deepseek.properties.template
 ```
 
 配置项：
-- `api.key`: DashScope API 密钥
-- `api.url`: API 端点
-- `model`: 使用的模型名称
+- `deepseek.api.key`: DeepSeek API 密钥
+- `deepseek.base-url`: OpenAI-compatible API 端点
+- `deepseek.model`: 使用的模型名称
+- `deepseek.timeout-ms`: 请求超时时间
 
 ---
 

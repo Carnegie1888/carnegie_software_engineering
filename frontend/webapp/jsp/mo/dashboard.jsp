@@ -22,7 +22,6 @@
     <script src="<%= contextPath %>/js/common/locale-bootstrap.js"></script>
     <title data-i18n="portal.page.moDashboard.title">MO Dashboard - Post TA Jobs</title>
     <link rel="stylesheet" href="<%= contextPath %>/css/mo/mo-dashboard.css">
-    <link rel="stylesheet" href="<%= contextPath %>/css/mo/mo-applicant-selection.css">
 </head>
 <body>
     <div class="portal-shell portal-shell-mo">
@@ -55,7 +54,7 @@
                         “我的发布”面板。
                         mo-dashboard.js 会把职位卡片渲染到 #job-list，并从卡片进入申请人子视图。
                     --%>
-                    <div class="mo-tab-panel <%= "my-jobs".equals(activeNav) ? "is-active" : "" %>" id="panel-my-jobs" role="tabpanel" aria-labelledby="tab-my-jobs" <%= "post-job".equals(activeNav) ? "hidden" : "" %>>
+                    <div class="mo-tab-panel <%= "my-jobs".equals(activeNav) ? "is-active" : "" %>" id="panel-my-jobs" <%= "post-job".equals(activeNav) ? "hidden" : "" %>>
                         <section class="mo-card" aria-label="我的岗位列表" data-i18n-aria-label="portal.moDashboard.myJobsPanelAria">
                             <div class="section-heading">
                                 <div>
@@ -85,7 +84,7 @@
                         “发布新职位”面板。
                         表单字段名与 JobServlet.JOB_FIELDS 保持一致，提交到 /api/jobs。
                     --%>
-                    <div class="mo-tab-panel <%= "post-job".equals(activeNav) ? "is-active" : "" %>" id="panel-post-job" role="tabpanel" aria-labelledby="tab-post-job" <%= "my-jobs".equals(activeNav) ? "hidden" : "" %>>
+                    <div class="mo-tab-panel <%= "post-job".equals(activeNav) ? "is-active" : "" %>" id="panel-post-job" <%= "my-jobs".equals(activeNav) ? "hidden" : "" %>>
                         <section class="mo-card" aria-label="发布职位表单" data-i18n-aria-label="portal.moDashboard.postJobPanelAria">
                             <div class="section-heading">
                                 <div>

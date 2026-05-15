@@ -1,26 +1,38 @@
-import com.example.tarecruitment.admin.model.AdminInvite;
+import com.example.tarecruitment.admin.service.InviteCodeService;
 import com.example.tarecruitment.application.dao.ApplicationDao;
 import com.example.tarecruitment.application.model.Application;
 import com.example.tarecruitment.application.validator.ApplicationValidator;
-import com.example.tarecruitment.auth.model.User;
-import com.example.tarecruitment.common.util.SecurityTokenUtil;
 import com.example.tarecruitment.notification.model.Notification;
 
-import java.time.LocalDateTime;
-
+/**
+ * member4 后端测试入口。
+ *
+ * member4 的职责重点是申请流程、状态流转、通知和管理员邀请码。
+ * 本测试不启动 Servlet 容器，而是直接测试 validator、model 和 DAO，
+ * 因为这些类承载了答辩时最容易讲清楚的核心业务规则。
+ */
 public class Member4BackendTest {
 
     private static int passed;
 
     public static void main(String[] args) {
+        // 按“输入校验 -> 数据格式 -> 状态流转 -> 通知/短邀请码”的顺序组织输出。
         testApplicationValidation();
         testApplicationCsvRoundTrip();
         testApplicationDaoTransitions();
         testNotificationCsvRoundTrip();
-        testAdminInviteCsvAndExpiry();
+        testInviteCodeValidation();
         System.out.println("[member4] PASS total=" + passed);
     }
 
+    /**
+     * 验证申请接口的输入校验。
+     *
+     * ApplicationValidator 只负责 HTTP 参数层面的安全和格式：
+     * - jobId/applicationId 不能为空；
+     * - coverLetter 不能包含明显 HTML/JS 注入；
+     * - transition action 只能是 accept/reject/withdraw。
+     */
     private static void testApplicationValidation() {
         assertNull(ApplicationValidator.validateJobId("job-001"), "valid job id");
         assertEquals("Job ID is required", ApplicationValidator.validateJobId(" "), "blank job id");
@@ -34,6 +46,12 @@ public class Member4BackendTest {
         pass("ApplicationValidator checks IDs, cover letters, and transition actions");
     }
 
+    /**
+     * 验证 Application 模型的 CSV 格式。
+     *
+     * 申请数据需要保存申请人、职位、状态和进度阶段。
+     * 这里把 applicantName 设成带逗号的值，确认 CSV 转义不会导致错列。
+     */
     private static void testApplicationCsvRoundTrip() {
         Application application = new Application("job-4", "applicant-4", "Alice, TA", "alice@example.test");
         application.setApplicationId("application-004");
@@ -51,6 +69,15 @@ public class Member4BackendTest {
         pass("Application CSV round-trip preserves applicant and progress fields");
     }
 
+    /**
+     * 验证申请 DAO 的状态流转。
+     *
+     * 这里模拟两个核心场景：
+     * - MO 接受申请：状态变为 ACCEPTED，进度变为 COMPLETED；
+     * - TA 撤回申请：状态变为 WITHDRAWN。
+     *
+     * 这些变化都会写入临时 applications.csv，再通过 findById 读回验证。
+     */
     private static void testApplicationDaoTransitions() {
         ApplicationDao dao = ApplicationDao.getInstance();
         dao.deleteAll();
@@ -75,6 +102,12 @@ public class Member4BackendTest {
         pass("ApplicationDao stores applications and applies accept/withdraw status transitions");
     }
 
+    /**
+     * 验证系统公告 Notification 的 CSV 往返。
+     *
+     * 通知页依赖标题、正文、发布者快照和发布时间。
+     * 这里确认含逗号的标题不会破坏 CSV 字段边界。
+     */
     private static void testNotificationCsvRoundTrip() {
         Notification notification = new Notification();
         notification.setNotificationId("notice-004");
@@ -90,31 +123,34 @@ public class Member4BackendTest {
         pass("Notification CSV round-trip preserves published message fields");
     }
 
-    private static void testAdminInviteCsvAndExpiry() {
-        AdminInvite invite = new AdminInvite();
-        invite.setInviteId("invite-004");
-        invite.setEmail("admin4@example.test");
-        invite.setTokenHash(SecurityTokenUtil.sha256Hex("token"));
-        invite.setInviteCodeHash(SecurityTokenUtil.sha256Hex("ABCD2345"));
-        invite.setRole(User.Role.ADMIN);
-        invite.setCreatedByUserId("admin-owner");
-        invite.setCreatedByUsername("admin_demo");
-        invite.setCreatedAt(LocalDateTime.now().minusDays(2));
-        invite.setExpiresAt(LocalDateTime.now().minusDays(1));
+    /**
+     * 验证当前管理员短邀请码流程。
+     *
+     * InviteCodeService 使用服务端密钥和时间窗口生成 8 位短码。
+     * 测试只校验当前可见流程：当前码可用、大小写/空格可容忍、明显错误码会被拒绝。
+     */
+    private static void testInviteCodeValidation() {
+        InviteCodeService service = InviteCodeService.getInstance();
+        String currentCode = service.getCurrentCode();
 
-        assertTrue(invite.isExpired(LocalDateTime.now()), "expired invite");
-        AdminInvite parsed = AdminInvite.fromCsv(invite.toCsv());
-        assertNotNull(parsed, "parsed invite");
-        assertEquals(AdminInvite.Status.PENDING, parsed.getStatus(), "default invite status");
-        assertEquals(User.Role.ADMIN, parsed.getRole(), "invite role");
-        pass("AdminInvite keeps CSV fields and expiry rule stable");
+        assertEquals(8, currentCode.length(), "invite code length");
+        assertTrue(service.isValidCode(currentCode), "current invite code");
+        assertTrue(service.isValidCode(" " + currentCode.toLowerCase() + " "), "normalized invite code");
+        assertTrue(!service.isValidCode("INVALID1"), "invalid invite code");
+        assertTrue(service.getSecondsRemaining() >= 0 && service.getSecondsRemaining() <= 600,
+                "invite code countdown range");
+        pass("InviteCodeService validates the visible short-code invitation flow");
     }
 
+    /**
+     * 输出当前测试点通过信息，便于答辩时逐条讲解测试过程。
+     */
     private static void pass(String message) {
         passed++;
         System.out.println("[member4] PASS - " + message);
     }
 
+    // 自定义断言工具。失败时抛 AssertionError，shell 脚本会立即判定该成员测试失败。
     private static void assertTrue(boolean condition, String message) {
         if (!condition) {
             throw new AssertionError(message);

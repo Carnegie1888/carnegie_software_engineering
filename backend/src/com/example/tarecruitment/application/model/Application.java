@@ -45,7 +45,6 @@ public class Application {
      * 流程阶段：提交后即进入审核中，结束后为已完成。
      */
     public enum ProgressStage {
-        SUBMITTED,
         UNDER_REVIEW,
         INTERVIEW_SCHEDULED,
         COMPLETED
@@ -290,7 +289,7 @@ public class Application {
 
         if (parts.length > 14 && !parts[14].isEmpty()) {
             try {
-                app.setProgressStage(ProgressStage.valueOf(parts[14].trim()));
+                app.setProgressStage(parseProgressStage(parts[14]));
             } catch (IllegalArgumentException e) {
                 app.setProgressStage(null);
             }
@@ -333,21 +332,25 @@ public class Application {
 
     /**
      * 统一待处理申请的进度阶段。
-     *
-     * 遗留/待移除：当前前端没有“已提交但未开始审核”的独立展示，
-     * 所以 SUBMITTED 会被折叠为 UNDER_REVIEW；后续若页面真正展示提交态，
-     * 可以移除这段兼容归一化。
      */
     private static void normalizePendingProgress(Application app) {
         if (app == null || app.getStatus() != Status.PENDING) {
             return;
         }
-        if (app.getProgressStage() == null || app.getProgressStage() == ProgressStage.SUBMITTED) {
+        if (app.getProgressStage() == null) {
             app.setProgressStage(ProgressStage.UNDER_REVIEW);
         }
         if (app.getReviewStartedAt() == null) {
             app.setReviewStartedAt(app.getAppliedAt());
         }
+    }
+
+    private static ProgressStage parseProgressStage(String value) {
+        String normalized = value != null ? value.trim() : "";
+        if ("SUBMITTED".equals(normalized)) {
+            return ProgressStage.UNDER_REVIEW;
+        }
+        return ProgressStage.valueOf(normalized);
     }
 
     private static String escapeCsv(String value) {

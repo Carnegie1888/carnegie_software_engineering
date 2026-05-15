@@ -57,8 +57,7 @@ final class AccessPolicy {
                 || "/index.jsp".equals(path)
                 || "/login.jsp".equals(path)
                 || "/register.jsp".equals(path)
-                || "/admin-invite.jsp".equals(path)
-                || "/admin-register.jsp".equals(path)) {
+                || "/admin-invite.jsp".equals(path)) {
             return true;
         }
         if ("POST".equals(verb)

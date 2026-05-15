@@ -34,9 +34,7 @@
     animation: ui-skeleton 1.2s ease-in-out infinite;
 }
 
-.loading-spinner,
-.ai-loading-spinner,
-.application-ai-spinner {
+.loading-spinner {
     width: 18px;
     height: 18px;
     border-radius: 50%;

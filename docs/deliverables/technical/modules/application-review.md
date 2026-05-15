@@ -8,7 +8,7 @@
 - `Application` - 申请实体
 - `ApplicationDao` - 数据访问层
 - `ApplicationServlet` - 申请操作处理
-- 前端页面: `jsp/ta/application-status.jsp`, `jsp/ta/application-detail.jsp`, `jsp/mo/applicant-selection.jsp`
+- 前端页面: `jsp/ta/application-status.jsp`, `jsp/ta/application-detail.jsp`, `jsp/mo/dashboard.jsp` 申请人子视图
 
 ---
 
@@ -34,23 +34,23 @@ public class Application {
     private LocalDateTime appliedAt;
     private LocalDateTime updatedAt;
     private LocalDateTime reviewedAt;
-    private ProgressStage progressStage; // SUBMITTED / UNDER_REVIEW / INTERVIEW_SCHEDULED / COMPLETED
+    private ProgressStage progressStage; // UNDER_REVIEW / INTERVIEW_SCHEDULED / COMPLETED
     private LocalDateTime reviewStartedAt;
     private LocalDateTime interviewScheduledAt;
     private LocalDateTime finalDecisionAt;
 
     public enum Status { PENDING, ACCEPTED, REJECTED, WITHDRAWN }
-    public enum ProgressStage { SUBMITTED, UNDER_REVIEW, INTERVIEW_SCHEDULED, COMPLETED }
+    public enum ProgressStage { UNDER_REVIEW, INTERVIEW_SCHEDULED, COMPLETED }
 }
 ```
 
 ### 2.2 进度阶段
 
 ```
-SUBMITTED ──▶ UNDER_REVIEW ──▶ INTERVIEW_SCHEDULED ──▶ COMPLETED
-   (提交)         (审核中)          (已安排面试)           (完成)
-                      │
-                      └──▶ ACCEPTED / REJECTED / WITHDRAWN
+UNDER_REVIEW ──▶ INTERVIEW_SCHEDULED ──▶ COMPLETED
+   (审核中)             (已安排面试)           (完成)
+      │
+      └──▶ WITHDRAWN
 ```
 
 ### 2.3 CSV 格式
@@ -212,16 +212,16 @@ async function cancelApplication(applicationId) {
 - 进度时间线
 - 审核结果展示
 
-### 5.3 MO 候选人筛选页
+### 5.3 MO dashboard 申请人子视图
 
-**路径**: `frontend/webapp/jsp/mo/applicant-selection.jsp`
+**路径**: `frontend/webapp/jsp/mo/dashboard.jsp`
 
 **功能**:
 - 收到的申请列表
 - 查看申请人档案
 - 查看简历
-- 筛选/排序
-- 审核操作 (接受/拒绝/推进进度)
+- 搜索和 AI 推荐候选人
+- 审核操作 (接受/拒绝)
 
 ---
 
@@ -270,9 +270,6 @@ MO 查看收到的申请
 点击申请查看详情
     │
     ▼
-可选: 启动 AI 匹配分析
-    │
-    ▼
 选择候选人
     │
     ▼
@@ -293,7 +290,6 @@ TA 收到通知 (可选)
 
 | 阶段 | 可能状态 |
 |------|----------|
-| SUBMITTED | PENDING |
 | UNDER_REVIEW | PENDING |
 | INTERVIEW_SCHEDULED | PENDING |
 | COMPLETED | ACCEPTED / REJECTED / WITHDRAWN |

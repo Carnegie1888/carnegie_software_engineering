@@ -38,7 +38,6 @@
         viewMode: "list",
         applications: [],
         detailsById: {},
-        aiByApplicationId: {},
         selectedApplicationId: "",
         reviewingId: ""
     };
@@ -59,14 +58,11 @@
     var resetButton = document.getElementById("reset-btn");
     var messageNode = document.getElementById("form-message");
 
-    // DOM Elements - Tab Navigation
-    var tabMyJobs = document.getElementById("tab-my-jobs");
-    var tabPostJob = document.getElementById("tab-post-job");
+    // DOM Elements - Page Panels
     var panelMyJobs = document.getElementById("panel-my-jobs");
     var panelPostJob = document.getElementById("panel-post-job");
 
     // DOM Elements - Job List
-    var jobListContainer = document.getElementById("job-list-container");
     var jobsLoading = document.getElementById("jobs-loading");
     var jobList = document.getElementById("job-list");
     var jobsEmpty = document.getElementById("jobs-empty");
@@ -112,7 +108,6 @@
     // ==========================================
     var panelApplicants = document.getElementById("panel-applicants");
     var subviewBackBtn = document.getElementById("subview-back-btn");
-    var subviewBackLabel = document.getElementById("subview-back-label");
     var subviewJobTitle = document.getElementById("subview-job-title");
     var subviewSearchForm = document.getElementById("subview-search-form");
     var subviewSearchInput = document.getElementById("subview-search-input");
@@ -169,7 +164,6 @@
 
         initializeRealtimeValidation();
         initializeEnterKeyNavigation();
-        initTabSwitching();
         initJobList();
         initEditModal();
         initDeleteModal();
@@ -236,36 +230,16 @@
         }
     }
 
-    // ==========================================
-    // Tab Switching
-    // ==========================================
-    function initTabSwitching() {
-        if (tabMyJobs) {
-            tabMyJobs.addEventListener("click", function () {
-                switchTab("my-jobs");
-            });
-        }
-        if (tabPostJob) {
-            tabPostJob.addEventListener("click", function () {
-                switchTab("post-job");
-            });
-        }
-    }
-
     function switchTab(tabId) {
         if (panelApplicants) panelApplicants.classList.add("hidden");
 
         if (tabId === "my-jobs") {
-            if (tabMyJobs) { tabMyJobs.classList.add("is-active"); tabMyJobs.setAttribute("aria-selected", "true"); }
-            if (tabPostJob) { tabPostJob.classList.remove("is-active"); tabPostJob.setAttribute("aria-selected", "false"); }
             panelMyJobs.classList.add("is-active");
             panelMyJobs.hidden = false;
             panelPostJob.classList.remove("is-active");
             panelPostJob.hidden = true;
             loadJobs();
         } else {
-            if (tabPostJob) { tabPostJob.classList.add("is-active"); tabPostJob.setAttribute("aria-selected", "true"); }
-            if (tabMyJobs) { tabMyJobs.classList.remove("is-active"); tabMyJobs.setAttribute("aria-selected", "false"); }
             panelPostJob.classList.add("is-active");
             panelPostJob.hidden = false;
             panelMyJobs.classList.remove("is-active");
@@ -1403,14 +1377,12 @@
         svState.viewMode = "list";
         svState.applications = [];
         svState.detailsById = {};
-        svState.aiByApplicationId = {};
         clearSvAiRecommendationState();
         svState.selectedApplicationId = "";
         svState.reviewingId = "";
 
         if (subviewSearchInput) subviewSearchInput.value = "";
         if (subviewJobTitle) subviewJobTitle.textContent = jobTitle;
-        if (subviewBackLabel) subviewBackLabel.textContent = t("portal.moDashboard.backToMyJobs", "← 我的发布");
         updateSvSearchControls();
 
         panelMyJobs.classList.remove("is-active");
@@ -1437,7 +1409,6 @@
     function svShowListView() {
         svState.viewMode = "list";
         svState.selectedApplicationId = "";
-        if (subviewBackLabel) subviewBackLabel.textContent = t("portal.moDashboard.backToMyJobs", "← 我的发布");
         if (subviewJobTitle) subviewJobTitle.textContent = svState.jobTitle;
         updateSvSearchControls();
         renderSvList();
@@ -1459,7 +1430,6 @@
         }
         var detail = svState.detailsById[applicationId];
         var name = (detail && detail.fullName) || (application && application.applicantName) || "Applicant";
-        if (subviewBackLabel) subviewBackLabel.textContent = t("portal.moDashboard.backToApplicants", "← 申请人列表");
         if (subviewJobTitle) subviewJobTitle.textContent = name;
         updateSvSearchControls();
         renderSvDetail(applicationId);
@@ -1852,7 +1822,7 @@
 
         var applicationId = safeValue(application.applicationId, "");
         var status = String(application.status || "PENDING").toUpperCase();
-        var progressStage = String(application.progressStage || "SUBMITTED").toUpperCase();
+        var progressStage = String(application.progressStage || "UNDER_REVIEW").toUpperCase();
         var statusClass = getStatusClass(status);
         var reviewingThis = svState.reviewingId === applicationId;
         var profileName = detail ? safeValue(detail.fullName, "") : "";
@@ -2034,155 +2004,6 @@
     }
 
     /*
-     * 构造单个申请的 AI 匹配分析面板。
-     * 结果来自 /api/mo/application-match-analyses，不在前端生成分析结论。
-     */
-    function buildSvAiPanelHtml(applicationId) {
-        var aiState = svState.aiByApplicationId[applicationId] || { loading: false, result: null, statusMessage: "" };
-        var statusMarkup = aiState.statusMessage
-            ? "<div class=\"application-ai-status status-banner error\">" + escapeHtml(aiState.statusMessage) + "</div>"
-            : "";
-        var loadingMarkup = aiState.loading
-            ? "<section class=\"application-ai-loading\" aria-live=\"polite\">" +
-                "<span class=\"application-ai-spinner\" aria-hidden=\"true\"></span>" +
-                "<p>" + escapeHtml(t("portal.dynamic.loadingMoAiAnalysis", "Analyzing applicant profile and this job...")) + "</p>" +
-              "</section>"
-            : "";
-        var resultMarkup = aiState.result ? buildSvAiResultHtml(aiState.result) : "";
-        var emptyMarkup = !aiState.loading && !aiState.result
-            ? "<p class=\"application-ai-empty\">" + escapeHtml(t("portal.dynamic.moAiNoResult", "No analysis result is available yet.")) + "</p>"
-            : "";
-
-        return "<section class=\"application-ai-panel\" aria-live=\"polite\">" +
-            "<div class=\"application-ai-panel-head\">" +
-                "<div class=\"application-ai-panel-copy\">" +
-                    "<p class=\"application-ai-kicker\">" + escapeHtml(t("portal.moApplicantSelection.aiChat", "Ask AI")) + "</p>" +
-                    "<h4 class=\"application-ai-title\">" + escapeHtml(t("portal.moApplicantSelection.aiMatchTitle", "AI matching analysis")) + "</h4>" +
-                    "<p class=\"application-ai-subtitle\">" +
-                        escapeHtml(t("portal.moApplicantSelection.aiMatchSubtitle", "Analyze fit between this applicant, cover letter, and job using non-sensitive information.")) +
-                    "</p>" +
-                "</div>" +
-                "<button class=\"application-ai-refresh\" type=\"button\" data-ai-action=\"refresh\"" + (aiState.loading ? " disabled" : "") + ">" +
-                    escapeHtml(t("portal.moApplicantSelection.aiMatchRefresh", "Re-analyze")) +
-                "</button>" +
-            "</div>" +
-            statusMarkup + loadingMarkup + resultMarkup + emptyMarkup +
-        "</section>";
-    }
-
-    /*
-     * 渲染 AI 分析结果主体：分数、等级、总结、优势、风险和建议。
-     */
-    function buildSvAiResultHtml(result) {
-        return "<section class=\"application-ai-result\">" +
-            "<div class=\"application-ai-overview\">" +
-                "<article class=\"application-ai-overview-item\">" +
-                    "<p>" + escapeHtml(t("portal.moApplicantSelection.aiMatchScoreLabel", "Overall score")) + "</p>" +
-                    "<strong>" + escapeHtml(formatSvAiScore(result.overallScore)) + "</strong>" +
-                "</article>" +
-                "<article class=\"application-ai-overview-item\">" +
-                    "<p>" + escapeHtml(t("portal.moApplicantSelection.aiMatchLevelLabel", "Level")) + "</p>" +
-                    "<strong>" + escapeHtml(formatSvAiLevel(result.matchLevel)) + "</strong>" +
-                "</article>" +
-            "</div>" +
-            "<article class=\"application-ai-block\">" +
-                "<h5>" + escapeHtml(t("portal.moApplicantSelection.aiMatchSummaryLabel", "Summary")) + "</h5>" +
-                "<p class=\"application-ai-summary\">" + escapeHtml(safeValue(result.summary, t("portal.dynamic.aiNoSummary", "No summary available."))) + "</p>" +
-            "</article>" +
-            buildSvAiList(t("portal.moApplicantSelection.aiMatchStrengthsLabel", "Strengths"), result.strengths, t("portal.dynamic.aiNoStrengths", "No clear strengths identified.")) +
-            buildSvAiList(t("portal.moApplicantSelection.aiMatchRisksLabel", "Risks"), result.risks, t("portal.dynamic.aiNoRisks", "No obvious risks identified.")) +
-            buildSvAiList(t("portal.moApplicantSelection.aiMatchSuggestionsLabel", "Suggestions"), result.suggestions, t("portal.dynamic.aiNoSuggestions", "No additional suggestions at this time.")) +
-        "</section>";
-    }
-
-    /*
-     * 渲染 AI 分析中的列表段落，空列表时显示明确兜底文案。
-     */
-    function buildSvAiList(heading, items, emptyText) {
-        var arr = Array.isArray(items) ? items.filter(function (s) { return typeof s === "string" && s.trim(); }) : [];
-        var listItems = arr.length
-            ? arr.map(function (item) { return "<li>" + escapeHtml(item) + "</li>"; }).join("")
-            : "<li>" + escapeHtml(emptyText) + "</li>";
-        return "<article class=\"application-ai-block\">" +
-            "<h5>" + escapeHtml(heading) + "</h5>" +
-            "<ul class=\"application-ai-list\">" + listItems + "</ul>" +
-        "</article>";
-    }
-
-    /*
-     * 分数展示限制在 0-100。
-     */
-    function formatSvAiScore(score) {
-        var n = Number(score);
-        if (isNaN(n)) return "-";
-        return Math.max(0, Math.min(100, Math.round(n))) + "/100";
-    }
-
-    /*
-     * 后端 HIGH/MEDIUM/LOW 转成本地化文案。
-     */
-    function formatSvAiLevel(level) {
-        var s = safeValue(level, "").toUpperCase();
-        if (s === "HIGH") return t("portal.dynamic.aiMatchLevelHigh", "High");
-        if (s === "MEDIUM") return t("portal.dynamic.aiMatchLevelMedium", "Medium");
-        if (s === "LOW") return t("portal.dynamic.aiMatchLevelLow", "Low");
-        return s || "-";
-    }
-
-    /*
-     * 请求单个申请的 AI 匹配分析。
-     * forceRefresh=false 时复用已有结果，避免展开面板时重复调用 AI。
-     */
-    function requestSvAiAnalysis(applicationId, forceRefresh) {
-        var aiState = svState.aiByApplicationId[applicationId];
-        if (!aiState) {
-            aiState = { loading: false, result: null, statusMessage: "" };
-            svState.aiByApplicationId[applicationId] = aiState;
-        }
-        if (aiState.loading) return;
-        if (aiState.result && !forceRefresh) return;
-
-        aiState.loading = true;
-        aiState.statusMessage = "";
-        updateSvAiPanel(applicationId);
-
-        var formData = new URLSearchParams();
-        formData.set("applicationId", applicationId);
-        request(window.TARecruitment.routes.mo.applicationMatchAnalyses(), {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8", "X-Requested-With": "XMLHttpRequest" },
-            body: formData.toString()
-        }).then(function (result) {
-            if (!result.response.ok || !result.payload || result.payload.success !== true) {
-                aiState.statusMessage = t("portal.dynamic.moAiAnalysisFailed", "Unable to generate AI analysis right now.");
-                aiState.loading = false;
-            } else {
-                var data = result.payload.data || result.payload;
-                aiState.result = data;
-                aiState.loading = false;
-            }
-            updateSvAiPanel(applicationId);
-        }).catch(function () {
-            aiState.statusMessage = t("portal.dynamic.networkErrorTryAgain", "Network error.");
-            aiState.loading = false;
-            updateSvAiPanel(applicationId);
-        });
-    }
-
-    /*
-     * 局部刷新 AI 面板，不重绘整个申请详情卡片。
-     */
-    function updateSvAiPanel(applicationId) {
-        var panelId = "sv-ai-panel-" + applicationId.replace(/[^a-zA-Z0-9_-]/g, "");
-        var panel = document.getElementById(panelId);
-        if (panel) {
-            panel.innerHTML = buildSvAiPanelHtml(applicationId);
-            var refreshBtn = panel.querySelector("[data-ai-action='refresh']");
-            if (refreshBtn) refreshBtn.addEventListener("click", function () { requestSvAiAnalysis(applicationId, true); });
-        }
-    }
-
-    /*
      * 处理 MO 对申请的接受/拒绝。
      * 成功后回到列表并重新加载，确保状态和职位名额同步。
      */
@@ -2208,7 +2029,6 @@
                 : t("portal.dynamic.applicationRejected", "Application rejected."), "success");
             svState.viewMode = "list";
             svState.selectedApplicationId = "";
-            if (subviewBackLabel) subviewBackLabel.textContent = t("portal.moDashboard.backToMyJobs", "← 我的发布");
             if (subviewJobTitle) subviewJobTitle.textContent = svState.jobTitle;
         }).catch(function () {
             showSvMessage(t("portal.dynamic.networkErrorTryAgain", "Network error."), "error");

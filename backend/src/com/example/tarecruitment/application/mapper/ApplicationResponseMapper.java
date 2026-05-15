@@ -99,7 +99,7 @@ public final class ApplicationResponseMapper {
                 "appliedAt", app.getAppliedAt() != null ? app.getAppliedAt().toString() : "",
                 "updatedAt", app.getUpdatedAt() != null ? app.getUpdatedAt().toString() : "",
                 "reviewedAt", app.getReviewedAt() != null ? app.getReviewedAt().toString() : "",
-                "progressStage", app.getProgressStage() != null ? app.getProgressStage().name() : "SUBMITTED",
+                "progressStage", app.getProgressStage() != null ? app.getProgressStage().name() : "UNDER_REVIEW",
                 // 阶段时间用于申请进度时间线；部分旧 CSV 没有值，前端会按空字符串处理。
                 "reviewStartedAt", app.getReviewStartedAt() != null ? app.getReviewStartedAt().toString() : "",
                 "interviewScheduledAt", app.getInterviewScheduledAt() != null ? app.getInterviewScheduledAt().toString() : "",

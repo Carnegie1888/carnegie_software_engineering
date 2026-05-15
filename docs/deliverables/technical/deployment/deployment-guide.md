@@ -106,33 +106,19 @@ set TA_HIRING_DATA_DIR=%CATALINA_HOME%\data
 复制 AI 配置模板并填写实际值:
 
 ```bash
-cp frontend/webapp/WEB-INF/ai/match-analysis.properties.template \
-   frontend/webapp/WEB-INF/ai/match-analysis.local.properties
+cp frontend/webapp/WEB-INF/ai/deepseek.properties.template \
+   frontend/webapp/WEB-INF/ai/deepseek.local.properties
 ```
 
 编辑配置文件:
 ```properties
-api.key=your-actual-api-key
-api.url=https://api.dashscope.cn/v1/services/aigc/text-generation/generation
-model=qwen-turbo
+deepseek.api.key=your-actual-api-key
+deepseek.base-url=https://api.deepseek.com
+deepseek.model=deepseek-v4-flash
+deepseek.timeout-ms=8000
 ```
 
-### 5.3 邮件配置 (可选)
-
-如果需要发送邀请邮件，配置 SMTP:
-
-```properties
-mail.smtp.host=smtp.example.com
-mail.smtp.port=587
-mail.smtp.username=your-username
-mail.smtp.password=your-password
-mail.from=noreply@example.com
-
-# 开发模式 (打印到日志)
-email.dev.mode=true
-```
-
-### 5.4 Session 配置
+### 5.3 Session 配置
 
 在 `web.xml` 中配置 (可选):
 
@@ -186,7 +172,7 @@ ${CATALINA_HOME}/webapps/groupproject/
 ├── WEB-INF/
 │   ├── web.xml
 │   └── ai/
-│       └── match-analysis.local.properties  # AI 配置
+│       └── deepseek.local.properties  # AI 推荐配置
 ├── jsp/
 │   ├── ta/
 │   ├── mo/
@@ -270,19 +256,19 @@ chmod 644 ${DATA_DIR}/*.csv
 
 **检查**:
 1. API Key 是否正确配置
-2. 网络是否能访问 AI 服务
+2. `deepseek.base-url` 是否能访问
 3. AI 服务网络是否可达
 
 **解决方案**:
 ```bash
 # 检查配置文件
-cat frontend/webapp/WEB-INF/ai/match-analysis.local.properties
+cat frontend/webapp/WEB-INF/ai/deepseek.local.properties
 
 # 测试 API 连接
-curl -X POST "https://api.dashscope.cn/v1/services/aigc/text-generation/generation" \
+curl -X POST "https://api.deepseek.com/chat/completions" \
   -H "Authorization: Bearer YOUR-API-KEY" \
   -H "Content-Type: application/json" \
-  -d '{"model":"qwen-turbo","input":{"prompt":"hello"}}'
+  -d '{"model":"deepseek-v4-flash","messages":[{"role":"user","content":"hello"}]}'
 ```
 
 ### 9.4 文件上传失败

@@ -62,10 +62,7 @@ public class NotificationServlet extends HttpServlet {
             payload.add(item);
         }
 
-        // 遗留/待移除：这里仍使用 writeRaw 拼 data 数组；新 Servlet 应优先使用 ApiResponses.write。
-        // 保留原因是现有前端直接消费数组结构，后续可改为 objectMap 后统一收敛。
-        ApiResponses.writeRaw(response, 200, true, "OK",
-                "\"data\":" + ApiResponses.toJsonValue(payload));
+        ApiResponses.write(response, 200, true, "OK", payload);
     }
 
     // POST - publish a notification (admin only)

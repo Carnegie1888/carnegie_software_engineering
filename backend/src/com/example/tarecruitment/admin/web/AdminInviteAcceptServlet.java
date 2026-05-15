@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 /**
  * AdminInviteAcceptServlet - 接受邀请码，创建管理员账号。
  *
- * 对应 admin-register.jsp / js/auth/admin-invite.js。
+ * 对应 /admin-invite.jsp / js/auth/admin-invite.js。
  * 这条是当前可见管理员注册主流程：用户输入邮箱、用户名、密码和短邀请码即可创建 ADMIN。
  *
  * 邀请码由 InviteCodeService 生成的时间窗口码校验；

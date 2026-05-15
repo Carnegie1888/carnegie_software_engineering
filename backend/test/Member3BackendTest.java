@@ -1,4 +1,3 @@
-import com.example.tarecruitment.ai.client.MatchAnalysisAiConfig;
 import com.example.tarecruitment.job.dao.JobDao;
 import com.example.tarecruitment.job.mapper.JobRequestMapper;
 import com.example.tarecruitment.job.model.Job;
@@ -9,19 +8,34 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * member3 后端测试入口。
+ *
+ * member3 的职责重点是职位发布/查询/校验，以及账号资料同步。
+ * 这里用轻量 main 测试覆盖这些业务规则，而不是启动 Tomcat 做页面测试。
+ */
 public class Member3BackendTest {
 
     private static int passed;
 
     public static void main(String[] args) {
+        // 从表单校验开始，再测试职位状态/DAO，最后测试账号资料。
         testJobValidationRules();
         testJobEffectiveStatus();
         testJobDaoSearchAndStatus();
         testAccountProfileValidation();
-        testMatchAnalysisConfigFallbacks();
         System.out.println("[member3] PASS total=" + passed);
     }
 
+    /**
+     * 验证职位创建表单的后端校验。
+     *
+     * 这里构造一个完整合法职位，确认 validateCreate 返回 null；
+     * 同时补充几个典型错误输入：
+     * - 技能使用分号会被拒绝；
+     * - 重复技能会被拒绝；
+     * - 标题包含 HTML/JS 片段会被拒绝。
+     */
     private static void testJobValidationRules() {
         LocalDateTime deadline = LocalDateTime.now().plusDays(2).withSecond(0).withNano(0);
         LocalDate start = deadline.toLocalDate().plusDays(1);
@@ -55,6 +69,12 @@ public class Member3BackendTest {
         pass("JobValidator accepts valid jobs and rejects unsafe or ambiguous fields");
     }
 
+    /**
+     * 验证职位的“有效状态”规则。
+     *
+     * 数据里保存的 status 可能还是 OPEN，但如果截止时间已过，
+     * 页面列表和统计应当把它视为 CLOSED。
+     */
     private static void testJobEffectiveStatus() {
         Job job = new Job("mo-3", "MO Three", "Tutor", "SE602");
         job.setStatus(Job.Status.OPEN);
@@ -66,6 +86,14 @@ public class Member3BackendTest {
         pass("Job effective status handles deadlines and final states");
     }
 
+    /**
+     * 验证 JobDao 的基本数据流程。
+     *
+     * 测试会在临时数据目录中创建职位，随后验证：
+     * - 开放职位数量；
+     * - 关键词搜索覆盖描述字段；
+     * - 状态更新可以写回 CSV 并再次读出。
+     */
     private static void testJobDaoSearchAndStatus() {
         JobDao dao = JobDao.getInstance();
         dao.deleteAll();
@@ -89,6 +117,12 @@ public class Member3BackendTest {
         pass("JobDao stores jobs, searches fields, and updates status");
     }
 
+    /**
+     * 验证账号资料校验器。
+     *
+     * 账号资料会显示在侧边栏、顶栏和 TA 档案联动位置，因此这里测试：
+     * 用户名格式、TA 已有档案后的实名要求，以及上传文件名清洗。
+     */
     private static void testAccountProfileValidation() {
         assertNull(AccountProfileValidator.validateUsernameFormat("member_3"), "valid username");
         assertEquals("Username cannot end with an underscore",
@@ -102,52 +136,19 @@ public class Member3BackendTest {
         pass("AccountProfileValidator protects account names and uploaded file names");
     }
 
-    private static void testMatchAnalysisConfigFallbacks() {
-        String oldKey = System.getProperty("dashscope.api.key");
-        String oldBaseUrl = System.getProperty("ta.job.match.ai.base-url");
-        String oldModel = System.getProperty("ta.job.match.ai.model");
-        String oldTimeout = System.getProperty("ta.job.match.ai.timeout-ms");
-        try {
-            System.setProperty("dashscope.api.key", "placeholder-key");
-            System.setProperty("ta.job.match.ai.base-url", "https://dashscope.example.test///");
-            System.setProperty("ta.job.match.ai.model", "analysis-test-model");
-            System.setProperty("ta.job.match.ai.timeout-ms", "0");
-
-            MatchAnalysisAiConfig config = MatchAnalysisAiConfig.load(null);
-            assertFalse(config.isApiKeyConfigured(), "placeholder key is not configured");
-            assertEquals("https://dashscope.example.test", config.getBaseUrl(), "base url normalization");
-            assertEquals("analysis-test-model", config.getModel(), "model property");
-            assertEquals(6000L, config.getTimeoutMillis(), "invalid timeout fallback");
-            pass("MatchAnalysisAiConfig handles missing real AI credentials safely");
-        } finally {
-            restoreProperty("dashscope.api.key", oldKey);
-            restoreProperty("ta.job.match.ai.base-url", oldBaseUrl);
-            restoreProperty("ta.job.match.ai.model", oldModel);
-            restoreProperty("ta.job.match.ai.timeout-ms", oldTimeout);
-        }
-    }
-
-    private static void restoreProperty(String key, String value) {
-        if (value == null) {
-            System.clearProperty(key);
-        } else {
-            System.setProperty(key, value);
-        }
-    }
-
+    /**
+     * 输出当前测试点通过信息。
+     */
     private static void pass(String message) {
         passed++;
         System.out.println("[member3] PASS - " + message);
     }
 
+    // 自定义轻量断言工具，失败时抛 AssertionError 让脚本退出非 0。
     private static void assertTrue(boolean condition, String message) {
         if (!condition) {
             throw new AssertionError(message);
         }
-    }
-
-    private static void assertFalse(boolean condition, String message) {
-        assertTrue(!condition, message);
     }
 
     private static void assertNull(Object value, String message) {

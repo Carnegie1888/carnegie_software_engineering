@@ -13,6 +13,8 @@
 
 每个成员答辩时只需要运行自己的脚本，不需要运行统一总测试。
 
+重叠文件和答辩主归属见：[overlap-and-defense-ownership.md](overlap-and-defense-ownership.md)。
+
 | 成员 | 测试命令 | 测试代码 |
 | --- | --- | --- |
 | `member1` | `./scripts/test/test-member1.sh` | `backend/test/Member1BackendTest.java` |
