@@ -18,6 +18,13 @@ import jakarta.servlet.http.Part;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+/**
+ * ApplicantProfileService - 当前 TA 的申请人档案业务服务。
+ *
+ * 被 ApplicantProfileServlet 调用，对应 /api/me/applicant-profile。
+ * 它负责档案创建/更新、简历草稿落正式文件、头像删除、学号唯一性，
+ * 以及把 TA 真实姓名同步到账号和历史申请快照，保证前端多个页面显示一致。
+ */
 public class ApplicantProfileService {
 
     private static ApplicantProfileService instance;
@@ -48,6 +55,7 @@ public class ApplicantProfileService {
 
         Optional<Applicant> applicantOpt = applicantDao.findByUserId(currentUser.getUserId());
         if (applicantOpt.isEmpty()) {
+            // TA 首次进入档案页时可能还没保存档案，但会话里可能已有“待保存简历草稿”。
             return ServiceResult.of(404, false, "Applicant profile not found",
                     ApplicantProfileResponseMapper.draftResumePayload(session, assetService));
         }
@@ -100,12 +108,14 @@ public class ApplicantProfileService {
             String draftResumeName = assetService.getDraftResumeName(session);
             boolean clearDraftAfterSave = false;
             if (ApplicantProfileValidator.isNotEmpty(draftResumePath)) {
+                // 普通表单保存时，先把单独上传的草稿简历复制到正式 resumes 目录。
                 newResumePath = assetService.copyDraftResumeToFinal(draftResumePath, currentUser.getUserId(), draftResumeName);
                 applicant.setResumePath(newResumePath);
                 clearDraftAfterSave = true;
             }
 
             if (input.isRemovePhoto()) {
+                // removePhoto 来自前端显式删除头像动作，不代表本次没有上传 photo。
                 applicant.setPhotoPath("");
             }
 
@@ -115,6 +125,7 @@ public class ApplicantProfileService {
 
             Applicant savedApplicant = saveApplicant(applicant, isUpdate);
             persisted = true;
+            // TA fullName 是账号实名和申请列表里 applicantName 的共同来源。
             syncAccountRealName(currentUser, savedApplicant.getFullName(), session);
             syncApplicationApplicantName(savedApplicant);
 
@@ -186,6 +197,7 @@ public class ApplicantProfileService {
 
             Part resumePart = upload.getResumePart();
             if (resumePart != null) {
+                // multipart 保存路径是“直接带文件提交”；非 multipart 才走草稿简历状态。
                 String fileError = ProfileAssetValidator.validateResumeFile(resumePart);
                 if (fileError != null) {
                     return ServiceResult.badRequest(fileError);
@@ -195,6 +207,7 @@ public class ApplicantProfileService {
                 currentResumeName = ProfileAssetValidator.extractFileName(resumePart);
                 clearDraftAfterSave = assetService.hasDraftResume(session);
             } else if (assetService.hasDraftResume(session)) {
+                // 允许用户先上传草稿简历，再用普通表单保存其它档案字段。
                 newResumePath = assetService.copyDraftResumeToFinal(
                         assetService.getDraftResumePath(session),
                         currentUser.getUserId(),
@@ -225,6 +238,7 @@ public class ApplicantProfileService {
             }
 
             if (isUpdate) {
+                // PUT/multipart 更新只覆盖请求里出现的字段，避免把未展示或未传字段清空。
                 applyProvidedFields(applicant, input);
             } else {
                 applyAllFields(applicant, input);
@@ -268,6 +282,7 @@ public class ApplicantProfileService {
     private ServiceResult validateStudentIdAvailability(String studentId,
                                                         Optional<Applicant> currentApplicant,
                                                         boolean isUpdate) {
+        // studentId 是 TA 档案的唯一键之一；更新自己原来的学号不算重复。
         Optional<Applicant> existingWithStudentId = applicantDao.findByStudentId(studentId);
         if (existingWithStudentId.isPresent()) {
             if (!isUpdate || currentApplicant.isEmpty()
@@ -340,6 +355,7 @@ public class ApplicantProfileService {
         }
 
         for (Application application : applicationDao.findByApplicantId(applicant.getApplicantId())) {
+            // 申请 CSV 保存了一份 applicantName 快照，用于 MO/Admin 列表不必回查档案。
             String currentName = application.getApplicantName() == null ? "" : application.getApplicantName();
             if (!fullName.equals(currentName)) {
                 application.setApplicantName(fullName);

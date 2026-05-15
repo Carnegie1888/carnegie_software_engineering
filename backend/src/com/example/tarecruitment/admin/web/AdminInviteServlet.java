@@ -23,6 +23,14 @@ import java.util.regex.Pattern;
 
 /**
  * AdminInviteServlet - 管理员邀请创建与邀请校验接口。
+ *
+ * 路径：
+ * - POST /api/admin/invitations：旧邮件邀请创建接口，需要 ADMIN。
+ * - GET  /api/admin/invitations/validate：旧邀请链接/验证码校验接口。
+ *
+ * 遗留/待移除：当前管理员可见页面使用 AdminCurrentInviteCodeServlet 显示短邀请码，
+ * admin-register.jsp 也只要求短邀请码注册；本 Servlet 的邮件/token 链路没有页面入口。
+ * 保留原因是兼容已有 admin_invites.csv 和历史演示接口。后续确认前端、测试、文档都不再引用后可删。
  */
 @WebServlet({ApiRoutes.ADMIN_INVITATIONS, ApiRoutes.ADMIN_INVITATION_VALIDATION})
 public class AdminInviteServlet extends HttpServlet {
@@ -74,6 +82,7 @@ public class AdminInviteServlet extends HttpServlet {
         String inviteToken = SecurityTokenUtil.generateInviteToken();
         String inviteCode = SecurityTokenUtil.generateInviteCode();
 
+        // 明文 token/code 只在本次响应和邮件正文中出现，CSV 里保存 hash。
         AdminInvite invite = inviteDao.createInvite(
                 email,
                 inviteToken,
@@ -121,6 +130,7 @@ public class AdminInviteServlet extends HttpServlet {
 
         java.util.Optional<AdminInvite> inviteOpt;
         if (!token.isEmpty()) {
+            // 遗留/待移除：旧邮件链接从 admin-invite.jsp?token=... 进入。
             inviteOpt = inviteDao.findValidByToken(token);
         } else {
             inviteOpt = inviteDao.findValidByEmailAndCode(email, inviteCode);
@@ -150,6 +160,7 @@ public class AdminInviteServlet extends HttpServlet {
 
     private String buildInviteUrl(HttpServletRequest request, String token) {
         StringBuilder url = new StringBuilder();
+        // 用当前请求拼绝对地址，保证部署在 /groupproject 这类 context path 下时链接仍正确。
         url.append(request.getScheme())
                 .append("://")
                 .append(request.getServerName());

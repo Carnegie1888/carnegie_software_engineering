@@ -8,6 +8,8 @@ import java.util.Base64;
 
 /**
  * SecurityTokenUtil - 生成邀请令牌、邀请码并提供哈希工具。
+ *
+ * 当前页面可见的是 8 位 admin 邀请码；长 token 是早期邀请链接方案遗留能力。
  */
 public final class SecurityTokenUtil {
 
@@ -18,6 +20,7 @@ public final class SecurityTokenUtil {
     }
 
     public static String generateInviteToken() {
+        // 遗留/待移除：当前 admin 注册流程要求输入邀请码，不再展示邮件链接 token 流程。
         byte[] buffer = new byte[32];
         SECURE_RANDOM.nextBytes(buffer);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(buffer);

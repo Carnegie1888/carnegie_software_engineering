@@ -17,6 +17,7 @@ import java.io.IOException;
  * 用于保护需要登录才能访问的资源
  *
  * 权限规则集中在 AccessPolicy，避免 Servlet 与前端路由迁移时散落修改路径集合。
+ * 对 AJAX 请求返回 JSON，对普通页面请求跳转或返回 403。
  */
 @WebFilter("/*")
 public class AuthFilter implements Filter {
@@ -47,7 +48,7 @@ public class AuthFilter implements Filter {
             return;
         }
 
-        // 获取session（不创建）
+        // 获取 session（不创建），未登录时不能因为访问受保护页面而新建空 session。
         HttpSession session = httpRequest.getSession(false);
 
         // 检查用户是否已登录
@@ -56,7 +57,7 @@ public class AuthFilter implements Filter {
             user = (User) session.getAttribute("user");
         }
 
-        // 需要登录的路径
+        // 需要登录的路径：页面请求跳登录页，前端 fetch 请求拿 401 后自行处理。
         if (user == null) {
             // AJAX请求返回JSON
             if (WebRequests.isAjax(httpRequest)) {
@@ -69,7 +70,7 @@ public class AuthFilter implements Filter {
             return;
         }
 
-        // 验证角色权限
+        // 验证角色权限：具体 path/method 规则集中在 AccessPolicy。
         if (!AccessPolicy.canAccess(httpRequest.getMethod(), path, user.getRole())) {
             if (WebRequests.isAjax(httpRequest)) {
                 ApiResponses.forbidden(httpResponse, "You don't have permission to access this resource");

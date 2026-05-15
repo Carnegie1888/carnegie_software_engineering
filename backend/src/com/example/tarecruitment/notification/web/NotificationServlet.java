@@ -20,11 +20,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * NotificationServlet — 系统通知 API
+ * NotificationServlet - 系统通知 API。
  *
- * GET  /api/notifications          — 所有已登录用户可查看
- * POST /api/notifications          — 仅 ADMIN 可发布 (params: title, content)
- * DELETE /api/notifications        — 仅 ADMIN 可删除 (param: notificationId)
+ * GET    /api/notifications - 所有已登录用户可查看。
+ * POST   /api/notifications - 仅 ADMIN 可发布，参数 title/content。
+ * DELETE /api/notifications - 仅 ADMIN 可删除，参数 notificationId。
+ *
+ * 对应 TA/MO/Admin 三套 notifications.jsp 页面；公告是全站共享，不按角色拆 CSV。
  */
 @WebServlet(ApiRoutes.NOTIFICATIONS)
 public class NotificationServlet extends HttpServlet {
@@ -38,7 +40,7 @@ public class NotificationServlet extends HttpServlet {
         notificationDao = NotificationDao.getInstance();
     }
 
-    // ── GET — list all notifications ─────────────────────────────────────
+    // GET - list all notifications
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -60,11 +62,13 @@ public class NotificationServlet extends HttpServlet {
             payload.add(item);
         }
 
+        // 遗留/待移除：这里仍使用 writeRaw 拼 data 数组；新 Servlet 应优先使用 ApiResponses.write。
+        // 保留原因是现有前端直接消费数组结构，后续可改为 objectMap 后统一收敛。
         ApiResponses.writeRaw(response, 200, true, "OK",
                 "\"data\":" + ApiResponses.toJsonValue(payload));
     }
 
-    // ── POST — publish a notification (admin only) ────────────────────────
+    // POST - publish a notification (admin only)
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -93,6 +97,7 @@ public class NotificationServlet extends HttpServlet {
         Notification n = new Notification();
         n.setTitle(title);
         n.setContent(content);
+        // 保存发布者快照，之后账号改名也不影响历史公告显示。
         n.setPublishedByUserId(user.getUserId());
         n.setPublishedByUsername(user.getUsername());
 
@@ -103,7 +108,7 @@ public class NotificationServlet extends HttpServlet {
         ApiResponses.write(response, 201, true, "Notification published", data);
     }
 
-    // ── DELETE — remove a notification (admin only) ───────────────────────
+    // DELETE - remove a notification (admin only)
 
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -131,7 +136,7 @@ public class NotificationServlet extends HttpServlet {
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
+    // Helpers
 
     private User currentUser(HttpServletRequest request) {
         HttpSession session = request.getSession(false);

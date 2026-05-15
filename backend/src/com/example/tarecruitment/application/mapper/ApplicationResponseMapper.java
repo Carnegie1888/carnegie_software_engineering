@@ -10,13 +10,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Maps application domain objects to the JSON payload shape consumed by JSP pages.
+ * 把 Application 领域对象转换成前端页面需要的 JSON payload。
+ *
+ * service 层只负责业务结果；列表字段、搜索提示字段和时间字符串在这里统一整理，
+ * 这样 TA/MO/Admin 页面不会各自猜 CSV 字段含义。
  */
 public final class ApplicationResponseMapper {
 
     private ApplicationResponseMapper() {
     }
 
+    /**
+     * 申请列表响应。
+     *
+     * 三类角色页面共用 applications 数组；搜索元信息只负责前端提示
+     * “是否用了关键词/是否只有近似结果”。
+     */
     public static Map<String, Object> toListPayload(List<Application> applications,
                                                     FuzzySearchUtil.SearchOutcome<Application> searchOutcome) {
         List<Map<String, Object>> items = new ArrayList<>();
@@ -35,12 +44,18 @@ public final class ApplicationResponseMapper {
         );
     }
 
+    /**
+     * 按角色决定模糊搜索覆盖哪些字段。
+     *
+     * 这样 TA 搜岗位相关信息，MO 搜候选人相关信息，Admin 搜全量审计信息。
+     */
     public static List<String> searchFieldsForRole(Application application, User.Role role) {
         List<String> fields = new ArrayList<>();
         if (application == null || role == null) {
             return fields;
         }
 
+        // 搜索字段跟角色视角保持一致：TA 搜岗位，MO 搜候选人，Admin 搜全局信息。
         if (role == User.Role.TA) {
             fields.add(application.getJobTitle());
             fields.add(application.getCourseCode());
@@ -63,6 +78,11 @@ public final class ApplicationResponseMapper {
         return fields;
     }
 
+    /**
+     * 单条申请响应。
+     *
+     * 这里输出的是页面字段名，不直接暴露 Application CSV 字段顺序。
+     */
     public static Map<String, Object> toPayload(Application app) {
         return ApiResponses.objectMap(
                 "applicationId", safeText(app.getApplicationId()),
@@ -80,6 +100,7 @@ public final class ApplicationResponseMapper {
                 "updatedAt", app.getUpdatedAt() != null ? app.getUpdatedAt().toString() : "",
                 "reviewedAt", app.getReviewedAt() != null ? app.getReviewedAt().toString() : "",
                 "progressStage", app.getProgressStage() != null ? app.getProgressStage().name() : "SUBMITTED",
+                // 阶段时间用于申请进度时间线；部分旧 CSV 没有值，前端会按空字符串处理。
                 "reviewStartedAt", app.getReviewStartedAt() != null ? app.getReviewStartedAt().toString() : "",
                 "interviewScheduledAt", app.getInterviewScheduledAt() != null ? app.getInterviewScheduledAt().toString() : "",
                 "finalDecisionAt", app.getFinalDecisionAt() != null ? app.getFinalDecisionAt().toString() : ""

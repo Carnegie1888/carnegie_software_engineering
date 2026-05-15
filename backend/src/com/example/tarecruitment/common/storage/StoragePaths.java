@@ -3,9 +3,10 @@ package com.example.tarecruitment.common.storage;
 import java.nio.file.Paths;
 
 /**
- * StoragePaths - 统一管理运行时数据目录
+ * StoragePaths - 统一管理运行时数据目录。
  *
- * 配置方式：在 config.bat 中设置 TA_HIRING_DATA_DIR 环境变量
+ * 配置方式：通过 scripts/config.sh 或 scripts/config.bat 设置 TA_HIRING_DATA_DIR。
+ * 代码只读取这个环境变量，不把运行时数据写进仓库。
  *
  * 数据目录结构：
  * ${TA_HIRING_DATA_DIR}/
@@ -27,7 +28,7 @@ public final class StoragePaths {
 
     /**
      * 获取数据根目录
-     * 必须通过 config.bat 配置 TA_HIRING_DATA_DIR 环境变量
+     * 必须通过脚本配置 TA_HIRING_DATA_DIR 环境变量。
      */
     public static String getDataDir() {
         String dataDir = System.getenv(DATA_DIR_ENV);
@@ -65,6 +66,7 @@ public final class StoragePaths {
     }
 
     public static String getResumeDraftDir() {
+        // 草稿目录只给当前 TA 档案编辑流程使用，不会作为公开简历文件展示。
         return Paths.get(getDataDir(), "resume-drafts").toString();
     }
 
@@ -73,6 +75,7 @@ public final class StoragePaths {
     }
 
     public static String getPhotoDraftDir() {
+        // 草稿目录只给头像/照片编辑流程使用，正式资源仍在 photos。
         return Paths.get(getDataDir(), "photo-drafts").toString();
     }
 

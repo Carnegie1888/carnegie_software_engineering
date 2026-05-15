@@ -15,6 +15,9 @@ import java.io.IOException;
 /**
  * AdminCurrentInviteCodeServlet - 当前邀请码查询与主动刷新接口。
  *
+ * 对应 /jsp/admin/invite.jsp 和 js/admin/admin-invite-management.js。
+ * 这是当前管理员页面实际展示的邀请方式：管理员看到短码，必要时手动刷新。
+ *
  * GET  /api/admin/invitations/current-code  返回当前码和剩余秒数（需 ADMIN）
  * POST /api/admin/invitations/current-code  主动轮换，返回新码（需 ADMIN）
  */

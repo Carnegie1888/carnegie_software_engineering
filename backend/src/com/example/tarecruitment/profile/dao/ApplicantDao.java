@@ -13,8 +13,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * ApplicantDao - TA申请人档案数据访问对象
- * 使用CSV文件存储申请人数据
+ * ApplicantDao - TA 申请人档案数据访问对象。
+ *
+ * 只负责 applicants.csv 的读写和简单查询，不处理 HTTP、session、文件上传或权限判断。
+ * 业务流程在 ApplicantProfileService，文件保存由 ProfileAssetService 管理。
  */
 public class ApplicantDao {
 
@@ -43,7 +45,7 @@ public class ApplicantDao {
     }
 
     /**
-     * 初始化申请人数据文件
+     * 初始化申请人数据文件；字段顺序要和 Applicant.toCsv()/fromCsv() 保持一致。
      */
     private void initApplicantFile() {
         File applicantFile = new File(APPLICANT_FILE);
@@ -102,7 +104,7 @@ public class ApplicantDao {
     }
 
     /**
-     * 写入所有申请人
+     * 写入所有申请人；使用临时文件原子替换，避免 CSV 写一半被中断。
      */
     private void writeAllApplicants(List<Applicant> applicants) {
         Path targetPath = Path.of(APPLICANT_FILE);
@@ -233,7 +235,10 @@ public class ApplicantDao {
     }
 
     /**
-     * 根据院系查找申请人
+     * 根据院系查找申请人。
+     *
+     * 遗留/待移除：当前前端没有单独按院系浏览申请人档案的入口；
+     * 若后续确认测试/AI 推荐也不需要，可和 findByProgram 一起清理。
      */
     public List<Applicant> findByDepartment(String department) {
         return readAllApplicants().stream()
@@ -242,7 +247,9 @@ public class ApplicantDao {
     }
 
     /**
-     * 根据项目查找申请人
+     * 根据项目查找申请人。
+     *
+     * 遗留/待移除：当前前端没有单独按项目浏览申请人档案的入口。
      */
     public List<Applicant> findByProgram(String program) {
         return readAllApplicants().stream()
@@ -258,14 +265,14 @@ public class ApplicantDao {
     }
 
     /**
-     * 清空所有申请人（仅用于测试）
+     * 清空所有申请人（仅用于测试和 demo 数据重置）。
      */
     public void deleteAll() {
         writeAllApplicants(new ArrayList<>());
     }
 
     /**
-     * 批量创建申请人（仅用于测试初始化）
+     * 批量创建申请人（仅用于测试初始化和 DemoDataSeeder）。
      */
     public void batchCreate(List<Applicant> applicants) {
         List<Applicant> existingApplicants = readAllApplicants();

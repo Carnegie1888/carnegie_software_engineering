@@ -15,8 +15,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * JobDao - 职位数据访问对象
- * 使用CSV文件存储职位数据
+ * JobDao - 职位数据访问对象。
+ *
+ * 只负责 jobs.csv 的读写、简单查询和搜索字段提取，不读取 request/session，也不做权限判断。
+ * JobService 负责业务规则，JobResponseMapper 负责前端 payload。
  */
 public class JobDao {
 
@@ -45,7 +47,7 @@ public class JobDao {
     }
 
     /**
-     * 初始化职位数据文件
+     * 初始化职位数据文件；字段顺序要和 Job.toCsv()/fromCsv() 保持一致。
      */
     private void initJobFile() {
         File jobFile = new File(JOB_FILE);
@@ -66,7 +68,7 @@ public class JobDao {
     }
 
     /**
-     * 读取所有职位
+     * 读取所有职位；上层需要筛选时在 service 层组合条件。
      */
     private List<Job> readAllJobs() {
         initJobFile();
@@ -104,7 +106,7 @@ public class JobDao {
     }
 
     /**
-     * 写入所有职位
+     * 写入所有职位；先写临时文件再原子替换，降低写一半导致 CSV 损坏的风险。
      */
     private void writeAllJobs(List<Job> jobs) {
         Path targetPath = Path.of(JOB_FILE);
@@ -258,7 +260,9 @@ public class JobDao {
     }
 
     /**
-     * 获取开放职位数量
+     * 获取开放职位数量。
+     *
+     * 这里使用 effective status，所以超过截止时间的 OPEN 岗位会被统计为非开放。
      */
     public long countOpenJobs() {
         LocalDateTime now = LocalDateTime.now();
@@ -268,14 +272,14 @@ public class JobDao {
     }
 
     /**
-     * 清空所有职位（仅用于测试）
+     * 清空所有职位（仅用于测试和 demo 数据重置）。
      */
     public void deleteAll() {
         writeAllJobs(new ArrayList<>());
     }
 
     /**
-     * 批量创建职位（仅用于测试初始化）
+     * 批量创建职位（仅用于测试初始化和 DemoDataSeeder）。
      */
     public void batchCreate(List<Job> jobs) {
         List<Job> existingJobs = readAllJobs();
@@ -284,7 +288,10 @@ public class JobDao {
     }
 
     /**
-     * 根据关键词搜索职位
+     * 根据关键词搜索职位。
+     *
+     * 遗留/待移除：外部主流程通常走 searchWithMetadata，以便前端知道 approximateOnly。
+     * 如果确认没有测试或旧调用依赖只返回列表的 search，可后续收敛到一个搜索入口。
      */
     public List<Job> search(String keyword) {
         return searchWithMetadata(keyword, readAllJobs()).getItems();

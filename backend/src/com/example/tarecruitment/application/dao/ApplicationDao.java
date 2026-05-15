@@ -14,8 +14,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * ApplicationDao - 申请数据访问对象
- * 使用CSV文件存储申请数据
+ * ApplicationDao - 申请数据访问对象。
+ *
+ * 只负责 applications.csv 的读写和简单查询，不读取 request/session，
+ * 也不决定角色权限。CSV 列顺序必须和 Application.toCsv/fromCsv 保持一致。
  */
 public class ApplicationDao {
 
@@ -107,6 +109,7 @@ public class ApplicationDao {
      */
     private void writeAllApplications(List<Application> applications) {
         try {
+            // 先写临时文件再原子替换，降低写入中断时破坏整个 CSV 的风险。
             Path targetPath = Path.of(APPLICATION_FILE);
             Path parent = targetPath.getParent();
             if (parent != null) {
@@ -123,6 +126,7 @@ public class ApplicationDao {
                     StandardCopyOption.REPLACE_EXISTING,
                     StandardCopyOption.ATOMIC_MOVE);
         } catch (java.nio.file.AtomicMoveNotSupportedException e) {
+            // 某些文件系统不支持 ATOMIC_MOVE，退回普通覆盖；仍然保持先写临时文件。
             try {
                 Path targetPath = Path.of(APPLICATION_FILE);
                 Path parent = targetPath.getParent();
@@ -294,6 +298,8 @@ public class ApplicationDao {
      * MO：开始材料审核（仅待处理且阶段为已提交）
      */
     public boolean startReview(String applicationId) {
+        // 遗留/待移除：当前前端创建申请后会直接进入 UNDER_REVIEW，
+        // 独立“开始材料审核”动作没有明显入口；如后续仍无按钮，可移除该 DAO 方法和相关文案。
         Optional<Application> appOpt = findById(applicationId);
         if (appOpt.isEmpty()) {
             return false;
@@ -379,6 +385,7 @@ public class ApplicationDao {
      * 清空所有申请（仅用于测试）
      */
     public void deleteAll() {
+        // 仅测试/演示数据重置使用，生产页面没有清空申请的入口。
         writeAllApplications(new ArrayList<>());
     }
 
@@ -386,6 +393,7 @@ public class ApplicationDao {
      * 批量创建申请（仅用于测试初始化）
      */
     public void batchCreate(List<Application> applications) {
+        // 仅 DemoDataSeeder/测试初始化使用，前端不会批量创建申请。
         List<Application> existingApps = readAllApplications();
         existingApps.addAll(applications);
         writeAllApplications(existingApps);

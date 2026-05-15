@@ -9,6 +9,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * ApplicantProfileResponseMapper - TA 档案响应转换工具。
+ *
+ * 统一输出前端需要的字段、简历/照片展示信息和档案完整度。
+ * 文件本体不在 JSON 中返回，只返回路径、文件名、大小等元信息。
+ */
 public final class ApplicantProfileResponseMapper {
 
     private ApplicantProfileResponseMapper() {
@@ -35,6 +41,7 @@ public final class ApplicantProfileResponseMapper {
         data.put("motivation", applicant.getMotivation() != null ? applicant.getMotivation() : "");
         data.put("completeness", completeness.completeness);
         data.put("missingFields", completeness.missingFields);
+        // 即使档案已存在，也要把当前会话里的“待保存简历草稿”一起告诉前端。
         data.putAll(draftResumePayload(session, assetService));
         return data;
     }
@@ -53,6 +60,7 @@ public final class ApplicantProfileResponseMapper {
     public static Map<String, Object> draftResumePayload(HttpSession session, ProfileAssetService assetService) {
         Map<String, Object> data = new LinkedHashMap<>();
         String pendingResumePath = assetService.getDraftResumePath(session);
+        // pendingResume* 只表示会话草稿，还没有写入 applicant.resumePath。
         data.put("pendingResumePath", pendingResumePath);
         data.put("pendingResumeName", assetService.buildDisplayFileName(pendingResumePath, assetService.getDraftResumeName(session)));
         data.put("pendingResumeSize", assetService.getStoredFileSize(pendingResumePath));
@@ -81,6 +89,7 @@ public final class ApplicantProfileResponseMapper {
     }
 
     private static CompletenessResult calculateCompleteness(Applicant applicant) {
+        // 完整度用于 TA dashboard 提示，不参与后端权限或申请资格判断。
         int totalFields = 12;
         int filledFields = 0;
         List<String> missingFields = new ArrayList<>();

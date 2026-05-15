@@ -7,8 +7,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 /**
- * Application实体类 - 职位申请
- * 存储TA申请人针对职位的申请信息
+ * Application 实体 - TA 对某个职位的一次申请。
+ *
+ * 这个类同时承担 CSV 序列化/反序列化，因此字段顺序是持久化契约。
+ * jobTitle/courseCode/moName 等字段是冗余显示字段，用来让历史申请列表不依赖实时职位表。
  */
 public class Application {
 
@@ -26,7 +28,7 @@ public class Application {
     private LocalDateTime appliedAt;    // 申请时间
     private LocalDateTime updatedAt;    // 更新时间
     private LocalDateTime reviewedAt;  // 审核时间
-    /** 申请流程阶段，与 {@link #status} 解耦：status 表示最终结果汇总，阶段表示当前进度 */
+    /** 申请流程阶段，与 {@link #status} 解耦：status 表示最终结果汇总，阶段表示当前进度。 */
     private ProgressStage progressStage;
     private LocalDateTime reviewStartedAt;      // 材料审核开始
     private LocalDateTime interviewScheduledAt; // 面试已安排
@@ -213,8 +215,11 @@ public class Application {
 
     /**
      * 转换为CSV格式存储
+     *
+     * 字段顺序就是持久化协议；新增字段只能追加在末尾。
      */
     public String toCsv() {
+        // 新列只能追加在末尾，不能插入中间，否则旧 CSV 数据会被错列读取。
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
         return String.join(",",
             escapeCsv(applicationId),
@@ -240,8 +245,11 @@ public class Application {
 
     /**
      * 从CSV格式解析
+     *
+     * 解析时允许旧行缺少尾部字段，避免历史演示数据因为新增进度列而失效。
      */
     public static Application fromCsv(String csvLine) {
+        // 兼容旧 CSV：早期文件只有前 14 列，没有 progressStage 和阶段时间。
         String[] parts = CsvCodec.split(csvLine);
         if (parts.length < 5) {
             return null;
@@ -297,7 +305,7 @@ public class Application {
             app.setFinalDecisionAt(LocalDateTime.parse(parts[17], formatter));
         }
 
-        // 旧 CSV 仅有 14 列（至 reviewedAt），需按 status 推断流程阶段。
+        // 遗留兼容：旧 CSV 仅有 14 列（至 reviewedAt），需按 status 推断流程阶段。
         if (parts.length <= 14) {
             applyLegacyProgressInference(app);
         }
@@ -323,6 +331,13 @@ public class Application {
         }
     }
 
+    /**
+     * 统一待处理申请的进度阶段。
+     *
+     * 遗留/待移除：当前前端没有“已提交但未开始审核”的独立展示，
+     * 所以 SUBMITTED 会被折叠为 UNDER_REVIEW；后续若页面真正展示提交态，
+     * 可以移除这段兼容归一化。
+     */
     private static void normalizePendingProgress(Application app) {
         if (app == null || app.getStatus() != Status.PENDING) {
             return;

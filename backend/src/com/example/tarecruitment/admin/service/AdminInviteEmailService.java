@@ -12,6 +12,11 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * AdminInviteEmailService - 负责发送管理员邀请邮件。
+ *
+ * 遗留/待移除：当前管理员可见页面没有邮件发送入口，实际注册走短邀请码。
+ * 这个服务仍给旧 AdminInviteServlet 使用：有 sendmail 就真实发送，没有就把邮件正文写入日志预览，
+ * 方便本地演示环境不配置邮件服务器也能看到邀请内容。
+ *
  * 优先尝试系统 sendmail；不可用时回退为日志预览。
  */
 public class AdminInviteEmailService {
@@ -26,6 +31,7 @@ public class AdminInviteEmailService {
         if (!config.isSendmailReady()) {
             String reason = "Sendmail is not configured. Set TA_HIRING_MAIL_FROM and optionally TA_HIRING_SENDMAIL_PATH.";
             Logger.i("AdminInviteEmailService", reason);
+            // 本地开发没有邮件服务时，旧接口仍返回 previewBody 给调用方调试。
             Logger.i("AdminInviteEmailService", "Invite email preview to " + recipientEmail + ":\n" + textBody);
             return SendResult.fallback(reason, textBody);
         }
@@ -132,6 +138,7 @@ public class AdminInviteEmailService {
             String from = readConfig("ta.hiring.mail.from", "TA_HIRING_MAIL_FROM");
             String path = readConfig("ta.hiring.sendmail.path", "TA_HIRING_SENDMAIL_PATH");
             if (isBlank(path)) {
+                // macOS/Linux 常见默认路径；不存在或不可执行时仍会走日志预览。
                 path = DEFAULT_SENDMAIL_PATH;
             }
             return new MailConfig(from, path);

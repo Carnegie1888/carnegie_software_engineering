@@ -16,7 +16,10 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Reads applicant detail and controlled applicant assets through an application.
+ * 通过申请记录读取申请人详情和受控资源。
+ *
+ * MO/TA 申请详情页不能直接拿任意 applicantId 访问档案，
+ * 必须先通过 applicationId 确认当前用户与这条申请有关联。
  */
 public class ApplicationApplicantService {
 
@@ -59,6 +62,7 @@ public class ApplicationApplicantService {
         if (!file.exists() || !file.isFile()) {
             return FileResult.error(404, "Resume file is unavailable");
         }
+        // 简历以内联预览方式返回，文件名只用于浏览器下载/预览标题，不参与路径拼接。
         String contentType = probeContentType(file, "application/octet-stream");
         return FileResult.ok(file, contentType, "inline; filename=\"" + sanitizeFilename(file.getName()) + "\"", null);
     }
@@ -78,12 +82,14 @@ public class ApplicationApplicantService {
         }
         String contentType = probeContentType(file, "image/jpeg");
         if (!contentType.startsWith("image/")) {
+            // 文件存在但系统无法识别成图片时，回退为 jpeg，避免页面头像/照片预览直接失败。
             contentType = "image/jpeg";
         }
         return FileResult.ok(file, contentType, null, "private, max-age=300");
     }
 
     private LookupResult loadApplicantForApplication(User currentUser, String applicationId) {
+        // 统一入口：详情、简历、照片都先走同一套申请归属校验。
         if (currentUser == null) {
             return LookupResult.error(401, "Please login first");
         }
@@ -121,6 +127,8 @@ public class ApplicationApplicantService {
     }
 
     private Map<String, Object> buildApplicantDetailPayload(Applicant applicant, Application application) {
+        // 当前 MO/TA 申请详情页会展示部分字段；电话、地址等敏感字段只在授权详情里返回。
+        // AI prompt 不从这个 payload 直接读取敏感字段，AI 服务会单独做白名单和脱敏。
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("applicationId", application.getApplicationId());
         data.put("applicantId", applicant.getApplicantId());

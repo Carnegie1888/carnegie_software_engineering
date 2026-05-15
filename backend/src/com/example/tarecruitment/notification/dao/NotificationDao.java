@@ -12,8 +12,10 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * NotificationDao — 公告 CSV 数据访问对象
- * 存储路径：{TA_HIRING_DATA_DIR}/notifications/notifications.csv
+ * NotificationDao - 系统公告 CSV 数据访问对象。
+ *
+ * 存储路径：{TA_HIRING_DATA_DIR}/notifications/notifications.csv。
+ * 只负责公告读写，权限和响应格式由 NotificationServlet 处理。
  */
 public class NotificationDao {
 
@@ -56,7 +58,7 @@ public class NotificationDao {
         }
     }
 
-    // ── Read ────────────────────────────────────────────────────────────
+    // Read
 
     private synchronized List<Notification> readAll() {
         initFile();
@@ -73,12 +75,12 @@ public class NotificationDao {
         } catch (IOException e) {
             throw new RuntimeException("Failed to read notifications file", e);
         }
-        // Newest first
+        // 前端通知页按最新公告优先展示。
         list.sort(Comparator.comparing(Notification::getPublishedAt).reversed());
         return list;
     }
 
-    // ── Write ───────────────────────────────────────────────────────────
+    // Write
 
     private synchronized void writeAll(List<Notification> list) {
         Path target = Path.of(FILE);
@@ -96,7 +98,7 @@ public class NotificationDao {
         }
     }
 
-    // ── Public API ──────────────────────────────────────────────────────
+    // Public API
 
     /** Returns all notifications, newest first. */
     public List<Notification> findAll() {
@@ -106,7 +108,7 @@ public class NotificationDao {
     /** Appends a new notification. */
     public synchronized Notification save(Notification n) {
         initFile();
-        // Append a single row (no rewrite needed for append-only save)
+        // 发布公告是追加写；删除时才重写整个 CSV。
         try (FileWriter fw = new FileWriter(FILE, true);
              PrintWriter pw = new PrintWriter(fw)) {
             pw.println(n.toCsv());
@@ -122,7 +124,7 @@ public class NotificationDao {
         List<Notification> all = readAll();
         boolean removed = all.removeIf(n -> id.equals(n.getNotificationId()));
         if (removed) {
-            // Sort oldest-first before writing so append order is preserved
+            // 写回时按旧到新排列，后续 append 仍保持文件天然时间顺序。
             all.sort(Comparator.comparing(Notification::getPublishedAt));
             writeAll(all);
         }

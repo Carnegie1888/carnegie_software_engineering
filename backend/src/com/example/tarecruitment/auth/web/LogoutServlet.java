@@ -12,7 +12,10 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * LogoutServlet - 处理用户退出登录
+ * LogoutServlet - 处理用户退出登录。
+ *
+ * 当前前端入口：共享侧边栏退出按钮，通过 /api/auth/logout 调用。
+ * 不恢复旧根路径 /logout。
  * 访问路径: /api/auth/logout
  */
 @WebServlet(ApiRoutes.AUTH_LOGOUT)
@@ -30,7 +33,7 @@ public class LogoutServlet extends HttpServlet {
             session.invalidate();
         }
 
-        // 判断是否为AJAX请求
+        // 判断是否为 AJAX 请求：页面 fetch 要 JSON，直接访问则回登录页。
         String requestedWith = request.getHeader("X-Requested-With");
         boolean isAjax = "XMLHttpRequest".equals(requestedWith);
 

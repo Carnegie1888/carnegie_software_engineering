@@ -15,9 +15,12 @@ import java.security.SecureRandom;
 /**
  * InviteCodeService - 基于时间窗口的邀请码生成与校验。
  *
- * 每 30s 产生一个新码（HMAC-SHA256 + 服务端密钥）。
- * 校验时接受当前窗口及前后各一个窗口，防止边界情况失效。
- * 管理员可主动刷新（rotationOffset++），旧码立即作废。
+ * 当前前端页面是 /jsp/admin/invite.jsp：页面直接展示一个可刷新的 8 位邀请码，
+ * /admin-register.jsp 提交注册时也只校验这个短码。
+ *
+ * 每 10 分钟产生一个新码（HMAC-SHA256 + 服务端密钥）。校验时接受当前窗口及前后各一个窗口，
+ * 这样可以避免用户刚好卡在倒计时边界时失败。管理员点击刷新时会增加 rotationOffset，
+ * 让旧码立即失效。
  */
 public class InviteCodeService {
 
@@ -86,6 +89,9 @@ public class InviteCodeService {
         return activeWindowStartMillis(now) / WINDOW_MILLIS + rotationOffset;
     }
 
+    /**
+     * 手动刷新后，新窗口从刷新时刻开始计算，而不是继续沿用整点 10 分钟边界。
+     */
     private long activeWindowStartMillis(long now) {
         if (forcedWindowStartMillis > 0L && now - forcedWindowStartMillis < WINDOW_MILLIS) {
             return forcedWindowStartMillis;
@@ -128,6 +134,9 @@ public class InviteCodeService {
         return secret;
     }
 
+    /**
+     * rotationOffset 存在磁盘里，重启 Tomcat 后也不会把管理员刚刷掉的旧码恢复回来。
+     */
     private long loadRotationOffset() {
         Path offsetPath = Paths.get(invitesDir, OFFSET_FILE);
         if (Files.exists(offsetPath)) {

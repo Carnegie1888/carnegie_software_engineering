@@ -24,6 +24,13 @@ import java.util.Optional;
 
 /**
  * 启动时补齐一套可用于本地展示的演示数据，但不会重复创建已存在的记录。
+ *
+ * 作用范围：
+ * - 固定 demo 账号；
+ * - TA 档案、岗位、申请；
+ * - 简单 PDF 简历占位文件。
+ *
+ * 这里服务于本地教学/演示，不是用户可见的后台管理功能。
  */
 public final class DemoDataSeeder {
 
@@ -350,6 +357,7 @@ public final class DemoDataSeeder {
     }
 
     public SeedSummary seed() {
+        // 顺序不能乱：申请依赖用户、申请人档案和岗位都已经存在。
         SeedSummary summary = new SeedSummary();
         List<User> users = ensureUsers(summary);
         List<Applicant> applicants = ensureApplicants(users, summary);
@@ -384,6 +392,7 @@ public final class DemoDataSeeder {
             return user;
         }
 
+        // 给 MO demo 账号补齐实名和职称，让 TA 职位列表显示老师身份。
         String username = safeText(user.getUsername());
         String title = "";
         String realName = "";
@@ -463,6 +472,7 @@ public final class DemoDataSeeder {
     }
 
     private boolean fillBlankApplicantDefaults(Applicant applicant, ApplicantSpec spec) {
+        // 只补空字段，不覆盖用户在本地演示过程中改过的内容。
         boolean changed = false;
         changed = fillBlank(applicant.getFullName(), applicant::setFullName, spec.fullName()) || changed;
         changed = fillBlank(applicant.getStudentId(), applicant::setStudentId, spec.studentId()) || changed;
@@ -492,6 +502,7 @@ public final class DemoDataSeeder {
 
             boolean changed = false;
             if (!hasText(job.getMoId()) || !hasLiveUser(job.getMoId())) {
+                // 如果 CSV 里还留着旧 demo 用户 id，就重新绑定到当前真实存在的 MO。
                 job.setMoId(moUser.getUserId());
                 changed = true;
             }
@@ -564,6 +575,7 @@ public final class DemoDataSeeder {
     }
 
     private Optional<Job> findExistingDemoJob(JobSpec spec) {
+        // 兼容早期没有固定 jobId 的 demo 数据：用课程代码+标题找到旧记录继续复用。
         return jobDao.findByCourseCode(spec.courseCode()).stream()
                 .filter(job -> spec.title().equalsIgnoreCase(safeText(job.getTitle())))
                 .findFirst();
@@ -606,6 +618,7 @@ public final class DemoDataSeeder {
 
             if (application.getStatus() != Application.Status.PENDING) {
                 if (application.getProgressStage() != Application.ProgressStage.COMPLETED) {
+                    // 非 PENDING 状态在时间线上统一视为已走到最终结果。
                     application.setProgressStage(Application.ProgressStage.COMPLETED);
                     changed = true;
                 }
@@ -702,6 +715,7 @@ public final class DemoDataSeeder {
             return preferredEmail;
         }
 
+        // 本地用户可能已经占用 demo 邮箱，追加 +N 保证 seeder 不会因为邮箱重复失败。
         int suffix = 1;
         while (true) {
             String candidate = username + "+" + suffix + "@local.test";
@@ -739,6 +753,7 @@ public final class DemoDataSeeder {
     }
 
     private byte[] buildResumePdf(String applicantName, List<String> skills) {
+        // 为 demo 简历生成最小可打开 PDF，避免引入额外 PDF 库或构建工具。
         String skillText = skills == null || skills.isEmpty() ? "General TA support" : String.join(", ", skills);
         List<String> lines = List.of(
                 "Demo Resume",
@@ -865,7 +880,7 @@ public final class DemoDataSeeder {
             String jobId,
             Application.Status status,
             String coverLetter,
-            /** 仅当 status 为 PENDING 时用于演示进度；非 PENDING 时忽略 */
+            /** 仅当 status 为 PENDING 时用于演示进度；非 PENDING 时忽略。 */
             Application.ProgressStage pendingProgressStage
     ) {
     }

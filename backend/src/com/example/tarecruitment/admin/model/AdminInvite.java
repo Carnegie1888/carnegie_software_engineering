@@ -10,6 +10,10 @@ import java.util.UUID;
 
 /**
  * AdminInvite - 管理员邀请记录模型。
+ *
+ * 遗留/待移除：它服务于旧的“创建邮件邀请记录 -> token/code 校验 -> 标记 used”流程。
+ * 当前可见前端采用 InviteCodeService 的短邀请码，不需要持久化每一封邀请。
+ * 这里暂时保留 CSV 序列化，避免旧数据文件和 AdminInviteServlet 直接失效。
  */
 public class AdminInvite {
 
@@ -133,6 +137,9 @@ public class AdminInvite {
         return now != null && now.isAfter(expiresAt);
     }
 
+    /**
+     * 字段顺序必须和 AdminInviteDao.CSV_HEADER 保持一致；如果后续删旧流程，应连 DAO 一起删。
+     */
     public String toCsv() {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
         return String.join(",",

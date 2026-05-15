@@ -17,6 +17,9 @@ import java.util.regex.Pattern;
 /**
  * AdminInviteAcceptServlet - 接受邀请码，创建管理员账号。
  *
+ * 对应 admin-register.jsp / js/auth/admin-invite.js。
+ * 这条是当前可见管理员注册主流程：用户输入邮箱、用户名、密码和短邀请码即可创建 ADMIN。
+ *
  * 邀请码由 InviteCodeService 生成的时间窗口码校验；
  * 不再依赖 CSV 存储的邀请记录。
  */
@@ -41,6 +44,7 @@ public class AdminInviteAcceptServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        // 页面只会 POST 注册；GET 留作 API 提示，避免浏览器直接访问时返回容器默认错误页。
         ApiResponses.write(response, 200, true, "Use POST to accept invitation", null);
     }
 
@@ -69,6 +73,7 @@ public class AdminInviteAcceptServlet extends HttpServlet {
             User user = new User(username, password, email, User.Role.ADMIN);
             User saved = userDao.create(user);
 
+            // 注册成功后前端跳回登录页，不在这里自动建立登录 session。
             ApiResponses.write(response, 201, true, "Admin account created successfully",
                     ApiResponses.objectMap(
                             "userId", saved.getUserId(),
@@ -86,6 +91,7 @@ public class AdminInviteAcceptServlet extends HttpServlet {
     private String validateInput(String username, String email,
                                  String password, String confirmPassword,
                                  String inviteCode) {
+        // 这里只做注册表单安全和格式校验；邀请码是否有效交给 InviteCodeService。
         if (username.isEmpty()) return "Username is required";
         if (username.length() > USERNAME_MAX_LENGTH) return "Username is too long";
         if (hasControlChars(username) || containsDangerousMarkup(username))

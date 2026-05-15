@@ -10,9 +10,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * 简单文件日志工具
+ * 简单文件日志工具。
  *
- * 日志文件位置: logs/app.log (项目根目录下)
+ * 日志文件位置: logs/app.log。
+ * 它用于本地脚本直跑时快速排查，不替代 Servlet 容器日志。
  */
 public final class Logger {
 
@@ -24,15 +25,15 @@ public final class Logger {
     private final Path logPath;
 
     private Logger() {
-        // 使用 user.dir 获取项目根目录，兼容从 scripts 目录运行的场景
+        // 使用 user.dir 获取项目根目录，兼容从 scripts 目录运行的场景。
         String userDir = System.getProperty("user.dir");
-        // 如果 user.dir 是 scripts，就退到父目录
+        // 如果 user.dir 是 scripts，就退到父目录。
         if (userDir != null && userDir.endsWith("scripts")) {
             userDir = new java.io.File(userDir).getParent();
         }
         Path logsDir = Paths.get(userDir, LOG_DIR);
 
-        // 确保日志目录存在
+        // 确保日志目录存在；失败时仍允许应用继续跑，只把错误打到 stderr。
         try {
             Files.createDirectories(logsDir);
         } catch (IOException e) {

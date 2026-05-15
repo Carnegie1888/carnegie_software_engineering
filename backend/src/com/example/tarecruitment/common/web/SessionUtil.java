@@ -5,8 +5,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 /**
- * SessionUtil - Session工具类
- * 提供便捷的Session操作方法，用于权限验证和用户信息获取
+ * SessionUtil - Session 工具类。
+ *
+ * 当前登录后 session 同时保存 `user` 对象和若干基础字段。
+ * 新代码优先读取 `user` 对象；字符串字段主要给 JSP 片段和旧工具方法兼容使用。
  */
 public class SessionUtil {
 
@@ -29,6 +31,7 @@ public class SessionUtil {
      * @return 用户ID，如果未登录返回null
      */
     public static String getCurrentUserId(HttpServletRequest request) {
+        // 遗留兼容：旧 JSP/工具曾直接读 userId。新 Java 逻辑优先从 User 对象取值。
         HttpSession session = request.getSession(false);
         if (session != null) {
             Object userId = session.getAttribute("userId");
@@ -43,6 +46,7 @@ public class SessionUtil {
      * @return 用户名，如果未登录返回null
      */
     public static String getCurrentUsername(HttpServletRequest request) {
+        // 遗留兼容：用于 JSP 页面注入显示名；账号资料接口仍以 User 对象为准。
         HttpSession session = request.getSession(false);
         if (session != null) {
             Object username = session.getAttribute("username");
@@ -57,6 +61,7 @@ public class SessionUtil {
      * @return 角色名称，如果未登录返回null
      */
     public static String getCurrentUserRole(HttpServletRequest request) {
+        // 遗留兼容：字符串 role 方便 JSP 判断；后端权限判断优先使用 User.Role。
         HttpSession session = request.getSession(false);
         if (session != null) {
             Object role = session.getAttribute("role");

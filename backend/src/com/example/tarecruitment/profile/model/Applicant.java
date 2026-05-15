@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Applicant实体类 - TA申请人档案
- * 存储TA申请人的详细信息
+ * Applicant 实体类 - TA 申请人档案。
+ *
+ * 它既表达 TA 档案业务字段，也是 applicants.csv 的序列化契约。
+ * resumePath/photoPath 只保存相对路径，真实文件由 ProfileAssetService 放在 TA_HIRING_DATA_DIR 下。
  */
 public class Applicant {
 
@@ -112,6 +114,7 @@ public class Applicant {
     }
 
     public String getSkillsAsString() {
+        // applicants.csv 内部用分号分隔技能；前端表单可以输入逗号或分号，validator 会统一解析。
         return skills != null ? String.join(";", skills) : "";
     }
 
@@ -188,7 +191,9 @@ public class Applicant {
     }
 
     /**
-     * 转换为CSV格式存储
+     * 转换为 CSV 格式存储。
+     *
+     * 字段顺序必须和 ApplicantDao.CSV_HEADER 对齐；新增字段只追加到末尾。
      */
     public String toCsv() {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -213,7 +218,9 @@ public class Applicant {
     }
 
     /**
-     * 从CSV格式解析
+     * 从 CSV 格式解析。
+     *
+     * 允许读取旧格式，是为了兼容历史 applicants.csv。
      */
     public static Applicant fromCsv(String csvLine) {
         String[] parts = CsvCodec.split(csvLine);
@@ -231,9 +238,8 @@ public class Applicant {
         applicant.setGpa(unescapeCsv(parts[6]));
         applicant.setSkillsFromString(parts.length > 7 ? unescapeCsv(parts[7]) : "");
 
-        // Backward compatibility:
-        // old format: ... resumePath,phone,address,experience,motivation,createdAt,updatedAt
-        // new format: ... resumePath,photoPath,phone,address,experience,motivation,createdAt,updatedAt
+        // 遗留兼容：旧格式没有 photoPath 列，新格式在 resumePath 后插入了 photoPath。
+        // 后续如果确认演示数据和用户数据全部迁移到新格式，可以移除这段列偏移判断。
         boolean hasPhotoColumn = parts.length >= 16;
         if (parts.length > 8) applicant.setResumePath(unescapeCsv(parts[8]));
         if (hasPhotoColumn && parts.length > 9) applicant.setPhotoPath(unescapeCsv(parts[9]));

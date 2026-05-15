@@ -3,7 +3,10 @@ package com.example.tarecruitment.common.storage;
 import java.util.regex.Pattern;
 
 /**
- * Shared CSV escaping/parsing for the file-backed stores.
+ * CSV 存储的转义/拆分工具。
+ *
+ * 本项目用 CSV 作为轻量数据层，DAO 负责读写文件。
+ * 所有包含逗号、引号或换行的字段都必须走这里，避免破坏既有 CSV 列顺序。
  */
 public final class CsvCodec {
 

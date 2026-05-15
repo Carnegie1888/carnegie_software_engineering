@@ -19,7 +19,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 /**
- * Thin HTTP entry point for application resources.
+ * 申请相关 API 的 HTTP 入口。
+ *
+ * 路径：
+ * - GET/POST `/api/applications`
+ * - GET `/api/applications/{applicationId}`
+ * - POST `/api/applications/{applicationId}/transition`
+ * - GET `/api/applications/{applicationId}/applicant[/resume|/photo]`
+ *
+ * Servlet 保持薄：只解析 path/parameter，业务和权限交给 application service。
  */
 @WebServlet(urlPatterns = {ApiRoutes.APPLICATIONS, ApiRoutes.APPLICATIONS + "/*"})
 public class ApplicationServlet extends HttpServlet {
@@ -40,6 +48,7 @@ public class ApplicationServlet extends HttpServlet {
         String pathInfo = request.getPathInfo();
         try {
             if (ApplicationRequestMapper.isCollection(pathInfo)) {
+                // TA/MO/Admin 复用同一个列表接口，service 按角色收窄可见数据。
                 write(response, applicationService.list(
                         currentUser,
                         request.getParameter("applicantId"),
@@ -61,10 +70,12 @@ public class ApplicationServlet extends HttpServlet {
                 return;
             }
             if (ApplicationRequestMapper.isApplicantResume(pathInfo)) {
+                // 文件资源不包在 JSON 中，直接写二进制响应。
                 writeFile(response, applicationApplicantService.resume(currentUser, applicationId));
                 return;
             }
             if (ApplicationRequestMapper.isApplicantPhoto(pathInfo)) {
+                // 照片同样走 applicationId 权限校验，避免用 applicantId 枚举资源。
                 writeFile(response, applicationApplicantService.photo(currentUser, applicationId));
                 return;
             }
@@ -108,6 +119,7 @@ public class ApplicationServlet extends HttpServlet {
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        // 状态流转统一走 POST transition，避免恢复旧的大入口/多动词接口。
         ApiResponses.methodNotAllowed(response, "Use POST /api/applications/{applicationId}/transition");
     }
 
@@ -126,6 +138,7 @@ public class ApplicationServlet extends HttpServlet {
         }
 
         response.setStatus(HttpServletResponse.SC_OK);
+        // 文件响应只设置内容类型、缓存和 disposition，不加入统一 JSON 包装。
         response.setContentType(result.getContentType());
         if (result.getContentDisposition() != null) {
             response.setHeader("Content-Disposition", result.getContentDisposition());

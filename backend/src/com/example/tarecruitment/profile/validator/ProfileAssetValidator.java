@@ -5,6 +5,11 @@ import jakarta.servlet.http.Part;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * ProfileAssetValidator - TA 档案附件校验。
+ *
+ * 校验简历和档案照片的类型、扩展名、大小。实际保存路径由 ProfileAssetService 负责。
+ */
 public final class ProfileAssetValidator {
 
     private static final long MAX_RESUME_SIZE = 10 * 1024 * 1024;
@@ -65,6 +70,7 @@ public final class ProfileAssetValidator {
 
         String contentType = filePart.getContentType();
         String fileName = extractFileName(filePart);
+        // 同时检查 Content-Type 和扩展名，降低伪装文件被当作简历/图片保存的风险。
         if (contentType == null || !allowedContentTypes.contains(contentType.toLowerCase())) {
             return "Invalid file type. Only " + allowedDescription + " files are allowed.";
         }

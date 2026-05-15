@@ -19,6 +19,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Optional;
 
+/**
+ * AccountProfileServlet - 账号资料和账号头像 API 入口。
+ *
+ * 路径：
+ * - GET/POST/PUT /api/me/account：共享侧边栏/顶栏读取和保存账号资料。
+ * - GET          /api/me/avatar：返回当前账号头像文件。
+ *
+ * Servlet 只处理 multipart、头像二进制响应和统一错误；业务同步逻辑在 AccountProfileService。
+ */
 @WebServlet(urlPatterns = {ApiRoutes.ME_ACCOUNT, ApiRoutes.ME_AVATAR})
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,
@@ -39,6 +48,7 @@ public class AccountProfileServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         User currentUser = accountProfileService.currentUser(request.getSession(false));
         if (isAvatarRequest(request)) {
+            // 头像是图片二进制响应，不包 ApiResponses 的 JSON 外壳。
             writeAvatar(response, currentUser);
             return;
         }
@@ -73,6 +83,7 @@ public class AccountProfileServlet extends HttpServlet {
         } catch (ServletException e) {
             String message = e.getMessage();
             if (message != null && message.toLowerCase().contains("size")) {
+                // Servlet 容器在超出 multipart 限制时会先抛异常，service 层拿不到 Part。
                 ApiResponses.write(response, 413, false,
                         "File size exceeds the maximum limit of 5MB. Please upload a smaller file.", null);
             } else {
@@ -113,6 +124,7 @@ public class AccountProfileServlet extends HttpServlet {
         } catch (ServletException e) {
             String contentType = request.getContentType();
             if (contentType == null || !contentType.toLowerCase().contains("multipart/form-data")) {
+                // 普通表单更新账号资料时没有 avatar part，这是合法请求。
                 return null;
             }
             throw e;

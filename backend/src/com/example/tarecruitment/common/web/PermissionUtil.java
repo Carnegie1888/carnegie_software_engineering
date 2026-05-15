@@ -6,8 +6,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * PermissionUtil - 权限检查工具类
- * 提供细粒度的权限检查方法
+ * PermissionUtil - 权限检查工具类。
+ *
+ * 主要服务旧 Servlet 中的快速角色/资源校验。新接口优先把路由访问规则放在
+ * AccessPolicy 和各 domain Servlet 中，让权限判断更靠近具体 API。
  */
 public class PermissionUtil {
 
@@ -60,6 +62,7 @@ public class PermissionUtil {
     public static boolean validateOwnerAccess(HttpServletRequest request,
                                                HttpServletResponse response,
                                                String resourceOwnerId) throws IOException {
+        // 遗留/待移除：这个方法会直接写 response。新 Servlet 应优先用 ApiResponses 明确返回。
         if (!canAccessResource(request, resourceOwnerId)) {
             if (isAjaxRequest(request)) {
                 response.setContentType("application/json;charset=UTF-8");
@@ -83,6 +86,7 @@ public class PermissionUtil {
     public static boolean validateRoleAccess(HttpServletRequest request,
                                               HttpServletResponse response,
                                               User.Role... requiredRoles) throws IOException {
+        // 遗留/待移除：这个方法混合了权限判断和响应输出。新接口建议拆开判断和输出。
         User user = SessionUtil.getCurrentUser(request);
         if (user == null) {
             if (isAjaxRequest(request)) {

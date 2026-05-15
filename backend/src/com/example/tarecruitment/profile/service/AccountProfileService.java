@@ -22,6 +22,12 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
+/**
+ * AccountProfileService - 账号资料业务服务。
+ *
+ * 被 AccountProfileServlet 调用，对应 /api/me/account 和 /api/me/avatar。
+ * 负责显示名、实名、MO 职称、账号头像，并同步 TA 档案姓名、MO 已发布岗位展示名等跨页面字段。
+ */
 public class AccountProfileService {
 
     private static final String AVATAR_DIR_NAME = "account-avatars";
@@ -47,6 +53,9 @@ public class AccountProfileService {
         return instance;
     }
 
+    /**
+     * 从 session 取当前用户，并尽量回查 CSV 最新资料。
+     */
     public User currentUser(HttpSession session) {
         if (session == null) {
             return null;
@@ -55,6 +64,7 @@ public class AccountProfileService {
         Object userObject = session.getAttribute("user");
         if (userObject instanceof User) {
             User sessionUser = (User) userObject;
+            // 先回查 CSV，保证侧边栏/顶栏拿到的是最新账号资料；失败再用 session 快照。
             return userDao.findById(sessionUser.getUserId()).orElse(sessionUser);
         }
 
@@ -66,6 +76,9 @@ public class AccountProfileService {
         return userDao.findById(userId).orElse(null);
     }
 
+    /**
+     * 读取当前账号资料，供共享侧边栏弹窗使用。
+     */
     public ServiceResult get(User currentUser) {
         if (currentUser == null) {
             return ServiceResult.unauthorized("Please login first");
@@ -76,6 +89,12 @@ public class AccountProfileService {
         );
     }
 
+    /**
+     * 更新账号展示资料和账号头像。
+     *
+     * TA 的实名会同步到 Applicant 档案和历史申请快照；
+     * MO 的展示名会同步到已发布职位快照，保证列表不显示旧名字。
+     */
     public ServiceResult update(User currentUser,
                                 HttpSession session,
                                 String displayName,
@@ -96,6 +115,7 @@ public class AccountProfileService {
             String normalizedRealName = AccountProfileValidator.normalizeInput(realName);
             String normalizedTitle = currentUser.getRole() == User.Role.MO
                     ? AccountProfileValidator.normalizeInput(professionalTitle)
+                    // TA 没有职称输入框，保留旧值，避免前端未传字段导致清空。
                     : safeText(currentUser.getProfessionalTitle());
 
             String validationError = AccountProfileValidator.validateUsernameFormat(username);
@@ -114,6 +134,7 @@ public class AccountProfileService {
             String previousAvatarPath = currentUser.getAvatarPath();
             String nextAvatarPath = previousAvatarPath;
             if (AccountProfileValidator.isUsableFilePart(avatarPart)) {
+                // 头像是账号级头像，不等同于 TA 档案 photo；两套资源路径分开管理。
                 String avatarError = AccountProfileValidator.validateAvatar(avatarPart);
                 if (avatarError != null) {
                     return ServiceResult.badRequest(avatarError);
@@ -132,6 +153,7 @@ public class AccountProfileService {
 
             User saved = userDao.update(currentUser);
             persisted = true;
+            // 修改账号资料后，同步所有会直接显示旧快照的业务数据。
             syncTaApplicantRealName(saved, taApplicant);
             syncMoDisplayName(saved);
             updateSessionUser(session, saved);
@@ -154,6 +176,11 @@ public class AccountProfileService {
         }
     }
 
+    /**
+     * 返回账号头像资源。
+     *
+     * 只允许 account-avatars/ 下的文件，避免 avatarPath 被构造成任意文件读取。
+     */
     public Optional<AvatarResource> avatar(User user) throws IOException {
         String avatarPath = safeText(user.getAvatarPath());
         if (!isAccountAvatarPath(avatarPath)) {
@@ -172,6 +199,9 @@ public class AccountProfileService {
         return Optional.of(new AvatarResource(file, contentType, "private, max-age=300"));
     }
 
+    /**
+     * 校验新用户名/展示名是否被其他账号占用。
+     */
     private String validateUsernameAvailability(String username, User currentUser) {
         Optional<User> existing = userDao.findByUsername(username);
         if (existing.isPresent()
@@ -182,6 +212,9 @@ public class AccountProfileService {
         return null;
     }
 
+    /**
+     * TA 账号对应的 Applicant 档案。
+     */
     private Optional<Applicant> findTaApplicant(User user) {
         if (user == null || user.getRole() != User.Role.TA) {
             return Optional.empty();
@@ -189,17 +222,24 @@ public class AccountProfileService {
         return applicantDao.findByUserId(user.getUserId());
     }
 
+    /**
+     * TA 优先使用 Applicant.fullName 作为共享实名，否则使用 User.realName。
+     */
     private String buildSharedRealName(User user) {
         if (user == null) {
             return "";
         }
         Optional<Applicant> taApplicant = findTaApplicant(user);
         if (taApplicant.isPresent() && AccountProfileValidator.isNotEmpty(taApplicant.get().getFullName())) {
+            // TA 的实名和档案 fullName 共用一个展示源，避免侧边栏和申请详情显示不同名字。
             return safeText(taApplicant.get().getFullName());
         }
         return safeText(user.getRealName());
     }
 
+    /**
+     * 同步 TA 账号实名到 Applicant 档案。
+     */
     private void syncTaApplicantRealName(User user, Optional<Applicant> existingApplicant) {
         if (user == null || user.getRole() != User.Role.TA || existingApplicant.isEmpty()) {
             return;
@@ -214,10 +254,14 @@ public class AccountProfileService {
         if (!realName.equals(safeText(applicant.getFullName()))) {
             applicant.setFullName(realName);
             Applicant savedApplicant = applicantDao.update(applicant);
+            // 申请记录里保存了 applicantName 快照，因此档案实名变化后需要同步。
             syncApplicationApplicantName(savedApplicant);
         }
     }
 
+    /**
+     * 同步历史申请中的 applicantName 快照。
+     */
     private void syncApplicationApplicantName(Applicant applicant) {
         if (applicant == null || !AccountProfileValidator.isNotEmpty(applicant.getApplicantId())) {
             return;
@@ -236,6 +280,9 @@ public class AccountProfileService {
         }
     }
 
+    /**
+     * 同步 MO 已发布职位中的 moName 快照。
+     */
     private void syncMoDisplayName(User user) {
         if (user == null || user.getRole() != User.Role.MO) {
             return;
@@ -243,11 +290,15 @@ public class AccountProfileService {
 
         String displayName = buildMoDisplayName(user);
         for (Job job : jobDao.findByMoId(user.getUserId())) {
+            // 岗位 CSV 保存了 moName 快照，TA 职位列表不需要每次回查 User。
             job.setMoName(displayName);
             jobDao.update(job);
         }
     }
 
+    /**
+     * 构建 MO 展示名：职称 + 实名优先，其次 displayName/username。
+     */
     private String buildMoDisplayName(User user) {
         String realName = safeText(user.getRealName()).trim();
         String title = safeText(user.getProfessionalTitle()).trim();
@@ -258,6 +309,9 @@ public class AccountProfileService {
         return displayName.isEmpty() ? safeText(user.getUsername()) : displayName;
     }
 
+    /**
+     * 保存账号头像文件并返回相对路径。
+     */
     private String saveAvatarFile(Part avatarPart, String userId) throws IOException {
         ensureDirectoryExists(StoragePaths.getAccountAvatarDir());
         String originalName = avatarPart.getSubmittedFileName();
@@ -269,6 +323,9 @@ public class AccountProfileService {
         return AVATAR_DIR_NAME + "/" + fileName;
     }
 
+    /**
+     * 删除被替换的旧账号头像。
+     */
     private void cleanupReplacedAvatar(String previousAvatarPath, String currentAvatarPath) {
         if (!isAccountAvatarPath(previousAvatarPath) || previousAvatarPath.equals(currentAvatarPath)) {
             return;
@@ -279,6 +336,9 @@ public class AccountProfileService {
         }
     }
 
+    /**
+     * 保存失败时清理新写入但未持久化到用户记录的头像。
+     */
     private void deleteNewAvatar(String newAvatarPath) {
         if (!isAccountAvatarPath(newAvatarPath)) {
             return;
@@ -289,22 +349,32 @@ public class AccountProfileService {
         }
     }
 
+    /**
+     * 判断用户是否配置了账号头像。
+     */
     private boolean hasAccountAvatar(User user) {
         return user != null && isAccountAvatarPath(user.getAvatarPath());
     }
 
+    /**
+     * 校验账号头像路径只指向 account-avatars/ 下的单个文件。
+     */
     private boolean isAccountAvatarPath(String path) {
         String value = safeText(path).trim();
         if (!value.startsWith(AVATAR_DIR_NAME + "/")) {
             return false;
         }
         String fileName = value.substring((AVATAR_DIR_NAME + "/").length());
+        // 只允许 account-avatars 目录下的单个文件名，防止通过 avatarPath 读取任意文件。
         return AccountProfileValidator.isNotEmpty(fileName)
                 && !fileName.contains("/")
                 && !fileName.contains("\\")
                 && !fileName.contains("..");
     }
 
+    /**
+     * 写回 session，确保保存后当前请求后续页面拿到新账号信息。
+     */
     private void updateSessionUser(HttpSession session, User user) {
         if (session == null || user == null) {
             return;
@@ -315,6 +385,9 @@ public class AccountProfileService {
         session.setAttribute("role", user.getRole().name());
     }
 
+    /**
+     * 头像 content type 兜底。
+     */
     private String detectImageContentType(String fileName) {
         String safeName = fileName != null ? fileName.toLowerCase() : "";
         if (safeName.endsWith(".png")) return "image/png";
@@ -322,6 +395,9 @@ public class AccountProfileService {
         return "image/jpeg";
     }
 
+    /**
+     * 创建头像目录。
+     */
     private void ensureDirectoryExists(String dirPath) {
         File dir = new File(dirPath);
         if (!dir.exists()) {
@@ -329,10 +405,16 @@ public class AccountProfileService {
         }
     }
 
+    /**
+     * null 安全字符串。
+     */
     private String safeText(String value) {
         return value == null ? "" : value;
     }
 
+    /**
+     * Servlet 返回头像文件所需的资源描述。
+     */
     public static final class AvatarResource {
         private final File file;
         private final String contentType;

@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * JsonResponseUtil - 统一输出合法 JSON 响应，避免 servlet 手工拼接非法结构。
+ * JsonResponseUtil - 底层 JSON 序列化辅助。
+ *
+ * 新 Servlet 优先使用 ApiResponses；这个类保留为底层实现和少量旧调用的兼容层。
  */
 public final class JsonResponseUtil {
 
@@ -77,6 +79,7 @@ public final class JsonResponseUtil {
     }
 
     public static Map<String, Object> rawObject(String rawMembers) {
+        // 遗留/待移除：兼容旧代码传入原始 JSON 成员片段；新增代码不要使用。
         java.util.LinkedHashMap<String, Object> wrapper = new java.util.LinkedHashMap<>();
         if (rawMembers == null || rawMembers.trim().isEmpty()) {
             return wrapper;
@@ -90,6 +93,7 @@ public final class JsonResponseUtil {
                                      boolean success,
                                      String message,
                                      String rawData) throws IOException {
+        // 遗留/待移除：rawData 直接拼入响应体，只有已知安全的旧调用可以使用。
         if (rawData == null) {
             writeJsonResponse(response, status, success, message, null);
             return;

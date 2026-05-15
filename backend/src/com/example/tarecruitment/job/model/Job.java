@@ -12,8 +12,10 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Job实体类 - 职位
- * 存储MO发布的职位信息
+ * Job 实体类 - MO 发布的职位。
+ *
+ * 它既是业务对象，也是 jobs.csv 的序列化契约。新增字段要追加到 CSV 末尾，
+ * 这样旧数据仍能被 fromCsv() 读取。
  */
 public class Job {
 
@@ -26,7 +28,7 @@ public class Job {
     private String description;          // 职位描述
     private List<String> requiredSkills; // 必需技能列表
     private int positions;               // 职位数量
-    private String workload;             // 旧版工作量文本，结构化字段缺失时兼容读取
+    private String workload;             // 遗留/待移除：旧版工作量文本，当前前端改用 weeklyHours + workStartDate/workEndDate
     private Double weeklyHours;          // 每周工作小时数
     private LocalDate workStartDate;     // 工作开始日期
     private LocalDate workEndDate;       // 工作结束日期
@@ -149,6 +151,7 @@ public class Job {
         if (weeklyHours != null) {
             return formatWeeklyHours(weeklyHours) + " hours / week";
         }
+        // 兼容旧 CSV：如果没有结构化 weeklyHours，就退回历史 workload 文本展示。
         return workload;
     }
 
@@ -247,7 +250,9 @@ public class Job {
     }
 
     /**
-     * 转换为CSV格式存储
+     * 转换为 CSV 格式存储。
+     *
+     * 字段顺序必须和 JobDao.CSV_HEADER 对齐；后续新增字段只追加，不插到中间。
      */
     public String toCsv() {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -274,7 +279,9 @@ public class Job {
     }
 
     /**
-     * 从CSV格式解析
+     * 从 CSV 格式解析。
+     *
+     * fromCsv 允许缺少末尾字段，是为了兼容早期只保存 workload 文本的 jobs.csv。
      */
     public static Job fromCsv(String csvLine) {
         String[] parts = CsvCodec.split(csvLine);

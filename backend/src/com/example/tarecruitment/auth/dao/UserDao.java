@@ -14,8 +14,10 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * UserDao - 用户数据访问对象
- * 使用CSV文件存储用户数据
+ * UserDao - 用户数据访问对象。
+ *
+ * 用户按角色拆成 3 个 CSV 文件，便于演示数据查看和按角色加载。
+ * DAO 只负责存储和账号唯一性，不处理 HTTP session 或页面跳转。
  */
 public class UserDao {
 
@@ -84,6 +86,7 @@ public class UserDao {
      * 启动时补齐固定测试账号，但不覆盖已有本地数据。
      */
     public synchronized void ensureDefaultDemoAccounts() {
+        // 演示账号语义是项目约定，不能被公开注册或数据初始化意外覆盖。
         ensureDefaultDemoAccount("ta_demo", DEFAULT_TA_DEMO_EMAIL, User.Role.TA);
         ensureDefaultDemoAccount("mo_demo", DEFAULT_MO_DEMO_EMAIL, User.Role.MO);
         ensureDefaultDemoAccount("admin_demo", DEFAULT_ADMIN_DEMO_EMAIL, User.Role.ADMIN);
@@ -168,6 +171,7 @@ public class UserDao {
      * 写入所有用户
      */
     private void writeUsersToFile(String filePath, List<User> users) {
+        // 分角色文件写入时先写临时文件，再替换目标文件，降低 CSV 写坏的风险。
         Path targetPath = Path.of(filePath);
         Path tempPath = targetPath.resolveSibling(targetPath.getFileName() + ".tmp");
         try {
@@ -321,6 +325,7 @@ public class UserDao {
     public User save(User user) {
         initUserFiles();
 
+        // 用户改角色时要从三个角色文件中都移除旧记录，再写入目标角色文件。
         String targetFile = getUserFileByRole(user.getRole());
         List<User> targetUsers = readUsersForRole(user.getRole());
         List<User> taUsers = readUsersForRole(User.Role.TA);
@@ -359,7 +364,7 @@ public class UserDao {
             throw new IllegalArgumentException("Email already exists: " + user.getEmail());
         }
 
-        // 加密密码
+        // 项目演示环境使用 SHA-256 哈希；没有引入数据库或额外密码库。
         user.setPassword(hashPassword(user.getPassword()));
 
         return save(user);
@@ -476,6 +481,7 @@ public class UserDao {
      * 清空所有用户（仅用于测试）
      */
     public void deleteAll() {
+        // 仅测试/演示重置使用，前端没有清空用户的入口。
         writeUsersToFile(USER_FILE_TA, new ArrayList<>());
         writeUsersToFile(USER_FILE_MO, new ArrayList<>());
         writeUsersToFile(USER_FILE_ADMIN, new ArrayList<>());
@@ -485,6 +491,7 @@ public class UserDao {
      * 批量创建用户（仅用于测试初始化）
      */
     public void batchCreate(List<User> users) {
+        // 仅 DemoDataSeeder/测试初始化使用，正常注册仍走 create() 唯一性校验。
         List<User> taUsers = readUsersForRole(User.Role.TA);
         List<User> moUsers = readUsersForRole(User.Role.MO);
         List<User> adminUsers = readUsersForRole(User.Role.ADMIN);

@@ -13,9 +13,12 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * CheckAvailableServlet - 检查用户名或邮箱是否可用
- * GET /api/auth/availability?type=username&value=john
- * GET /api/auth/availability?type=email&value=a@b.com
+ * CheckAvailableServlet - 检查用户名或邮箱是否可用。
+ *
+ * 当前前端入口：register.jsp 和 admin-invite.jsp 的实时可用性校验。
+ * 示例：
+ * - type=username, value=john
+ * - type=email, value=a@b.com
  * Response: {"success":true,"available":true/false}
  */
 @WebServlet(ApiRoutes.AUTH_AVAILABILITY)
@@ -54,6 +57,7 @@ public class CheckAvailableServlet extends HttpServlet {
 
         boolean available;
         if ("username".equals(type)) {
+            // 这里只返回 available 布尔值，详细格式错误仍由注册接口统一返回。
             if (value.length() > USERNAME_MAX_LENGTH) {
                 writeAvailable(response, false);
                 return;
@@ -74,6 +78,7 @@ public class CheckAvailableServlet extends HttpServlet {
     }
 
     private void writeAvailable(HttpServletResponse response, boolean available) throws IOException {
+        // 前端只关心 data.available，不展示后端校验细节。
         ApiResponses.write(response, 200, true, null,
                 Map.of("available", available));
     }

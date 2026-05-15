@@ -17,6 +17,14 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
+/**
+ * ApplicantProfileServlet - 当前 TA 档案 JSON API。
+ *
+ * 路径：/api/me/applicant-profile
+ * 对应 TA dashboard/job apply 相关 JS 中的档案读取与保存。
+ *
+ * 头像、正式简历和简历草稿文件不在这里直接处理，它们由 ApplicantAssetServlet 负责。
+ */
 @WebServlet(ApiRoutes.ME_APPLICANT_PROFILE)
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,
@@ -55,6 +63,7 @@ public class ApplicantProfileServlet extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        // 当前前端没有“删除整个 TA 档案”的入口，只允许编辑字段和移除头像。
         ApiResponses.methodNotAllowed(response, "Delete is not supported for this endpoint.");
     }
 
@@ -64,6 +73,7 @@ public class ApplicantProfileServlet extends HttpServlet {
             User currentUser = getCurrentUser(request);
             HttpSession session = request.getSession(false);
             if (ApplicantProfileRequestMapper.isMultipart(request)) {
+                // 带 resume/photo 的请求走 multipart mapper；纯表单保存走普通 parameter mapper。
                 write(response, applicantProfileService.saveUpload(
                         currentUser,
                         session,

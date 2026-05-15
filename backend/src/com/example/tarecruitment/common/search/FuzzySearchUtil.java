@@ -17,7 +17,8 @@ import java.util.regex.Pattern;
  * - 英文 typo（编辑距离 1-2）容错
  * - 中文原文匹配
  *
- * 注意：已移除拼音搜索功能（如需拼音搜索，请添加 pinyin4j 依赖）
+ * 遗留/待移除：拼音搜索曾在早期设想里出现，但当前前端没有拼音搜索提示或入口。
+ * 现在只保留中英文原文搜索和英文轻量 typo 容错。
  */
 public final class FuzzySearchUtil {
 
@@ -191,6 +192,7 @@ public final class FuzzySearchUtil {
 
         boolean hasMatches = !ordered.isEmpty();
         boolean approximateOnly = hasMatches && !hasDirectMatch;
+        // approximateOnly 会传给前端，用来显示“无精确匹配，展示相近结果”的提示。
         return new SearchOutcome<>(ordered, true, approximateOnly, hasMatches);
     }
 

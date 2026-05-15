@@ -293,3 +293,4 @@
 | `member6`  | #76    | `docs: 同步架构文档与命名规范`                | ✅   | `git commit -m "docs: 同步架构文档与命名规范" --author="member6 <member6@edu.com>"`                |
 | `member6`  | #77    | `docs: 补充后端包级架构说明`                  | ✅   | `git commit -m "docs: 补充后端包级架构说明" --author="member6 <member6@edu.com>"`                  |
 | `member2`  | #78    | `refactor: 移除旧技能匹配服务并收敛 AI 分析接口` | ✅   | `git commit -m "refactor: 移除旧技能匹配服务并收敛 AI 分析接口" --author="member2 <member2@edu.com>"` |
+| `member4`  | #79    | `refactor: 完善职位申请与账号资料服务边界`     | ✅   | `git commit -m "refactor: 完善职位申请与账号资料服务边界" --author="member4 <member4@edu.com>"`     |

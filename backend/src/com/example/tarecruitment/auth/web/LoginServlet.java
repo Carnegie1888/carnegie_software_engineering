@@ -17,15 +17,13 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
- * LoginServlet - 处理用户登录
+ * LoginServlet - 处理用户登录。
+ *
+ * 当前前端入口：login.jsp / js/auth/login.js。
  * 访问路径: /api/auth/login
  *
- * 优化内容:
- * - 添加日志记录
- * - 增强输入验证
- * - 统一JSON响应格式
- * - 添加异常处理
- * - 防止SQL注入（使用参数化查询）
+ * 该项目使用 CSV 存储，没有 SQL 查询；这里的防护重点是参数长度、格式、
+ * 明显危险标记和角色匹配校验。
  */
 @WebServlet(ApiRoutes.AUTH_LOGIN)
 public class LoginServlet extends HttpServlet {
@@ -71,6 +69,7 @@ public class LoginServlet extends HttpServlet {
             String requestedRole = normalizeRequestedRole(request.getParameter("role"));
             boolean rememberMe = "1".equals(request.getParameter("rememberMe"));
 
+            // 前端登录页会传入用户选择的角色，用来避免 TA/MO/Admin 误进错入口。
             if (INVALID_ROLE.equals(requestedRole)) {
                 logInfo("Validation failed: Invalid role parameter");
                 ApiResponses.write(response, 400, false, "Invalid role parameter", null);
@@ -108,6 +107,7 @@ public class LoginServlet extends HttpServlet {
 
                 // 创建会话
                 HttpSession session = request.getSession(true);
+                // 同时保存 User 对象和基础字段：User 给后端权限判断，字段给 JSP 片段显示。
                 session.setAttribute("user", user);
                 session.setAttribute("userId", user.getUserId());
                 session.setAttribute("username", user.getUsername());
@@ -232,6 +232,7 @@ public class LoginServlet extends HttpServlet {
      * @return TA/MO/ADMIN/null/INVALID_ROLE
      */
     private String normalizeRequestedRole(String role) {
+        // 空角色表示旧前端或直接 API 调用；非空但非法时明确拒绝。
         if (role == null) {
             return null;
         }
@@ -252,6 +253,7 @@ public class LoginServlet extends HttpServlet {
      * 根据用户角色确定跳转页面
      */
     private String determineRedirectPage(User.Role role) {
+        // 这里返回带 /groupproject 的历史路径，前端会按部署 context 做跳转兜底。
         switch (role) {
             case TA:
                 return "/groupproject/jsp/ta/dashboard.jsp";

@@ -3,7 +3,10 @@ package com.example.tarecruitment.application.validator;
 import java.util.Set;
 
 /**
- * Centralized validation for application HTTP inputs.
+ * 申请 API 的输入校验。
+ *
+ * 这里只校验 HTTP 参数是否安全、长度是否合理、动作是否在允许列表内；
+ * 是否有权限、职位是否开放、是否重复申请等业务规则在 ApplicationService。
  */
 public final class ApplicationValidator {
 
@@ -60,6 +63,7 @@ public final class ApplicationValidator {
     }
 
     private static boolean containsDangerousMarkup(String value) {
+        // 防止把明显 HTML/JS 片段写进 CSV 后又被页面渲染；前端仍会做 escapeHtml。
         if (value == null || value.isEmpty()) {
             return false;
         }

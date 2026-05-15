@@ -22,6 +22,17 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Optional;
 
+/**
+ * ApplicantAssetServlet - 当前 TA 档案附件 API。
+ *
+ * 路径：
+ * - GET    /api/me/applicant-profile/photo：返回档案照片。
+ * - GET    /api/me/applicant-profile/resume：返回正式简历。
+ * - POST   /api/me/applicant-profile/resume-draft：先上传待保存简历草稿。
+ * - DELETE /api/me/applicant-profile/resume-draft：丢弃待保存简历草稿。
+ *
+ * 这里处理二进制文件和会话里的草稿状态；档案字段保存仍在 ApplicantProfileServlet。
+ */
 @WebServlet(urlPatterns = {
         ApiRoutes.ME_APPLICANT_RESUME_DRAFT,
         ApiRoutes.ME_APPLICANT_PHOTO,
@@ -98,6 +109,7 @@ public class ApplicantAssetServlet extends HttpServlet {
             }
 
             HttpSession session = request.getSession();
+            // 一个会话只保留一份待保存简历，新的草稿会替换旧草稿。
             assetService.clearDraftResumeState(session, true);
             String originalFileName = ProfileAssetValidator.extractFileName(filePart);
             String draftResumePath = assetService.saveDraftFile(filePart, currentUser.getUserId());

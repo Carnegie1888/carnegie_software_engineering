@@ -18,6 +18,11 @@ import java.util.Optional;
 
 /**
  * AdminInviteDao - 管理员邀请数据访问对象。
+ *
+ * 遗留/待移除：当前可见前端已经改为“管理员页面展示当前短邀请码 + admin-register.jsp 输入短码”，
+ * 不再展示邮件邀请列表，也不要求用户通过一次性 token 链接注册。
+ * 这个 DAO 仍保留是为了兼容 AdminInviteServlet 的旧邮件邀请接口和已存在的 admin_invites.csv。
+ * 后续确认没有页面、测试和演示脚本调用 /api/admin/invitations 后，可以整体移除这条 CSV 邀请记录链路。
  */
 public class AdminInviteDao {
 
@@ -64,6 +69,7 @@ public class AdminInviteDao {
                                                  LocalDateTime expiresAt) {
         List<AdminInvite> invites = readAll();
 
+        // CSV 里只保存 hash，避免本地数据目录直接暴露可用的邀请 token/code。
         AdminInvite invite = new AdminInvite();
         invite.setEmail(normalizeEmail(email));
         invite.setTokenHash(SecurityTokenUtil.sha256Hex(plainToken));
@@ -81,6 +87,7 @@ public class AdminInviteDao {
     }
 
     public synchronized Optional<AdminInvite> findValidByToken(String plainToken) {
+        // 遗留/待移除：旧邮件链接模式使用 token；当前可见注册页只需要 inviteCode。
         if (plainToken == null || plainToken.trim().isEmpty()) {
             return Optional.empty();
         }
@@ -123,6 +130,7 @@ public class AdminInviteDao {
 
         for (AdminInvite invite : invites) {
             if (invite.getStatus() == AdminInvite.Status.PENDING && invite.isExpired(now)) {
+                // 顺手把过期记录落盘，下一次管理端查看 CSV 时状态就是准确的。
                 invite.setStatus(AdminInvite.Status.EXPIRED);
                 changed = true;
                 continue;

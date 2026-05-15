@@ -7,7 +7,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 /**
- * Notification 实体类 — 管理员发布的系统公告
+ * Notification 实体类 - 管理员发布的系统公告。
+ *
+ * 公告面向 TA、MO、ADMIN 通知页共享展示；CSV 只保存标题、正文、发布时间和发布者快照。
  */
 public class Notification {
 
@@ -25,7 +27,7 @@ public class Notification {
         this.publishedAt = LocalDateTime.now();
     }
 
-    // ── Getters / Setters ────────────────────────────────────────────────
+    // Getters / Setters
 
     public String getNotificationId() { return notificationId; }
     public void setNotificationId(String notificationId) { this.notificationId = notificationId; }
@@ -45,8 +47,11 @@ public class Notification {
     public String getPublishedByUsername() { return publishedByUsername; }
     public void setPublishedByUsername(String publishedByUsername) { this.publishedByUsername = publishedByUsername; }
 
-    // ── CSV serialisation ────────────────────────────────────────────────
+    // CSV serialisation
 
+    /**
+     * 字段顺序必须和 NotificationDao.CSV_HEADER 保持一致。
+     */
     public String toCsv() {
         return String.join(",",
             escapeCsv(notificationId),
@@ -69,7 +74,7 @@ public class Notification {
         n.setContent(unescapeCsv(parts[2]));
         if (!parts[3].isEmpty()) {
             try { n.setPublishedAt(LocalDateTime.parse(parts[3], FMT)); }
-            catch (Exception ignored) { /* keep now() from constructor */ }
+            catch (Exception ignored) { /* 兼容坏时间戳：保留构造函数里的当前时间，避免整条公告丢失。 */ }
         }
         n.setPublishedByUserId(unescapeCsv(parts[4]));
         n.setPublishedByUsername(unescapeCsv(parts[5]));

@@ -7,8 +7,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 /**
- * User实体类 - 用户
- * 支持三种角色: TA (助教申请人), MO (模块负责人), ADMIN (管理员)
+ * User 实体 - 登录账号。
+ *
+ * 支持三种角色：TA、MO、ADMIN。这个类也负责 CSV 序列化，
+ * 因此新增字段只能追加在末尾，不能破坏旧 CSV 列顺序。
  */
 public class User {
 
@@ -134,6 +136,7 @@ public class User {
      * 转换为CSV格式存储
      */
     public String toCsv() {
+        // displayName/realName/professionalTitle/avatarPath 是账号资料页新增字段，追加在旧字段后。
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
         return String.join(",",
             escapeCsv(userId),
@@ -154,6 +157,7 @@ public class User {
      * 从CSV格式解析
      */
     public static User fromCsv(String csvLine) {
+        // 兼容旧 CSV：早期第 10 列可能直接是 avatarPath，而不是 professionalTitle。
         String[] parts = CsvCodec.split(csvLine);
         if (parts.length < 6) {
             return null;
@@ -194,6 +198,7 @@ public class User {
     }
 
     private static boolean looksLikeAvatarPath(String value) {
+        // 遗留兼容：判断旧 CSV 的第 10 列到底是头像路径还是职称。
         if (value == null || value.isEmpty()) {
             return false;
         }

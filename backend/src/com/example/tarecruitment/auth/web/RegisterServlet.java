@@ -14,14 +14,12 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 /**
- * RegisterServlet - 处理用户注册
+ * RegisterServlet - 处理公开用户注册。
+ *
+ * 当前前端入口：register.jsp / js/auth/register.js。
  * 访问路径: /api/auth/register
  *
- * 优化内容:
- * - 添加日志记录
- * - 增强输入验证
- * - 统一JSON响应格式
- * - 添加异常处理
+ * 公开注册只允许 TA/MO。Admin 注册必须走邀请页和邀请码验收流程。
  */
 @WebServlet(ApiRoutes.AUTH_REGISTER)
 public class RegisterServlet extends HttpServlet {
@@ -88,7 +86,7 @@ public class RegisterServlet extends HttpServlet {
             email = email.trim();
             roleStr = roleStr.trim();
 
-            // 解析角色（公开注册仅允许 TA / MO）
+            // 解析角色（公开注册仅允许 TA / MO），ADMIN 必须走 admin invite。
             User.Role role;
             try {
                 role = parsePublicRole(roleStr);
@@ -135,8 +133,8 @@ public class RegisterServlet extends HttpServlet {
                                   String confirmPassword, String email, String role) {
         String usernameText = username != null ? username.trim().toLowerCase() : "";
         String emailText = email != null ? email.trim() : "";
-        String passwordText = password != null ? password : "";           // no trim for passwords
-        String confirmPasswordText = confirmPassword != null ? confirmPassword : ""; // no trim for passwords
+        String passwordText = password != null ? password : "";           // 密码不 trim，避免悄悄改变用户输入。
+        String confirmPasswordText = confirmPassword != null ? confirmPassword : ""; // 确认密码同样不 trim。
         String roleText = role != null ? role.trim().toUpperCase() : "";
 
         // 验证用户名
@@ -260,6 +258,7 @@ public class RegisterServlet extends HttpServlet {
     }
 
     private User.Role parsePublicRole(String roleText) {
+        // Admin 的入口不在这里，避免公开注册接口绕过邀请码。
         if (roleText == null) {
             throw new IllegalArgumentException("Invalid role selected");
         }
