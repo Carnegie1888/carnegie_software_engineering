@@ -1,3 +1,9 @@
+/*
+ * Admin dashboard 工作量统计脚本，对应 /jsp/admin/dashboard.jsp。
+ *
+ * 读取 /api/admin/workload-statistics，把后端统计好的 TA 工作量做搜索、分页和展开详情。
+ * 统计口径不在前端计算，前端只处理展示状态。
+ */
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
     var i18n = window.AppI18n && typeof window.AppI18n.t === "function" ? window.AppI18n : null;
@@ -26,6 +32,7 @@
     };
 
     var state = {
+        // report 是后端完整结果；searchQuery/currentPage 只影响当前浏览视图。
         loading: false,
         report: EMPTY_REPORT,
         expandedTaIds: {},
@@ -51,6 +58,9 @@
 
     loadDashboard();
 
+    /*
+     * 拉取并渲染后台工作量统计。
+     */
     function loadDashboard() {
         if (state.loading) return Promise.resolve();
 
@@ -82,13 +92,20 @@
         });
     }
 
+    /*
+     * 应用 TA 搜索关键词，只影响前端当前列表，不重新请求后端。
+     */
     function applySearch() {
         state.searchQuery = searchInput.value.trim();
         state.currentPage = 1;
         renderDashboard(state.report);
     }
 
+    /*
+     * 请求 /api/admin/workload-statistics。
+     */
     function fetchWorkloadReport() {
+        // 当前前端只展示 TA workload；其它 mode 已在后端标为遗留预留。
         return request(window.TARecruitment.routes.admin.workloadStatistics(), {
             method: "GET",
             headers: { "X-Requested-With": "XMLHttpRequest" }
@@ -97,10 +114,16 @@
         });
     }
 
+    /*
+     * 渲染 dashboard 主体，目前只展示 TA 工作量卡片。
+     */
     function renderDashboard(report) {
         renderTaCards(report.taWorkloads);
     }
 
+    /*
+     * 搜索、排序、分页后渲染 TA 工作量卡片。
+     */
     function renderTaCards(taWorkloads) {
         taListNode.innerHTML = "";
         hidePagination();
@@ -142,6 +165,10 @@
         renderPagination(totalPages);
     }
 
+    /*
+     * 创建单个 TA 工作量卡片。
+     * maxValue 用于计算横向进度条比例，不改变真实小时数。
+     */
     function createTaCard(item, maxValue) {
         var taId = safeText(item.taId, safeText(item.taName, ""));
         var isExpanded = !!state.expandedTaIds[taId];
@@ -182,6 +209,9 @@
         return element;
     }
 
+    /*
+     * 创建展开详情：列出该 TA 被统计的已接受岗位。
+     */
     function createTaDetail(item) {
         var jobs = Array.isArray(item.jobs) ? item.jobs : [];
         var jobRows = jobs.map(function (job) {
@@ -211,6 +241,9 @@
         return element;
     }
 
+    /*
+     * 在前端做轻量搜索：后端仍返回完整统计，关键词只影响当前列表视图。
+     */
     function filterTaWorkloads(taWorkloads, query) {
         var normalizedQuery = normalizeSearchText(query);
         if (!normalizedQuery) {
@@ -221,6 +254,9 @@
         });
     }
 
+    /*
+     * 把 TA 名称、岗位、课程号和统计数字拼成一个可搜索字符串。
+     */
     function buildSearchText(item) {
         var parts = [
             safeText(item.taName, ""),
@@ -245,10 +281,16 @@
         return normalizeSearchText(parts.join(" "));
     }
 
+    /*
+     * 搜索统一小写并折叠空白，避免中英文空格差异影响匹配。
+     */
     function normalizeSearchText(value) {
         return safeText(value, "").toLowerCase().replace(/\s+/g, " ").trim();
     }
 
+    /*
+     * 搜索或分页后，移除已经不可见的展开状态，避免下次回到列表时展开错卡片。
+     */
     function pruneExpandedState(items) {
         var visibleIds = {};
         items.forEach(function (item) {
@@ -261,6 +303,9 @@
         });
     }
 
+    /*
+     * 构造列表上方的加载摘要，区分“总数”“过滤后数量”和“当前页数量”。
+     */
     function buildWorkloadSummary(pageCount, filteredCount, totalCount) {
         var summary = formatLoadedSummary(filteredCount, "portal.dynamic.taWorkloadItemUnit", "TA workload item");
         if (state.searchQuery) {
@@ -272,6 +317,9 @@
         return summary;
     }
 
+    /*
+     * 渲染分页控件；分页只在浏览器端切片，不重新请求 /api/admin/workload-statistics。
+     */
     function renderPagination(totalPages) {
         if (!paginationNode) {
             return;
@@ -293,6 +341,9 @@
         });
     }
 
+    /*
+     * 页数较多时压缩中间页码，保持控件宽度稳定。
+     */
     function buildPaginationPages(totalPages, currentPage) {
         if (totalPages <= 7) {
             var simplePages = [];
@@ -317,6 +368,9 @@
         return pages;
     }
 
+    /*
+     * 单个分页按钮会更新 state.currentPage，并复用当前 report 重新渲染。
+     */
     function appendPageButton(page) {
         if (!paginationNode) {
             return;
@@ -339,6 +393,9 @@
         paginationNode.appendChild(button);
     }
 
+    /*
+     * 分页省略号只是视觉占位，不绑定点击事件。
+     */
     function appendPageEllipsis() {
         if (!paginationNode) {
             return;
@@ -349,6 +406,9 @@
         paginationNode.appendChild(ellipsis);
     }
 
+    /*
+     * 空列表或单页数据时隐藏分页，避免旧页码残留在页面上。
+     */
     function hidePagination() {
         if (!paginationNode) {
             return;
@@ -357,6 +417,9 @@
         paginationNode.classList.add("hidden");
     }
 
+    /*
+     * 统一空状态结构，文案由调用方决定是无数据还是无搜索结果。
+     */
     function createEmptyState(copy) {
         var empty = document.createElement("div");
         empty.className = "empty-state";
@@ -366,6 +429,9 @@
         return empty;
     }
 
+    /*
+     * 后端标准响应是 {success, data}；这里兼容直接传 data 的单测/旧调用形态。
+     */
     function normalizeReport(payload) {
         var data = payload && payload.data && typeof payload.data === "object" ? payload.data : payload;
         if (!data || typeof data !== "object") return EMPTY_REPORT;
@@ -379,6 +445,9 @@
         };
     }
 
+    /*
+     * 把公共 request 的 response/payload 转成页面更好判断的结果对象。
+     */
     function normalizeApiResult(result, fallbackMessage) {
         var response = result.response;
         var payload = result.payload;
@@ -396,6 +465,9 @@
         return { unauthorized: false, ok: true, payload: payload, message: "" };
     }
 
+    /*
+     * 控制搜索按钮加载态，避免请求未完成时重复触发。
+     */
     function setLoadingState(loading) {
         if (applyButton) {
             applyButton.disabled = loading;
@@ -403,6 +475,9 @@
         }
     }
 
+    /*
+     * 页面请求优先走 TARecruitment.api.request，保留 fetch 作为公共脚本未加载时的兜底。
+     */
     function request(url, options) {
         if (window.TARecruitment && window.TARecruitment.api) {
             return window.TARecruitment.api.request(url, options, { parser: parseJson });
@@ -417,6 +492,9 @@
         });
     }
 
+    /*
+     * 后端异常页或空响应不会打断渲染，统一解析成空对象后交给 normalizeApiResult。
+     */
     function parseJson(text) {
         try {
             return JSON.parse(text);
@@ -425,6 +503,9 @@
         }
     }
 
+    /*
+     * 顶部消息区只显示当前 dashboard 请求状态。
+     */
     function showMessage(message, type) {
         if (!messageNode) return;
         messageNode.textContent = message;
@@ -432,6 +513,9 @@
         messageNode.classList.add(type === "success" ? "success" : "error");
     }
 
+    /*
+     * 请求前清空旧提示，防止成功数据和旧错误同时出现。
+     */
     function hideMessage() {
         if (!messageNode) return;
         messageNode.textContent = "";
@@ -439,6 +523,9 @@
         messageNode.classList.add("hidden");
     }
 
+    /*
+     * 管理员会话失效时回登录页，路径通过 contextPath 兼容 /groupproject 部署。
+     */
     function handleUnauthorized() {
         showMessage(t("portal.dynamic.sessionExpiredRedirect", "Session expired. Redirecting to login..."), "error");
         window.setTimeout(function () {
@@ -446,6 +533,9 @@
         }, 900);
     }
 
+    /*
+     * 统一 loaded 摘要，并在英文环境下补复数。
+     */
     function formatLoadedSummary(count, unitKey, fallbackUnit) {
         var summary = t("portal.dynamic.loaded", "Loaded") + " " + count + " " + t(unitKey, fallbackUnit);
         if (window.AppI18n && window.AppI18n.getLocale && window.AppI18n.getLocale() === "en" && count !== 1) {
@@ -454,11 +544,17 @@
         return summary + ".";
     }
 
+    /*
+     * 后端 CSV 统计值可能以字符串返回，渲染前统一转成安全数字。
+     */
     function toNumber(value) {
         var number = Number(value);
         return isFinite(number) ? number : 0;
     }
 
+    /*
+     * 展示小时数：整数不带小数，非整数保留一位，避免卡片数字过长。
+     */
     function formatNumber(value) {
         var number = toNumber(value);
         if (Math.abs(number - Math.round(number)) < 0.0001) {
@@ -467,12 +563,18 @@
         return String(Math.round(number * 10) / 10);
     }
 
+    /*
+     * 渲染文本前做空值兜底，避免 null/undefined 直接进入 DOM。
+     */
     function safeText(value, fallback) {
         if (typeof value === "string" && value.trim()) return value.trim();
         if (typeof value === "number") return formatNumber(value);
         return typeof fallback === "string" ? fallback : "";
     }
 
+    /*
+     * 所有通过 innerHTML 拼接的后端字段必须先转义。
+     */
     function escapeHtml(value) {
         if (typeof value !== "string") return "";
         return value
@@ -483,11 +585,17 @@
             .replace(/'/g, "&#39;");
     }
 
+    /*
+     * i18n 不可用时使用英文兜底，保证页面仍可读。
+     */
     function t(key, fallback) {
         if (i18n) return i18n.t(key, fallback);
         return fallback || key;
     }
 
+    /*
+     * 后端 message 先尝试按 i18n 字典映射，映射不到再显示原文或兜底文案。
+     */
     function localizeServerMessage(message, fallbackKey, fallbackText) {
         if (window.AppI18n && typeof window.AppI18n.localizeServerMessage === "function") {
             return window.AppI18n.localizeServerMessage(message, fallbackKey, fallbackText);

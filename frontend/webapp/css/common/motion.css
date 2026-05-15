@@ -1,3 +1,7 @@
+/*
+ * 全站动效入口。
+ * 页面样式通过引入本文件获得公共 forms/components/tokens 和 hover/active 动效。
+ */
 @import url("./forms.css");
 
 .is-clickable,

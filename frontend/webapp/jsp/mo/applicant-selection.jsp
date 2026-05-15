@@ -13,6 +13,7 @@
     }
     String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "M";
 %>
+<%-- MO 申请筛选页：按课程/申请详情浏览当前 MO 相关申请。 --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -55,6 +56,12 @@
 
                         <div id="selection-message" class="form-message hidden" role="status" aria-live="polite"></div>
 
+                        <%--
+                            遗留/待移除：
+                            当前 mo-applicant-selection.js 已改为在 #applications-list 内渲染课程列表、
+                            课程申请列表和单个申请详情，这个旧的固定详情面板没有前端入口。
+                            保留原因是避免旧样式/文案引用被立即删除；确认不再需要旧详情面板后可清理。
+                        --%>
                         <section id="applicant-detail-panel" class="selection-detail-panel hidden" aria-label="申请人详细信息" data-i18n-aria-label="portal.moApplicantSelection.detailPanelAria">
                             <header class="selection-detail-header">
                                 <div>
@@ -118,6 +125,11 @@
     </div>
 
     <script>
+        /*
+         * 注入给 mo-applicant-selection.js：
+         * APP_CONTEXT_PATH 用于公共 routes 生成正确 URL；
+         * APP_CURRENT_USER_ID 保留给 MO 视角过滤和后续调试定位。
+         */
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
         window.APP_CURRENT_USER_ID = "<%= userId %>";
     </script>

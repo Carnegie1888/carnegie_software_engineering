@@ -1,3 +1,10 @@
+/*
+ * TA dashboard 档案脚本，对应 /jsp/ta/dashboard.jsp。
+ *
+ * 负责 TA 档案表单、简历草稿上传、档案照片预览/移除，以及保存后刷新侧边栏头像。
+ * 相关 API：/api/me/applicant-profile、/api/me/applicant-profile/resume-draft、
+ * /api/me/applicant-profile/photo、/api/me/applicant-profile/resume。
+ */
 (function () {
     var form = document.getElementById("ta-profile-form");
     if (!form) {
@@ -54,6 +61,7 @@
         return fallbackKey ? localizeText(fallbackKey, fallbackText) : (fallbackText || "");
     }
 
+    // 表单字段映射：key 与后端 ApplicantProfileRequestMapper 接收的字段名保持一致。
     var inputs = {
         fullName: document.getElementById("full-name"),
         studentId: document.getElementById("student-id"),
@@ -67,6 +75,7 @@
     };
 
     var state = {
+        // saved* 是后端已保存的档案资源；pending* 是当前 session 的简历草稿；selected* 是浏览器本地刚选的文件。
         hasExistingProfile: false,
         isEditing: false,
         isSubmitting: false,
@@ -89,11 +98,13 @@
         photoPreviewVersion: Date.now()
     };
 
+    // touched 用于区分“用户已经编辑过”和“初始化填值”，避免加载旧档案时立刻报错。
     var fieldValidationState = {
         feedbackByKey: {},
         touchedByKey: {}
     };
 
+    // 校验摘要按页面视觉顺序定位第一个错误字段。
     var orderedInputKeys = [
         "fullName",
         "studentId",
@@ -206,6 +217,10 @@
         refreshPhotoArea();
     });
 
+    /*
+     * 创建 TA 档案：先做前端必填/文件校验，再提交 /api/me/applicant-profile。
+     * 成功后不直接相信本地表单，而是重新 GET 一次后端保存结果。
+     */
     function handleCreate() {
         hideMessage();
 
@@ -266,6 +281,9 @@
             });
     }
 
+    /*
+     * 页面初始化和保存后都会调用：读取当前账号的 TA 档案、已保存简历/照片、session 草稿。
+     */
     function loadExistingProfile(options) {
         var settings = options || {};
 
@@ -325,6 +343,9 @@
             });
     }
 
+    /*
+     * 更新已有档案：只在编辑模式触发，流程与创建一致但会保留旧资源的删除标记。
+     */
     function handleUpdate() {
         hideMessage();
 
@@ -387,10 +408,14 @@
             });
     }
 
+    /*
+     * 组装档案提交体。
+     * 没照片时使用表单编码；有照片或更新照片状态时使用 multipart，避免前端另走上传接口。
+     */
     function submitProfile(isUpdate) {
         if (isUpdate) {
-            // Backend PUT currently does not parse urlencoded bodies reliably.
-            // Use existing multipart update branch to submit profile edits.
+            // 遗留/待移除：当前前端更新档案仍走 multipart POST 分支。
+            // 保留原因：同一条路径可以同时提交文本字段和照片；后续若统一为 PUT multipart，可清理这段绕路说明。
             var updateData = new FormData();
             updateData.append("fullName", inputs.fullName.value.trim());
             updateData.append("studentId", inputs.studentId.value.trim());
@@ -463,6 +488,9 @@
         });
     }
 
+    /*
+     * 把后端档案结果回填到只读表单，同时同步侧边栏显示名和资源状态。
+     */
     function applyExistingProfile(payload, createdNow) {
         state.hasExistingProfile = true;
         state.isEditing = false;
@@ -501,6 +529,9 @@
         }
     }
 
+    /*
+     * 没有档案或读取失败时进入创建态；payload 可能只包含 session 内的简历草稿。
+     */
     function enableCreateMode(payload) {
         state.hasExistingProfile = false;
         state.isEditing = false;
@@ -524,6 +555,9 @@
         refreshPhotoArea();
     }
 
+    /*
+     * 保存/编辑/取消按钮的可见性由“是否已有档案”和“是否正在编辑”共同决定。
+     */
     function updateProfileActionState() {
         if (!submitButton) {
             return;
@@ -554,6 +588,9 @@
         }
     }
 
+    /*
+     * 进入编辑态时恢复表单可编辑，但仍保留已保存资源的展示。
+     */
     function enterEditMode() {
         state.isEditing = true;
         setFormDisabled(false);
@@ -576,6 +613,9 @@
         refreshPhotoArea();
     }
 
+    /*
+     * 取消编辑会丢弃本次 session 上传的简历草稿，再从后端重新加载已保存档案。
+     */
     function handleCancelEdit() {
         var reloadProfile = function () {
             state.isEditing = false;
@@ -605,6 +645,9 @@
             });
     }
 
+    /*
+     * 根据加载、提交、上传草稿状态刷新主按钮，避免用户在资源处理中重复保存。
+     */
     function refreshSubmitButton() {
         if (state.hasExistingProfile && !state.isEditing) {
             updateProfileActionState();
@@ -633,6 +676,9 @@
         submitButton.disabled = false;
     }
 
+    /*
+     * 切换提交中状态，并同步禁用表单和文件上传区域。
+     */
     function setSubmitting(submitting) {
         state.isSubmitting = submitting;
         if (!state.hasExistingProfile || state.isEditing) {
@@ -643,18 +689,27 @@
         refreshPhotoArea();
     }
 
+    /*
+     * 只控制当前表单字段；上传区按钮由 refreshResumeArea/refreshPhotoArea 单独处理。
+     */
     function setFormDisabled(disabled) {
         Array.prototype.forEach.call(formFields, function (field) {
             field.disabled = disabled;
         });
     }
 
+    /*
+     * 简历草稿保存在 session 中，尚未成为正式 profile resume。
+     */
     function syncResumeDraftState(payload) {
         state.pendingResumePath = payload && typeof payload.pendingResumePath === "string" ? payload.pendingResumePath : "";
         state.pendingResumeName = payload && typeof payload.pendingResumeName === "string" ? payload.pendingResumeName : "";
         state.pendingResumeSize = getPositiveNumber(payload && payload.pendingResumeSize);
     }
 
+    /*
+     * 简历是保存档案的前置条件：可以是已保存简历，也可以是本次 session 草稿。
+     */
     function validateResumeRequirement() {
         if (state.pendingResumePath || hasSavedResume()) {
             return null;
@@ -668,6 +723,9 @@
         return buildValidationError(errorMessage, resumeFileTrigger || submitButton);
     }
 
+    /*
+     * 照片不是必填；只有用户新选照片时才校验类型和大小。
+     */
     function validatePhotoSelection() {
         if (!state.selectedPhotoFile) {
             return null;
@@ -685,6 +743,9 @@
         return buildValidationError(photoError, photoFileTrigger || submitButton);
     }
 
+    /*
+     * 简历上传区必须跟随表单编辑态，避免只读档案被局部改动。
+     */
     function canEditResumeSection() {
         if (state.isLoading || state.isSubmitting || state.isUploadingResume) {
             return false;
@@ -692,6 +753,9 @@
         return !state.hasExistingProfile || state.isEditing;
     }
 
+    /*
+     * 照片区与简历区使用同一套编辑权限。
+     */
     function canEditPhotoSection() {
         if (state.isLoading || state.isSubmitting || state.isUploadingResume) {
             return false;
@@ -699,6 +763,9 @@
         return !state.hasExistingProfile || state.isEditing;
     }
 
+    /*
+     * 选择简历后立即上传为草稿，真正保存档案时后端再把草稿转为正式简历。
+     */
     function handleResumeFileChange(event) {
         hideResumeMessage();
 
@@ -732,6 +799,9 @@
             });
     }
 
+    /*
+     * 上传 session 简历草稿；失败时清空本地选择，避免页面显示一个后端不存在的文件。
+     */
     function uploadDraftResume(file) {
         if (!file) {
             var noFileError = new Error("No resume file selected.");
@@ -784,7 +854,11 @@
             });
     }
 
+    /*
+     * 底层草稿上传实现：使用 XMLHttpRequest 是为了给简历草稿上传保留进度扩展点。
+     */
     function uploadDraftResumeWithProgress(file) {
+        // 使用 XMLHttpRequest 是为了给简历草稿上传保留进度扩展点；当前 UI 只展示上传中/成功/失败。
         return new Promise(function (resolve, reject) {
             var xhr = new XMLHttpRequest();
             xhr.open("POST", window.TARecruitment.routes.me.resumeDraft(), true);
@@ -815,6 +889,9 @@
         });
     }
 
+    /*
+     * 简历文件只允许办公文档和 PDF，大小限制与 ProfileAssetValidator 保持一致。
+     */
     function validateResumeFile(file) {
         if (!file) {
             return localizeText("portal.dynamic.chooseResumeFirst", "Please choose a resume file first.");
@@ -835,6 +912,9 @@
         return null;
     }
 
+    /*
+     * 维护浏览器本地选择的简历文件；清空时也重置 input，确保可重新选择同一文件。
+     */
     function setSelectedResumeFile(file) {
         state.selectedResumeFile = file || null;
         if (resumeFileInput && !file) {
@@ -843,6 +923,9 @@
         refreshResumeArea();
     }
 
+    /*
+     * 草稿上传态会同时影响保存按钮、简历区和照片区。
+     */
     function setResumeUploading(uploading) {
         state.isUploadingResume = uploading;
         refreshSubmitButton();
@@ -850,6 +933,9 @@
         refreshPhotoArea();
     }
 
+    /*
+     * 移除简历按优先级处理：先丢 session 草稿，再清本地选择，最后标记删除已保存简历。
+     */
     function handleResumeRemove() {
         if (!canEditResumeSection()) {
             return;
@@ -889,6 +975,9 @@
         }
     }
 
+    /*
+     * 根据“本地选择 / session 草稿 / 已保存简历”三层状态刷新简历上传区。
+     */
     function refreshResumeArea() {
         var resumeSectionEditable = canEditResumeSection();
         var activeResumeCard = buildActiveResumeCard();
@@ -942,11 +1031,17 @@
         }
     }
 
+    /*
+     * 只要有任一层简历资源，就允许用户打开预览入口。
+     */
     function canPreviewResume() {
         return !state.isUploadingResume
             && (state.selectedResumeFile || state.pendingResumePath || hasSavedResume());
     }
 
+    /*
+     * 选择当前应该展示的简历卡片：本地选择优先，其次草稿，最后已保存文件。
+     */
     function buildActiveResumeCard() {
         if (state.selectedResumeFile) {
             return {
@@ -972,6 +1067,9 @@
         return null;
     }
 
+    /*
+     * 简历卡片副文案优先显示文件大小，未知大小时显示 ready 状态。
+     */
     function buildResumeCardDetail(fileSize) {
         if (typeof fileSize === "number" && fileSize > 0) {
             return formatFileSize(fileSize);
@@ -979,16 +1077,25 @@
         return localizeText("portal.dynamic.resumeReady", "Resume ready");
     }
 
+    /*
+     * 已保存简历被用户标记移除后，本次编辑态不再当作可用资源。
+     */
     function hasSavedResume() {
         return hasText(state.resumePath) && !state.removedSavedResume;
     }
 
+    /*
+     * 从后端 profile payload 同步已正式保存的简历资源信息。
+     */
     function syncSavedResumeState(payload) {
         state.resumePath = payload && typeof payload.resumePath === "string" ? payload.resumePath : "";
         state.resumeName = payload && typeof payload.resumeName === "string" ? payload.resumeName : "";
         state.resumeSize = getPositiveNumber(payload && payload.resumeSize);
     }
 
+    /*
+     * 同步已保存照片；路径变化时刷新版本号以避开浏览器缓存。
+     */
     function syncSavedPhotoState(payload) {
         var nextPhotoPath = payload && typeof payload.photoPath === "string" ? payload.photoPath : "";
         if (state.photoPath !== nextPhotoPath) {
@@ -999,6 +1106,9 @@
         state.photoSize = getPositiveNumber(payload && payload.photoSize);
     }
 
+    /*
+     * 照片只在保存档案时提交；这里先做本地预览和前端格式校验。
+     */
     function handlePhotoFileChange(event) {
         hidePhotoMessage();
 
@@ -1027,6 +1137,9 @@
         );
     }
 
+    /*
+     * 照片格式和大小限制与后端 ProfileAssetValidator 对齐。
+     */
     function validatePhotoFile(file) {
         if (!file) {
             return localizeText("portal.dynamic.choosePhotoFirst", "Please choose a photo file first.");
@@ -1047,6 +1160,9 @@
         return null;
     }
 
+    /*
+     * 维护照片本地预览 URL；替换文件时释放旧 object URL，避免浏览器内存泄漏。
+     */
     function setSelectedPhotoFile(file) {
         if (state.photoObjectUrl && typeof URL !== "undefined" && typeof URL.revokeObjectURL === "function") {
             URL.revokeObjectURL(state.photoObjectUrl);
@@ -1066,6 +1182,9 @@
         refreshPhotoArea();
     }
 
+    /*
+     * 移除照片时，本地新选照片直接清空；已保存照片只记录删除标记，等保存时生效。
+     */
     function handlePhotoRemove() {
         if (!canEditPhotoSection()) {
             return;
@@ -1088,6 +1207,9 @@
         }
     }
 
+    /*
+     * 根据本地照片或已保存照片刷新上传壳、缩略图、删除按钮和只读态。
+     */
     function refreshPhotoArea() {
         var photoSectionEditable = canEditPhotoSection();
         var activePhotoCard = buildActivePhotoCard();
@@ -1143,6 +1265,9 @@
         syncNavAvatar();
     }
 
+    /*
+     * 当前照片展示来源：本地选择优先，已保存照片次之。
+     */
     function buildActivePhotoCard() {
         if (state.selectedPhotoFile && state.photoObjectUrl) {
             return {
@@ -1163,6 +1288,9 @@
         return null;
     }
 
+    /*
+     * 照片卡片副文案与简历保持一致：优先大小，未知则显示 ready。
+     */
     function buildPhotoCardDetail(fileSize) {
         if (typeof fileSize === "number" && fileSize > 0) {
             return formatFileSize(fileSize);
@@ -1170,14 +1298,21 @@
         return localizeText("portal.dynamic.photoReady", "Photo ready");
     }
 
+    /*
+     * 已保存照片被标记删除后，在本次编辑视图中视为不存在。
+     */
     function hasSavedPhoto() {
         return hasText(state.photoPath) && !state.removedSavedPhoto;
     }
 
     function buildSavedPhotoPreviewUrl() {
+        // v 参数只用于破坏浏览器图片缓存，让刚上传的新照片立即显示。
         return window.TARecruitment.routes.me.applicantPhoto() + "?v=" + encodeURIComponent(String(state.photoPreviewVersion));
     }
 
+    /*
+     * 照片上传区的局部消息，不影响整个档案表单的保存提示。
+     */
     function showPhotoMessage(message, type) {
         if (!photoUploadMessage) {
             return;
@@ -1187,6 +1322,9 @@
         photoUploadMessage.classList.add(type === "success" ? "success" : "error");
     }
 
+    /*
+     * 清空照片区局部消息。
+     */
     function hidePhotoMessage() {
         if (!photoUploadMessage) {
             return;
@@ -1196,6 +1334,9 @@
         photoUploadMessage.classList.add("hidden");
     }
 
+    /*
+     * 简历上传区的局部消息，专门提示草稿上传、移除和预览状态。
+     */
     function showResumeMessage(message, type) {
         if (!resumeUploadMessage) {
             return;
@@ -1205,6 +1346,9 @@
         resumeUploadMessage.classList.add(type === "success" ? "success" : "error");
     }
 
+    /*
+     * 清空简历区局部消息。
+     */
     function hideResumeMessage() {
         if (!resumeUploadMessage) {
             return;
@@ -1214,6 +1358,9 @@
         resumeUploadMessage.classList.add("hidden");
     }
 
+    /*
+     * 删除 session 草稿简历；取消编辑或手动移除草稿时调用。
+     */
     function discardPendingResume() {
         return request(window.TARecruitment.routes.me.resumeDraft(), {
             method: "DELETE",
@@ -1244,6 +1391,9 @@
         });
     }
 
+    /*
+     * 文件大小只用于前端展示，不参与后端保存。
+     */
     function formatFileSize(bytes) {
         if (typeof bytes !== "number" || bytes < 0) {
             return "0 B";
@@ -1265,6 +1415,9 @@
         return typeof value === "string" && value.trim().length > 0;
     }
 
+    /*
+     * 后端可能返回存储路径；前端只展示最后一级文件名。
+     */
     function extractFileNameFromPath(path) {
         if (typeof path !== "string" || !path.trim()) {
             return "";
@@ -1275,6 +1428,9 @@
         return segments[segments.length - 1] || normalizedPath;
     }
 
+    /*
+     * 提交前强制校验全部字段，并返回第一个错误用于聚焦。
+     */
     function validateForm() {
         var firstError = null;
 
@@ -1293,6 +1449,9 @@
         return firstError;
     }
 
+    /*
+     * 初始化实时校验：用户触碰字段后再显示错误，减少初次打开页面的干扰。
+     */
     function initializeRealtimeValidation() {
         Object.keys(inputs).forEach(function (key) {
             var field = inputs[key];
@@ -1345,6 +1504,9 @@
         });
     }
 
+    /*
+     * 表单内 Enter 默认跳到下一个字段，最后一个字段再提交，降低误保存概率。
+     */
     function initializeEnterKeyBehavior() {
         form.addEventListener("keydown", function (event) {
             if (!event || event.key !== "Enter" || event.isComposing) {
@@ -1379,14 +1541,23 @@
         });
     }
 
+    /*
+     * 统一判断当前是否允许编辑和实时校验。
+     */
     function isProfileFormEditable() {
         return (!state.hasExistingProfile || state.isEditing) && !state.isLoading && !state.isSubmitting;
     }
 
+    /*
+     * 字段只有在表单可编辑且未禁用时才参与实时校验。
+     */
     function canValidateField(field) {
         return !!field && isProfileFormEditable() && !field.disabled;
     }
 
+    /*
+     * 从 DOM 字段反查 inputs key，供键盘导航和校验定位使用。
+     */
     function getFieldKeyByElement(element) {
         var matchedKey = "";
         Object.keys(inputs).some(function (key) {
@@ -1399,6 +1570,9 @@
         return matchedKey;
     }
 
+    /*
+     * 按 orderedInputKeys 顺序移动焦点，跳过不存在或禁用的控件。
+     */
     function focusNextFormControl(current) {
         var orderedControls = [];
         orderedInputKeys.forEach(function (key) {
@@ -1426,6 +1600,9 @@
         return false;
     }
 
+    /*
+     * 兼容不支持 requestSubmit 的浏览器容器。
+     */
     function submitFormFromEnter() {
         if (!submitButton || submitButton.disabled) {
             return;
@@ -1439,6 +1616,9 @@
         submitButton.click();
     }
 
+    /*
+     * 为字段创建或复用错误提示节点，并建立 aria-describedby 关联。
+     */
     function ensureFieldFeedbackNode(key, field) {
         var container = field.closest(".field");
         if (!container) {
@@ -1473,18 +1653,27 @@
         return feedback;
     }
 
+    /*
+     * 切换模式或重新加载档案时清空所有字段错误。
+     */
     function clearAllFieldValidation() {
         Object.keys(inputs).forEach(function (key) {
             setFieldValidationResult(key, "");
         });
     }
 
+    /*
+     * 重置 touched，避免后端回填字段被当成用户输入。
+     */
     function resetFieldTouchedState() {
         Object.keys(inputs).forEach(function (key) {
             fieldValidationState.touchedByKey[key] = false;
         });
     }
 
+    /*
+     * 写入单字段校验结果，同时同步 aria-invalid。
+     */
     function setFieldValidationResult(key, message, animate) {
         var field = inputs[key];
         var feedback = fieldValidationState.feedbackByKey[key];
@@ -1514,6 +1703,9 @@
         field.removeAttribute("aria-invalid");
     }
 
+    /*
+     * 单字段校验入口，实时校验和提交校验共用。
+     */
     function validateSingleField(key, options) {
         var field = inputs[key];
         if (!field) {
@@ -1541,10 +1733,16 @@
         };
     }
 
+    /*
+     * TA 档案校验文案统一放在 portal.taDashboard.validation 命名空间。
+     */
     function tv(key, fallback) {
         return localizeText("portal.taDashboard.validation." + key, fallback);
     }
 
+    /*
+     * 前端校验用于即时反馈；最终可信校验仍由 ApplicantProfileValidator 完成。
+     */
     function getFieldValidationMessage(key, value, forceRequired) {
         var isRequired = key === "fullName"
             || key === "studentId"
@@ -1782,10 +1980,16 @@
         return "";
     }
 
+    /*
+     * 名称、院系、技能等字段至少要包含可读文字，不能只有符号或数字。
+     */
     function hasLetterOrCjk(text) {
         return /[A-Za-z\u00C0-\u024F\u4E00-\u9FFF]/.test(text || "");
     }
 
+    /*
+     * 电话字段允许括号，但必须成对出现。
+     */
     function hasBalancedParentheses(text) {
         var balance = 0;
         var i;
@@ -1803,6 +2007,9 @@
         return balance === 0;
     }
 
+    /*
+     * 粗略拦截无意义重复字符，例如 aaaaaa 或 111111。
+     */
     function hasExcessiveRepeatedChars(text, threshold) {
         if (!text) {
             return false;
@@ -1812,6 +2019,9 @@
         return repeatedPattern.test(text);
     }
 
+    /*
+     * 中英文混合长文本按“中文字符 + 英文词”估算内容量。
+     */
     function getTextContentUnits(text) {
         if (!text) {
             return 0;
@@ -1823,6 +2033,9 @@
         return cjkChars.length + latinWords.length;
     }
 
+    /*
+     * 经验和动机共用长文本校验，要求不是空泛的一两个词。
+     */
     function validateLongTextField(value, keyPrefix) {
         if (value.length > 1200) {
             return tv(keyPrefix + ".tooLong", "Must be 1200 characters or fewer.");
@@ -1842,6 +2055,9 @@
         return "";
     }
 
+    /*
+     * 统一提交校验错误结构，便于聚焦第一个错误字段。
+     */
     function buildValidationError(message, field) {
         return {
             message: message,
@@ -1849,6 +2065,9 @@
         };
     }
 
+    /*
+     * 页面请求优先使用公共 TARecruitment.api.request，保证 context path 和 JSON 解析一致。
+     */
     function request(url, options) {
         if (window.TARecruitment && window.TARecruitment.api) {
             return window.TARecruitment.api.request(url, options, { parser: parseResponse });
@@ -1863,10 +2082,16 @@
         });
     }
 
+    /*
+     * 档案接口应返回标准 JSON；解析失败直接抛错进入 catch。
+     */
     function parseResponse(bodyText) {
         return JSON.parse(bodyText);
     }
 
+    /*
+     * 标准响应使用 payload.data；兼容直接返回对象的旧测试调用。
+     */
     function extractData(payload) {
         if (!payload || typeof payload !== "object") {
             return {};
@@ -1877,6 +2102,9 @@
         return payload;
     }
 
+    /*
+     * 提交给后端前把中英文逗号统一为英文逗号分隔。
+     */
     function normalizeSkillsForSubmit(value) {
         if (typeof value !== "string" || !value.trim()) {
             return "";
@@ -1893,6 +2121,9 @@
             .join(",");
     }
 
+    /*
+     * 后端旧数据可能用分号或中文逗号保存，展示时统一成逗号+空格。
+     */
     function formatSkillsForDisplay(value) {
         if (typeof value !== "string" || !value.trim()) {
             return "";
@@ -1909,12 +2140,18 @@
             .join(", ");
     }
 
+    /*
+     * 安全回填普通输入字段。
+     */
     function setFieldValue(field, value) {
         if (field) {
             field.value = typeof value === "string" ? value : "";
         }
     }
 
+    /*
+     * 如果旧 CSV 中保存了当前下拉没有的 program，临时注入选项让用户能看到原值。
+     */
     function setSelectValue(field, value) {
         if (!field) {
             return;
@@ -1940,6 +2177,9 @@
         field.value = normalizedValue;
     }
 
+    /*
+     * 提交失败的总提示，具体错误仍显示在字段旁边。
+     */
     function showValidationSummaryMessage() {
         showMessage(
             localizeText("portal.dynamic.fixHighlightedFields", "Please fix the highlighted fields and try again."),
@@ -1948,6 +2188,9 @@
         );
     }
 
+    /*
+     * 档案表单顶部总消息，用于保存成功、网络失败和会话失效。
+     */
     function showMessage(message, type, animate) {
         messageBox.textContent = message;
         messageBox.classList.remove("hidden", "error", "success", "is-flashing");
@@ -1961,12 +2204,18 @@
         }
     }
 
+    /*
+     * 新一轮操作前清空旧总消息。
+     */
     function hideMessage() {
         messageBox.textContent = "";
         messageBox.classList.remove("error", "success", "is-flashing");
         messageBox.classList.add("hidden");
     }
 
+    /*
+     * 登录态失效时回登录页，保留 contextPath 以兼容非根路径部署。
+     */
     function handleUnauthorized() {
         showMessage(localizeText("portal.dynamic.sessionExpiredRedirect", "Your session has expired. Redirecting to login..."), "error");
         window.setTimeout(function () {
@@ -1974,6 +2223,9 @@
         }, 1000);
     }
 
+    /*
+     * 与共享侧边栏账号资料同步真实姓名：任一处修改时通知另一处更新。
+     */
     function setupSharedRealNameSync() {
         if (inputs.fullName) {
             inputs.fullName.addEventListener("input", function () {
@@ -1994,6 +2246,9 @@
         });
     }
 
+    /*
+     * 广播 TA 档案姓名，portal-sidebar.jspf 会用它同步账号资料表单。
+     */
     function announceTaProfileRealName(realName) {
         if (typeof window.CustomEvent !== "function") {
             return;
@@ -2005,10 +2260,17 @@
         }));
     }
 
+    /*
+     * 遗留/待移除：TA 档案照片是申请材料照片，不再同步到账号侧边栏头像。
+     * 保留原因：旧页面曾在这里做同步；后续确认没有旧主题引用后可删除空函数和调用点。
+     */
     function syncNavAvatar() {
         // Sidebar avatar is account-level; TA profile photo is application-facing.
     }
 
+    /*
+     * 打开简历预览：本地新选文件可临时预览，session 草稿需要先保存成正式简历。
+     */
     function openResumePreview() {
         var url = "";
         if (state.selectedResumeFile) {
@@ -2030,6 +2292,9 @@
         }
     }
 
+    /*
+     * 新窗口失败时降级为当前页跳转，兼容浏览器弹窗拦截。
+     */
     function openPreviewUrl(url, openInNewTab) {
         if (!openInNewTab) {
             window.location.href = url;
@@ -2041,6 +2306,9 @@
         }
     }
 
+    /*
+     * 在当前页打开照片预览层，不额外请求后端元数据。
+     */
     function openPhotoLightbox() {
         var url = "";
         if (state.selectedPhotoFile && state.photoObjectUrl) {

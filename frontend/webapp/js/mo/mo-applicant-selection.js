@@ -1,9 +1,17 @@
+/*
+ * MO 申请筛选页脚本，对应 /jsp/mo/applicant-selection.jsp。
+ *
+ * 读取 /api/applications 的 MO 视角列表，按课程聚合后进入申请详情，
+ * 可在详情里查看候选人资料、执行接受/拒绝，并请求 AI 匹配分析。
+ */
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
+    // 三层视图：课程总览 -> 课程申请列表 -> 单个申请详情。
     var VIEW_MODE_COURSE_LIST = "course-list";
     var VIEW_MODE_COURSE_DETAIL = "course-detail";
     var VIEW_MODE_APPLICATION_DETAIL = "application-detail";
 
+    // 页面核心 DOM 节点，缺少任一关键节点就停止初始化，避免脚本在其他 JSP 上误运行。
     var searchForm = document.getElementById("selection-search-form");
     var searchInput = document.getElementById("selection-search-input");
     var searchButton = document.getElementById("selection-search-btn");
@@ -15,6 +23,10 @@
         return;
     }
 
+    /*
+     * 单个申请详情页不需要顶部搜索框。
+     * 返回课程列表/申请列表时重新显示，保持同一个 JSP 内的多层视图体验。
+     */
     function syncSearchFormVisibility() {
         var hide = state.viewMode === VIEW_MODE_APPLICATION_DETAIL;
         searchForm.classList.toggle("search-form--hidden", hide);
@@ -25,7 +37,15 @@
         }
     }
 
+    /*
+     * 页面状态：
+     * - applications 是 /api/applications 返回的申请主列表；
+     * - applicantDetailsByApplicationId 缓存 /api/applications/{id}/applicant 的档案快照；
+     * - jobsById 缓存 /api/jobs，用于把申请聚合到课程并补齐岗位信息；
+     * - aiByApplicationId 保存单个申请 AI 分析面板状态。
+     */
     var state = {
+        // viewMode 决定当前是课程列表、课程下申请列表，还是单个申请详情。
         loading: false,
         reviewingId: "",
         applications: [],
@@ -48,6 +68,10 @@
 
     loadApplications();
 
+    /*
+     * 加载 MO 可见申请列表。
+     * preserveView=true 用于接受/拒绝后刷新数据但保留当前课程或详情位置。
+     */
     function loadApplications(options) {
         options = options || {};
         var preserveView = !!options.preserveView;
@@ -129,6 +153,10 @@
             });
     }
 
+    /*
+     * 批量加载申请人档案快照。
+     * 每条详情独立失败，失败时仍渲染申请基本信息，避免单个档案阻断整页。
+     */
     function loadApplicantDetails(applications) {
         if (!Array.isArray(applications) || applications.length === 0) {
             return Promise.resolve();
@@ -160,6 +188,10 @@
         return Promise.all(detailRequests);
     }
 
+    /*
+     * 加载职位目录，用于把申请补充成课程分组视图。
+     * 失败时课程分组仍可基于 application 自带字段工作，只是岗位描述/技能会少一些。
+     */
     function loadJobsCatalog() {
         return request(window.TARecruitment.routes.jobs.list(), {
             method: "GET",
@@ -187,10 +219,17 @@
             });
     }
 
+    /*
+     * 根据当前 applications 和 jobsById 重新生成课程分组。
+     */
     function hydrateCourseGroups() {
         state.courseGroups = groupApplicationsByCourse(state.applications);
     }
 
+    /*
+     * 刷新后恢复用户所在视图。
+     * 如果原申请或课程已经不存在，就安全退回课程列表。
+     */
     function restoreSelectionAfterRefresh(preserveView) {
         if (!preserveView) {
             resetViewSelection();
@@ -212,22 +251,35 @@
         resetViewSelection();
     }
 
+    /*
+     * 回到课程总览，并清空课程/申请选择。
+     */
     function resetViewSelection() {
         state.viewMode = VIEW_MODE_COURSE_LIST;
         state.selectedCourseCode = "";
         state.selectedApplicationId = "";
     }
 
+    /*
+     * 构造申请列表 API URL。
+     * 通过公共 routes 生成，避免手写旧 /apply 或 contextPath 拼接。
+     */
     function buildApplyUrl(keyword) {
         return window.TARecruitment.routes.applications.list({
             keyword: keyword
         });
     }
 
+    /*
+     * 列表渲染入口，保留这个薄包装是为了让刷新流程语义更清晰。
+     */
     function renderList(applications) {
         renderCurrentView(applications);
     }
 
+    /*
+     * 根据 viewMode 决定渲染课程总览、课程申请列表或单个申请详情。
+     */
     function renderCurrentView(applications) {
         listNode.innerHTML = "";
         var keyword = state.lastKeyword;
@@ -272,6 +324,10 @@
         syncSearchFormVisibility();
     }
 
+    /*
+     * 渲染课程总览卡片列表。
+     * 每张课程卡聚合该课程下所有申请和岗位摘要。
+     */
     function renderCourseListView(courseGroups) {
         setListSummary(buildCourseListSummaryText(courseGroups.length, state.applications.length));
 
@@ -285,6 +341,9 @@
         listNode.appendChild(courseList);
     }
 
+    /*
+     * 渲染某个课程下的申请人列表。
+     */
     function renderCourseDetailView(group) {
         setListSummary(buildCourseDetailSummaryText(group));
 
@@ -315,6 +374,10 @@
         listNode.appendChild(view);
     }
 
+    /*
+     * 渲染单个申请详情页。
+     * 详情页复用 createApplicationCard，包含档案、求职信、AI 分析和审核动作。
+     */
     function renderApplicationDetailView(application) {
         setListSummary(t("portal.moApplicantSelection.applicationDetail", "Application detail"));
 
@@ -344,6 +407,9 @@
         listNode.appendChild(view);
     }
 
+    /*
+     * 多层视图共用的返回按钮。
+     */
     function createBackButton(label, onClick) {
         var backButton = document.createElement("button");
         backButton.type = "button";
@@ -353,6 +419,10 @@
         return backButton;
     }
 
+    /*
+     * 以下一组 SVG helper 只负责返回小图标字符串，不承载业务逻辑。
+     * 保留在本文件中是为了避免为少量静态图标额外引入前端构建依赖。
+     */
     function courseMetricSvgClock() {
         return "<svg class=\"course-metric-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\">" +
             "<circle cx=\"12\" cy=\"12\" r=\"8\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"></circle>" +
@@ -763,6 +833,9 @@
         return item;
     }
 
+    /*
+     * 进入课程下的申请列表。
+     */
     function openCourseDetail(courseCode) {
         state.selectedCourseCode = courseCode;
         state.selectedApplicationId = "";
@@ -770,6 +843,10 @@
         renderCurrentView(state.applications);
     }
 
+    /*
+     * 进入单个申请详情。
+     * 同时保存课程代码，便于详情返回时仍回到原课程申请列表。
+     */
     function openApplicationDetail(applicationId) {
         if (!applicationId) {
             return;
@@ -784,6 +861,10 @@
         renderCurrentView(state.applications);
     }
 
+    /*
+     * 把申请按课程代码聚合。
+     * 申请数据是主数据源，jobsById 只用于补充课程名、岗位标题、工作量等展示信息。
+     */
     function groupApplicationsByCourse(applications) {
         if (!Array.isArray(applications) || applications.length === 0) {
             return [];
@@ -845,6 +926,10 @@
             });
     }
 
+    /*
+     * 从同一课程下的岗位中提取概览信息。
+     * 描述取第一条可用描述，截止时间取最早日期，技能去重后最多展示 16 个。
+     */
     function enrichCourseGroupOverviewFromJobs(group) {
         var description = "";
         var earliestMs = NaN;
@@ -895,6 +980,10 @@
         group.requiredSkillTags = skills;
     }
 
+    /*
+     * 创建课程分组的初始结构。
+     * 这些字段会被课程总览卡和课程详情概览共同消费。
+     */
     function createCourseGroup(courseCode) {
         return {
             courseCode: courseCode,
@@ -915,6 +1004,9 @@
         };
     }
 
+    /*
+     * 根据课程代码查找当前分组，用于返回/刷新后恢复视图。
+     */
     function getCourseGroupByCode(courseCode) {
         if (!courseCode || !Array.isArray(state.courseGroups)) {
             return null;
@@ -927,6 +1019,10 @@
         return null;
     }
 
+    /*
+     * 获取申请所属课程代码。
+     * 缺失时返回本地化的未知课程文案，确保聚合 key 不为空。
+     */
     function getCourseCodeForApplication(application) {
         return safeText(
             application && application.courseCode,
@@ -934,6 +1030,9 @@
         );
     }
 
+    /*
+     * 在当前缓存的申请列表中查找申请。
+     */
     function findApplicationById(applicationId) {
         if (!applicationId || !Array.isArray(state.applications)) {
             return null;
@@ -946,6 +1045,9 @@
         return null;
     }
 
+    /*
+     * 按申请时间倒序排列，时间缺失的记录排到后面。
+     */
     function compareApplicationsByAppliedAtDesc(a, b) {
         var left = Date.parse(safeText(a.appliedAt, ""));
         var right = Date.parse(safeText(b.appliedAt, ""));
@@ -961,6 +1063,9 @@
         return right - left;
     }
 
+    /*
+     * 向数组中加入去重值，保持第一次出现的顺序。
+     */
     function pushUnique(items, value) {
         if (!value || items.indexOf(value) !== -1) {
             return;
@@ -1042,6 +1147,9 @@
             "</svg>";
     }
 
+    /*
+     * 材料区域的简历图标。
+     */
     function materialDocIconSvg() {
         return "<svg class=\"material-doc-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\">" +
             "<path d=\"M7 3.5h6.2L18 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 20V5A1.5 1.5 0 0 1 7.5 3.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path>" +
@@ -1050,6 +1158,10 @@
             "</svg>";
     }
 
+    /*
+     * 创建申请详情卡片。
+     * 这里合并申请记录、申请人档案快照、求职信、AI 分析面板和审核按钮。
+     */
     function createApplicationCard(application, detail) {
         var card = document.createElement("article");
         card.className = "application-card";
@@ -1160,6 +1272,10 @@
         return card;
     }
 
+    /*
+     * 读取或初始化单个申请的 AI 面板状态。
+     * 状态按 applicationId 缓存，折叠/展开和分析结果不会互相串。
+     */
     function getApplicationAiState(applicationId) {
         var key = safeText(applicationId, "");
         if (!key) {
@@ -1183,6 +1299,9 @@
         return state.aiByApplicationId[key];
     }
 
+    /*
+     * 生成 AI 面板 DOM id，过滤特殊字符避免破坏选择器。
+     */
     function buildApplicationAiPanelId(applicationId) {
         var key = safeText(applicationId, "").replace(/[^a-zA-Z0-9_-]/g, "");
         if (!key) {
@@ -1191,6 +1310,10 @@
         return "mo-application-ai-panel-" + key;
     }
 
+    /*
+     * 展开/折叠单个申请的 AI 分析面板。
+     * 第一次展开且没有缓存结果时才请求后端。
+     */
     function toggleApplicationAiPanel(application) {
         var applicationId = safeText(application && application.applicationId, "");
         if (!applicationId) {
@@ -1204,6 +1327,10 @@
         }
     }
 
+    /*
+     * 请求单个申请的 AI 匹配分析。
+     * forceRefresh=false 时优先复用已有结果，避免重复消耗 AI 调用。
+     */
     function requestApplicationAiAnalysis(application, forceRefresh) {
         var applicationId = safeText(application && application.applicationId, "");
         if (!applicationId) {
@@ -1262,19 +1389,7 @@
                 }
 
                 aiState.result = normalizeApplicationAiResult(data);
-                if (aiState.result.fallback) {
-                    var fallbackMessage = t(
-                        "portal.dynamic.moAiAnalysisFallbackUsed",
-                        "AI service is temporarily unavailable. Showing local analysis."
-                    );
-                    if (aiState.result.fallbackReason) {
-                        fallbackMessage += " " + aiState.result.fallbackReason;
-                    }
-                    aiState.statusMessage = fallbackMessage;
-                    aiState.statusType = "success";
-                } else {
-                    aiState.statusMessage = "";
-                }
+                aiState.statusMessage = "";
             })
             .catch(function () {
                 aiState.statusMessage = t(
@@ -1289,6 +1404,10 @@
             });
     }
 
+    /*
+     * 构造 AI 分析面板 HTML。
+     * 面板只展示后端结果或错误提示，不在前端生成分析结论。
+     */
     function buildApplicationAiPanel(application, aiState, panelId) {
         if (!aiState || !aiState.expanded) {
             return "";
@@ -1339,6 +1458,9 @@
         "</section>";
     }
 
+    /*
+     * 构造 AI 分析结果主体。
+     */
     function buildApplicationAiResult(result) {
         return "<section class=\"application-ai-result\">" +
             "<div class=\"application-ai-overview\">" +
@@ -1380,6 +1502,9 @@
         "</section>";
     }
 
+    /*
+     * 渲染 AI 结果里的字符串列表，空列表时显示明确兜底。
+     */
     function renderApplicationAiList(items, emptyText) {
         var values = normalizeStringArray(items);
         if (!values.length) {
@@ -1391,6 +1516,9 @@
         return "<ul class=\"application-ai-list\">" + listItems + "</ul>";
     }
 
+    /*
+     * 把后端 AI 响应归一成前端稳定结构。
+     */
     function normalizeApplicationAiResult(data) {
         var score = Number(data.overallScore);
         if (isNaN(score)) {
@@ -1420,12 +1548,13 @@
             risks: normalizeStringArray(data.risks),
             suggestions: normalizeStringArray(data.suggestions),
             jobEvidence: normalizeStringArray(data.jobEvidence),
-            profileEvidence: normalizeStringArray(data.profileEvidence),
-            fallback: !!data.fallback,
-            fallbackReason: safeText(data.fallbackReason, "")
+            profileEvidence: normalizeStringArray(data.profileEvidence)
         };
     }
 
+    /*
+     * 清理字符串数组，过滤空项。
+     */
     function normalizeStringArray(values) {
         if (!Array.isArray(values)) {
             return [];
@@ -1440,6 +1569,9 @@
         return normalized;
     }
 
+    /*
+     * AI 分数展示限制在 0-100。
+     */
     function formatApplicationAiScore(score) {
         var normalizedScore = Number(score);
         if (isNaN(normalizedScore)) {
@@ -1449,6 +1581,9 @@
         return String(normalizedScore) + "/100";
     }
 
+    /*
+     * 后端 HIGH/MEDIUM/LOW 映射成本地化文案。
+     */
     function applicationAiMatchLevelText(level) {
         var normalized = safeText(level, "").toUpperCase();
         if (normalized === "HIGH") {
@@ -1463,6 +1598,10 @@
         return normalized;
     }
 
+    /*
+     * 构造接受/拒绝按钮。
+     * 只有 PENDING 申请允许显示，progressStage 只影响进度展示，不改变最终决策规则。
+     */
     function buildReviewActionsHtml(status, progressStage, applicationId, reviewingThis) {
         if (status !== "PENDING") {
             return "";
@@ -1487,6 +1626,11 @@
             "</div></div>";
     }
 
+    /*
+     * 开始审核/推进流程动作。
+     * 遗留/待移除：当前前端主流程没有单独的“开始审核”按钮，
+     * 只保留给未来进度阶段入口；若页面长期不展示可移除。
+     */
     function handleProgressAction(applicationId, action) {
         if (!applicationId || !action || state.reviewingId) {
             return;
@@ -1542,6 +1686,10 @@
             });
     }
 
+    /*
+     * 构造申请人档案详情块。
+     * detail 为空时展示不可用提示，让申请状态和求职信仍然可读。
+     */
     function buildDetailBlock(detail, applicationId, profileUpdatedAtHeader) {
         var profileTitle = t("portal.moApplicantSelection.applicantProfile", "Applicant profile");
         if (!detail) {
@@ -1627,6 +1775,9 @@
         "</section>";
     }
 
+    /*
+     * 档案键值对小项。
+     */
     function buildDetailItem(label, value) {
         return "<div class=\"detail-item\">" +
             "<span class=\"detail-item-label\">" + escapeHtml(label) + "</span>" +
@@ -1634,6 +1785,10 @@
         "</div>";
     }
 
+    /*
+     * MO 接受或拒绝申请。
+     * 成功后 preserveView 刷新列表，确保当前详情页看到最新状态。
+     */
     function handleReview(applicationId, action) {
         if (!applicationId || !action || state.reviewingId) {
             return;
@@ -1691,6 +1846,9 @@
             });
     }
 
+    /*
+     * 创建空状态区域。
+     */
     function createEmptyState(isSearching) {
         var empty = document.createElement("div");
         empty.className = "empty-state";
@@ -1706,6 +1864,9 @@
         return empty;
     }
 
+    /*
+     * 页面加载态。
+     */
     function setLoading(loading) {
         state.loading = loading;
         if (searchButton) {
@@ -1716,6 +1877,9 @@
         }
     }
 
+    /*
+     * 更新列表摘要文本；空文本时隐藏摘要区域。
+     */
     function setListSummary(text) {
         if (typeof text !== "string" || !text.trim()) {
             listSummaryNode.hidden = true;
@@ -1726,6 +1890,9 @@
         listSummaryNode.textContent = text;
     }
 
+    /*
+     * 后端申请状态映射成 CSS class。
+     */
     function getStatusClass(status) {
         if (status === "PENDING") {
             return "pending";
@@ -1742,6 +1909,9 @@
         return "unknown";
     }
 
+    /*
+     * 顶部消息条显示。
+     */
     function showMessage(message, type) {
         if (!messageNode) {
             return;
@@ -1751,6 +1921,9 @@
         messageNode.classList.add(type === "success" ? "success" : "error");
     }
 
+    /*
+     * 顶部消息条隐藏。
+     */
     function hideMessage() {
         if (!messageNode) {
             return;
@@ -1760,6 +1933,9 @@
         messageNode.classList.add("hidden");
     }
 
+    /*
+     * 未登录时跳回登录页。
+     */
     function handleUnauthorized() {
         showMessage(t("portal.dynamic.sessionExpiredRedirect", "Session expired. Redirecting to login..."), "error");
         window.setTimeout(function () {
@@ -1767,6 +1943,9 @@
         }, 900);
     }
 
+    /*
+     * 页面本地 request 包装，优先走公共 TARecruitment.api.request。
+     */
     function request(url, options) {
         if (window.TARecruitment && window.TARecruitment.api) {
             return window.TARecruitment.api.request(url, options, { parser: parseJson });
@@ -1781,10 +1960,16 @@
         });
     }
 
+    /*
+     * 解析统一 JSON 响应。
+     */
     function parseJson(text) {
         return JSON.parse(text);
     }
 
+    /*
+     * 提取 payload.data[key] 数组，兼容旧顶层数组字段。
+     */
     function getPayloadDataArray(payload, key) {
         if (!payload || typeof payload !== "object") {
             return [];
@@ -1798,6 +1983,9 @@
         return [];
     }
 
+    /*
+     * 提取 payload.data 对象，兼容旧顶层 payload。
+     */
     function getPayloadDataObject(payload) {
         if (!payload || typeof payload !== "object") {
             return {};
@@ -1808,6 +1996,9 @@
         return payload;
     }
 
+    /*
+     * 通用数量摘要。
+     */
     function buildSummaryText(count, singularUnit) {
         var unit = singularUnit;
         if (useEnglishPluralSuffix() && count !== 1) {
@@ -1816,6 +2007,9 @@
         return t("portal.dynamic.showing", "Showing") + " " + count + " " + unit + ".";
     }
 
+    /*
+     * 英文环境才需要加复数 s，中文不处理复数。
+     */
     function useEnglishPluralSuffix() {
         if (window.AppI18n && typeof window.AppI18n.getLocale === "function") {
             return window.AppI18n.getLocale() === "en";
@@ -1823,6 +2017,9 @@
         return true;
     }
 
+    /*
+     * i18n 文案读取兜底。
+     */
     function t(key, fallback) {
         if (window.AppI18n && typeof window.AppI18n.t === "function") {
             return window.AppI18n.t(key, fallback || key);
@@ -1830,6 +2027,9 @@
         return fallback || key;
     }
 
+    /*
+     * 服务端英文错误转本地化文案。
+     */
     function localizeServerMessage(message, fallbackKey, fallbackText) {
         if (window.AppI18n && typeof window.AppI18n.localizeServerMessage === "function") {
             return window.AppI18n.localizeServerMessage(message, fallbackKey, fallbackText);
@@ -1840,6 +2040,9 @@
         return fallbackKey ? t(fallbackKey, fallbackText) : (fallbackText || "");
     }
 
+    /*
+     * 文本兜底，避免 null/undefined 渲染到页面。
+     */
     function safeText(value, fallback) {
         if (typeof value === "string" && value.trim()) {
             return value.trim();
@@ -1850,6 +2053,9 @@
         return typeof fallback === "string" ? fallback : "";
     }
 
+    /*
+     * 后端时间字符串转短日期时间展示。
+     */
     function formatDateTime(value) {
         if (typeof value !== "string" || !value.trim()) {
             return "-";
@@ -1865,6 +2071,9 @@
             pad2(date.getMinutes());
     }
 
+    /*
+     * 长文本截断，防止求职信/描述撑破卡片。
+     */
     function shortenText(value, maxLength) {
         if (typeof value !== "string" || !value.trim()) {
             return "";
@@ -1876,10 +2085,16 @@
         return trimmed.substring(0, maxLength - 1) + "…";
     }
 
+    /*
+     * 两位数字补零。
+     */
     function pad2(value) {
         return value < 10 ? "0" + value : String(value);
     }
 
+    /*
+     * 手写 innerHTML 前统一转义。
+     */
     function escapeHtml(value) {
         if (typeof value !== "string") {
             return "";

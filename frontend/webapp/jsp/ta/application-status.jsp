@@ -8,6 +8,7 @@
     }
     String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "T";
 %>
+<%-- TA 申请状态页：展示当前 TA 自己的 /api/applications 列表。 --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -59,6 +60,7 @@
     </div>
 
     <script>
+        // 注入给公共 routes 工具，申请状态页不需要额外用户变量。
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js" defer></script>

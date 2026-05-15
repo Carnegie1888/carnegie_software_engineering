@@ -1,3 +1,7 @@
+/*
+ * MO 申请筛选页样式。
+ * 覆盖课程分组、申请详情、审核动作和 AI 匹配分析区域。
+ */
 @import url("../common/motion.css");
 @import url("../portal/portal-shell.css");
 
@@ -312,6 +316,7 @@
     flex-shrink: 0;
 }
 
+/* 课程详情视图：返回按钮、课程概览和该课程下的申请人列表 */
 .course-detail-view {
     margin-top: 4px;
     display: flex;
@@ -741,6 +746,7 @@
     flex-shrink: 0;
 }
 
+/* 申请人列表项状态动作：根据申请结果弱化不可操作的一侧 */
 .course-applicant-action {
     display: inline-flex;
     align-items: center;
@@ -806,6 +812,7 @@
     border-color: #e8e8ed;
 }
 
+/* 单个申请详情视图：申请卡、档案材料、AI 分析和审核操作 */
 .single-application-view {
     margin-top: 4px;
     display: flex;
@@ -1007,6 +1014,7 @@
     margin-top: 18px;
 }
 
+/* AI 匹配分析面板：只承载后端分析结果和加载/失败状态 */
 .application-ai-panel {
     margin-top: 16px;
     border: 1px solid #e3e8f0;
@@ -1721,6 +1729,7 @@
     display: none;
 }
 
+/* 中等屏幕：课程卡和申请详情从多列收敛为更窄的阅读布局 */
 @media (max-width: 980px) {
     .course-card {
         grid-template-columns: 52px minmax(0, 1fr);
@@ -1818,6 +1827,7 @@
     }
 }
 
+/* 搜索区域在窄平板上改为纵向堆叠 */
 @media (max-width: 840px) {
     .search-row {
         flex-direction: column;
@@ -1829,6 +1839,7 @@
     }
 }
 
+/* 手机布局：降低页面边距，保证卡片、按钮和 AI 面板不横向溢出 */
 @media (max-width: 640px) {
     .mo-selection-page {
         padding: 28px 16px 40px;

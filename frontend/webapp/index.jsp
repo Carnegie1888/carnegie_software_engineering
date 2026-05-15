@@ -2,6 +2,7 @@
 <%
     String contextPath = request.getContextPath();
 %>
+<%-- 门户首页：仅展示入口和流程预览，不直接调用业务 API。 --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -180,8 +181,8 @@
                 <p data-i18n="index.ai.lead">Current AI modules are available in the MO area.</p>
             </div>
             <ul class="ai-list">
-                <li data-i18n="index.ai.item1">Skill Match compares applicants against job requirements.</li>
-                <li data-i18n="index.ai.item2">Missing Skills highlights capability gaps by applicant group.</li>
+                <li data-i18n="index.ai.item1">AI recommendations help MOs review candidates faster.</li>
+                <li data-i18n="index.ai.item2">Detail analysis explains how one application fits a job.</li>
                 <li data-i18n="index.ai.item3">Use AI insights together with manual review before selecting finalists.</li>
             </ul>
         </section>

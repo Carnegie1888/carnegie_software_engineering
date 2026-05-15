@@ -1,3 +1,9 @@
+<%--
+    共享顶部栏片段。
+
+    调用页面通过 portalRole/pageTitleKey/pageTitleFallback 控制角色品牌和页面标题。
+    顶部栏只放面包屑式标题和语言切换；用户资料与退出登录在 portal-sidebar.jspf。
+--%>
 <%
     String topbarRole = portalRole == null ? "" : portalRole;
     String topbarBrandKey = "portal.brand.ta";

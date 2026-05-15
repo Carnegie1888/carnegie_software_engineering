@@ -1,3 +1,9 @@
+/*
+ * Admin 通知页脚本，对应 /jsp/admin/notifications.jsp。
+ *
+ * 读取全站公告列表，并允许 ADMIN 通过 /api/notifications 发布和删除公告。
+ * TA/MO 通知页共用同一个读接口，但没有发布/删除表单。
+ */
 (function () {
     "use strict";
 
@@ -90,6 +96,7 @@
     }
 
     function loadNotifications() {
+        // NotificationServlet 仍返回 data 数组，前端保持按数组渲染。
         fetch(window.TARecruitment.routes.notifications(), {
             headers: { "X-Requested-With": "XMLHttpRequest" }
         })

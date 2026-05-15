@@ -1,11 +1,23 @@
+/*
+ * Portal i18n 动态文案补丁。
+ *
+ * 这里集中处理页面运行中才生成的提示、按钮文案和服务端错误翻译。
+ * 遗留/待移除：如果某些 key 已迁回 i18n.js 且没有动态生成入口，可以从这里删掉重复映射。
+ */
 (function () {
     "use strict";
     var CHINESE_LOCALE = "zh-CN";
 
+    /*
+     * 判断全站 AppI18n 是否已经加载。
+     */
     function hasI18n() {
         return window.AppI18n && typeof window.AppI18n.t === "function";
     }
 
+    /*
+     * 动态文案读取兜底。
+     */
     function t(key, fallback) {
         if (hasI18n()) {
             return window.AppI18n.t(key, fallback || key);
@@ -13,6 +25,9 @@
         return fallback || key;
     }
 
+    /*
+     * 英文动态数量文案需要复数后缀，中文不需要。
+     */
     function useEnglishPluralSuffix() {
         if (!hasI18n() || typeof window.AppI18n.getLocale !== "function") {
             return true;
@@ -20,6 +35,9 @@
         return window.AppI18n.getLocale() === "en";
     }
 
+    /*
+     * 读取当前语言，用于动态脚本选择中文补丁还是英文原文。
+     */
     function currentLocale() {
         if (window.AppI18n && typeof window.AppI18n.getLocale === "function") {
             return window.AppI18n.getLocale();
@@ -31,6 +49,10 @@
         return "en";
     }
 
+    /*
+     * 中文动态文案补丁。
+     * 这里主要覆盖 JS 运行时才拼出来的消息，不替代 i18n.js 的静态字典。
+     */
     var localZhByKey = {
         "portal.dynamic.currentCompleteness": "当前完整度：",
         "portal.dynamic.checkingProfile": "正在检查档案...",
@@ -175,17 +197,6 @@
         "portal.dynamic.noStructuredSkillData": "暂无结构化技能数据",
         "portal.dynamic.noKeywordInsights": "暂无关键词洞察",
         "portal.dynamic.aiEnhancedApplied": "已应用 AI 增强匹配。",
-        "portal.dynamic.loadingMissingSkillsData": "正在加载缺失技能数据...",
-        "portal.dynamic.unableLoadJobsGapAnalysis": "无法加载用于缺口分析的职位。",
-        "portal.dynamic.unableLoadMissingSkillsData": "无法加载缺失技能数据。",
-        "portal.dynamic.networkErrorLoadingMissingSkills": "加载缺失技能数据时网络异常。",
-        "portal.dynamic.noMissingSkillsFound": "当前所选数据没有缺失技能。",
-        "portal.dynamic.noGapSkillsTitle": "暂无缺口技能",
-        "portal.dynamic.gapInsightsWhenReady": "当申请数据与职位数据就绪后，此面板会显示缺失技能洞察。",
-        "portal.dynamic.noFrequencyData": "暂无频次数据。",
-        "portal.dynamic.noScoreBucketData": "暂无分桶数据。",
-        "portal.dynamic.repeatedGapSkillHint": "该技能在所选职位申请人中反复出现缺口。",
-        "portal.dynamic.unknownSkill": "未知技能",
         "portal.dynamic.gapSkill": "缺口技能",
         "portal.dynamic.found": "发现",
         "portal.dynamic.applicantsSuffix": "位申请人",
@@ -212,6 +223,10 @@
         "portal.dynamic.networkErrorMoment": "网络异常，请稍后再试。"
     };
 
+    /*
+     * 按 key 解析动态中文文案。
+     * 优先用 AppI18n 正式字典，localZhByKey 只是动态补丁兜底。
+     */
     function resolveByKey(key, fallbackText) {
         if (hasI18n()) {
             var localized = window.AppI18n.t(key, "");
@@ -225,6 +240,10 @@
         return fallbackText || key;
     }
 
+    /*
+     * 静态英文文本到 i18n key 的映射。
+     * 遗留/待移除：这些文本逐步迁移到 JSP 的 data-i18n 后，可删对应映射。
+     */
     function textMap() {
         return {
             "TA Profile Setup - TA Hiring System": { key: "portal.page.taDashboard.title" },
@@ -235,7 +254,6 @@
             "MO Dashboard - Post TA Jobs": { key: "portal.page.moDashboard.title" },
             "MO Overview - TA Hiring System": { key: "portal.page.moOverview.title" },
             "Applicant review - TA Hiring System": { key: "portal.page.moApplicantSelection.title" },
-            "AI Missing Skills - TA Hiring System": { key: "portal.page.moAiMissingSkills.title" },
             "TA Workload - TA Hiring System": { key: "portal.page.adminDashboard.title" },
 
             "Sign Out": { key: "portal.action.signOut" },
@@ -243,7 +261,6 @@
             "Jobs": { key: "portal.nav.ta.jobs" },
             "Job List": { key: "portal.nav.ta.jobs" },
             "Status": { key: "portal.nav.ta.status" },
-            "AI Match": { key: "portal.nav.ta.aiMatch" },
             "Profile": { key: "portal.nav.ta.profile" },
             "Applicants": { key: "portal.nav.mo.applicants" },
             "Post Job": { key: "portal.nav.mo.postJob" },
@@ -401,16 +418,6 @@
             "High": { key: "portal.common.high" },
             "Medium": { key: "portal.common.medium" },
             "Low": { key: "portal.common.low" },
-
-            "AI Missing Skills": { key: "portal.moAiMissingSkills.title" },
-            "Identify the most common capability gaps and plan targeted upskilling actions.": { key: "portal.moAiMissingSkills.subtitle" },
-            "Load gaps": { key: "portal.moAiMissingSkills.loadGaps" },
-            "Unique gap skills": { key: "portal.moAiMissingSkills.uniqueGapSkills" },
-            "Missing Skill Frequency": { key: "portal.moAiMissingSkills.missingSkillFrequency" },
-            "Most frequently missing capabilities": { key: "portal.moAiMissingSkills.missingCapabilityLead" },
-            "Match Score Buckets": { key: "portal.moAiMissingSkills.matchScoreBuckets" },
-            "Distribution by high / medium / low / none": { key: "portal.moAiMissingSkills.distributionLead" },
-            "Choose a job to load missing skills insights.": { key: "portal.moAiMissingSkills.chooseJobHint" },
 
             "TA Workload": { key: "portal.adminDashboard.title" },
             "Track application volume and module owner review workload in one place.": { key: "portal.adminDashboard.subtitle" },
@@ -570,17 +577,6 @@
             "No keyword insights available": { key: "portal.dynamic.noKeywordInsights" },
             "AI-enhanced matching applied.": { key: "portal.dynamic.aiEnhancedApplied" },
 
-            "Loading missing skills data...": { key: "portal.dynamic.loadingMissingSkillsData" },
-            "Unable to load jobs for gap analysis.": { key: "portal.dynamic.unableLoadJobsGapAnalysis" },
-            "Unable to load missing skills data.": { key: "portal.dynamic.unableLoadMissingSkillsData" },
-            "Network error while loading missing skills data.": { key: "portal.dynamic.networkErrorLoadingMissingSkills" },
-            "No missing skills found for selected data.": { key: "portal.dynamic.noMissingSkillsFound" },
-            "No gap skills available": { key: "portal.dynamic.noGapSkillsTitle" },
-            "When applicants and job data are ready, this panel will show missing skills insights.": { key: "portal.dynamic.gapInsightsWhenReady" },
-            "No frequency data available.": { key: "portal.dynamic.noFrequencyData" },
-            "No score bucket data available.": { key: "portal.dynamic.noScoreBucketData" },
-            "This skill appears as a repeated gap across applicants for the selected job.": { key: "portal.dynamic.repeatedGapSkillHint" },
-            "Unknown Skill": { key: "portal.dynamic.unknownSkill" },
             "gap skill": { key: "portal.dynamic.gapSkill" },
             "Found": { key: "portal.dynamic.found" },
             "applicant(s)": { key: "portal.dynamic.applicantsSuffix" },
@@ -617,6 +613,9 @@
 
     var mapping = textMap();
 
+    /*
+     * 动态句式映射，用于数量、上传文件名、状态等运行时拼接文本。
+     */
     function dynamicPatternMap() {
         return [
             {
@@ -701,6 +700,9 @@
 
     var dynamicPatterns = dynamicPatternMap();
 
+    /*
+     * 尝试匹配动态句式。
+     */
     function tryDynamicPattern(text) {
         for (var i = 0; i < dynamicPatterns.length; i += 1) {
             var pattern = dynamicPatterns[i];
@@ -712,6 +714,9 @@
         return "";
     }
 
+    /*
+     * 翻译单段原始文本。
+     */
     function translateRawText(text) {
         var entry = mapping[text];
         if (entry) {
@@ -720,6 +725,9 @@
         return tryDynamicPattern(text) || "";
     }
 
+    /*
+     * 替换一个文本节点，跳过 script/style。
+     */
     function replaceTextNode(node) {
         if (!node || !node.nodeValue) {
             return;
@@ -741,6 +749,9 @@
         }
     }
 
+    /*
+     * 遍历一个 DOM 子树中的文本节点。
+     */
     function translateNodeTree(root) {
         if (!root) {
             return;
@@ -753,6 +764,9 @@
         }
     }
 
+    /*
+     * 翻译整个文档 body。
+     */
     function translateDocument() {
         if (!hasI18n()) {
             return;
@@ -760,6 +774,9 @@
         translateNodeTree(document.body);
     }
 
+    /*
+     * 监听动态插入的节点，补翻译 JS 渲染出来的卡片和提示。
+     */
     function observeMutations() {
         if (!window.MutationObserver || !document.body) {
             return;
@@ -788,6 +805,9 @@
         });
     }
 
+    /*
+     * 语言切换后重新翻译动态文本。
+     */
     function bindLocaleEvent() {
         document.addEventListener("app:locale-changed", function () {
             window.setTimeout(function () {
@@ -796,6 +816,9 @@
         });
     }
 
+    /*
+     * 初始化动态翻译补丁。
+     */
     function initialize() {
         translateDocument();
         observeMutations();

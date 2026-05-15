@@ -1,3 +1,9 @@
+/*
+ * 管理员邀请码面板脚本，对应 /jsp/admin/invite.jsp。
+ *
+ * 调用 /api/admin/invitations/current-code 读取或刷新当前短邀请码，
+ * 并在前端做倒计时展示。真正的有效期校验以 InviteCodeService 为准。
+ */
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
     var i18n = window.AppI18n && typeof window.AppI18n.t === "function" ? window.AppI18n : null;
@@ -11,6 +17,7 @@
     if (!codeDisplay) return;
 
     var countdownInterval = null;
+    // 后端返回真实秒数前的临时占位；正常加载后会被 secondsRemaining 覆盖。
     var currentSeconds = 30;
 
     fetchCurrentCode();
@@ -40,6 +47,9 @@
         });
     }
 
+    /*
+     * 读取当前邀请码；401 说明管理员登录态失效，直接回登录页。
+     */
     function fetchCurrentCode() {
         hideError();
         fetch(window.TARecruitment.routes.admin.currentInvitationCode(), {
@@ -65,6 +75,9 @@
             });
     }
 
+    /*
+     * 后端返回 code 和剩余秒数，前端只负责格式化和倒计时展示。
+     */
     function renderCode(code, seconds) {
         if (codeDisplay) {
             var formatted = formatCode(code);
@@ -74,11 +87,17 @@
         startCountdown(seconds);
     }
 
+    /*
+     * 8 位短码按 4+4 显示，真实提交值仍由后端接口返回。
+     */
     function formatCode(code) {
         if (typeof code !== "string" || code.length !== 8) return code || "—";
         return code.slice(0, 4) + " " + code.slice(4);
     }
 
+    /*
+     * 倒计时到 0 后自动重新拉取，避免页面停留在过期邀请码上。
+     */
     function startCountdown(seconds) {
         clearInterval(countdownInterval);
         currentSeconds = typeof seconds === "number" ? Math.max(0, seconds) : 600;
@@ -95,6 +114,9 @@
         }, 1000);
     }
 
+    /*
+     * 进度条按 10 分钟窗口计算；窗口长度需要与 InviteCodeService 保持一致。
+     */
     function updateCountdownUI() {
         var pct = Math.max(0, currentSeconds / 600) * 100;
         if (countdownBar) countdownBar.style.width = pct + "%";
@@ -105,6 +127,9 @@
         }
     }
 
+    /*
+     * 邀请码面板自己的错误区域，避免影响 dashboard 其它提示。
+     */
     function showError(msg) {
         if (codeError) {
             codeError.textContent = msg;
@@ -112,6 +137,9 @@
         }
     }
 
+    /*
+     * 每次请求前清空旧错误，防止刷新成功后仍显示失败文案。
+     */
     function hideError() {
         if (codeError) {
             codeError.textContent = "";
@@ -119,6 +147,9 @@
         }
     }
 
+    /*
+     * 独立页面脚本的 i18n 兜底。
+     */
     function t(key, fallback) {
         if (i18n) return i18n.t(key, fallback);
         return fallback || key;

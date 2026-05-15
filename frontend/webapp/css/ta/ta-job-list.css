@@ -1,3 +1,7 @@
+/*
+ * TA 职位列表页样式。
+ * 覆盖普通搜索/AI 推荐模式、岗位卡片、空状态和相近匹配提示。
+ */
 @import url("../common/motion.css");
 @import url("../portal/portal-shell.css");
 

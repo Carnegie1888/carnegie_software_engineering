@@ -13,6 +13,7 @@
     }
     String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "M";
 %>
+<%-- MO dashboard：同页承载岗位发布、我的发布、申请审核和候选人详情。 --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -50,8 +51,10 @@
                         <p class="subtitle" data-i18n="<%= heroSubtitleKey %>"><%= heroSubtitleFallback %></p>
                     </section>
 
-                    <!-- Tab Navigation -->
-                    <!-- My Jobs Tab Panel -->
+                    <%--
+                        “我的发布”面板。
+                        mo-dashboard.js 会把职位卡片渲染到 #job-list，并从卡片进入申请人子视图。
+                    --%>
                     <div class="mo-tab-panel <%= "my-jobs".equals(activeNav) ? "is-active" : "" %>" id="panel-my-jobs" role="tabpanel" aria-labelledby="tab-my-jobs" <%= "post-job".equals(activeNav) ? "hidden" : "" %>>
                         <section class="mo-card" aria-label="我的岗位列表" data-i18n-aria-label="portal.moDashboard.myJobsPanelAria">
                             <div class="section-heading">
@@ -78,7 +81,10 @@
                         </section>
                     </div>
 
-                    <!-- Post New Job Tab Panel -->
+                    <%--
+                        “发布新职位”面板。
+                        表单字段名与 JobServlet.JOB_FIELDS 保持一致，提交到 /api/jobs。
+                    --%>
                     <div class="mo-tab-panel <%= "post-job".equals(activeNav) ? "is-active" : "" %>" id="panel-post-job" role="tabpanel" aria-labelledby="tab-post-job" <%= "my-jobs".equals(activeNav) ? "hidden" : "" %>>
                         <section class="mo-card" aria-label="发布职位表单" data-i18n-aria-label="portal.moDashboard.postJobPanelAria">
                             <div class="section-heading">
@@ -518,6 +524,12 @@
     </div>
 
     <script>
+        /*
+         * 注入给 mo-dashboard.js：
+         * APP_CONTEXT_PATH 用于公共 API routes；
+         * APP_CURRENT_USER_ID/USERNAME 用于当前 MO 视角和页面兜底展示；
+         * APP_INITIAL_TAB 由 ?tab=post-job 控制默认打开“我的发布”或“发布新职位”。
+         */
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
         window.APP_CURRENT_USER_ID = "<%= userId %>";
         window.APP_CURRENT_USERNAME = "<%= username %>";

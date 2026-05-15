@@ -1,3 +1,9 @@
+/*
+ * TA 职位详情页脚本，对应 /jsp/ta/job-detail.jsp。
+ *
+ * 读取 /api/jobs/{jobId} 展示岗位，提交 /api/applications 创建申请，
+ * 并可调用 /api/ta/job-match-analyses 查看当前 TA 与岗位的 AI 匹配分析。
+ */
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
     var currentRole = typeof window.APP_CURRENT_ROLE === "string" ? window.APP_CURRENT_ROLE.trim().toUpperCase() : "";
@@ -71,6 +77,7 @@
     }
 
     var state = {
+        // job/currentApplication 是页面主状态；aiMatch* 只服务弹窗分析结果。
         jobId: "",
         loadingJob: false,
         submitting: false,
@@ -642,15 +649,7 @@
 
                 state.aiResult = normalizeAiMatchResult(data);
                 renderAiMatchResult(state.aiResult);
-                if (state.aiResult.fallback) {
-                    var fallbackMessage = t("portal.dynamic.aiAnalysisFallbackUsed", "AI service is temporarily unavailable. Showing local analysis.");
-                    if (state.aiResult.fallbackReason) {
-                        fallbackMessage += " " + state.aiResult.fallbackReason;
-                    }
-                    showAiMatchStatus(fallbackMessage, "success");
-                } else {
-                    hideAiMatchStatus();
-                }
+                hideAiMatchStatus();
             })
             .catch(function () {
                 showAiMatchStatus(t("portal.dynamic.aiAnalysisNetworkError", "Network error while requesting AI analysis."), "error");
@@ -766,9 +765,7 @@
             risks: normalizeStringArray(data.risks),
             suggestions: normalizeStringArray(data.suggestions),
             jobEvidence: normalizeStringArray(data.jobEvidence),
-            profileEvidence: normalizeStringArray(data.profileEvidence),
-            fallback: !!data.fallback,
-            fallbackReason: safeText(data.fallbackReason, "")
+            profileEvidence: normalizeStringArray(data.profileEvidence)
         };
     }
 

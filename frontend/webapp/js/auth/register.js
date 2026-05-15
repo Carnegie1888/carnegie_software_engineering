@@ -1,3 +1,9 @@
+/*
+ * TA/MO 注册页脚本，对应 register.jsp。
+ *
+ * 负责角色切换、字段即时校验、用户名/邮箱可用性检查，并提交到 /api/auth/register。
+ * Admin 注册不走这里，必须使用 admin-invite.jsp 的邀请码流程。
+ */
 (function () {
     var USERNAME_PATTERN = /^[A-Za-z][A-Za-z0-9_]{2,19}$/;
     var USERNAME_MAX_LENGTH = 20;
@@ -23,7 +29,7 @@
     var isAdminOnlyPage = roleButtons.length === 0;
     var selectedRole = getNormalizedRole(roleInput ? roleInput.value : "") || "TA";
 
-    // Availability check request counters (prevents stale responses from overwriting later results)
+    // Availability check request counters: prevents stale responses from overwriting later results.
     var usernameCheckId = 0;
     var emailCheckId = 0;
 
@@ -193,6 +199,7 @@
         var value = getTrimmedValue(input);
         if (!value) return;
 
+        // 每次 blur 都递增 id，较慢的旧请求回来时不会覆盖新的校验结果。
         var checkId;
         if (type === "username") {
             usernameCheckId += 1;
@@ -247,6 +254,7 @@
     }
 
     function submitRegister(username, email, password, confirmPassword, role) {
+        // 页面允许 TA/MO；ADMIN 会被 getNormalizedRole 拦截并引导到邀请注册页。
         var formData = new URLSearchParams();
         formData.set("username", username);
         formData.set("email", email);

@@ -6,6 +6,7 @@
     if (usernameObj != null) username = usernameObj.toString();
     String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "A";
 %>
+<%-- Admin 通知页：发布/删除全站公告，TA/MO 页面只读同一个公告流。 --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -73,6 +74,7 @@
     </div>
 
     <script>
+        // 注入给 admin-notifications.js 的公共路由工具。
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js"></script>

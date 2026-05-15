@@ -2,6 +2,7 @@
 <%
     String contextPath = request.getContextPath();
 %>
+<%-- 遗留/待移除：保留旧 admin-register.jsp 路由作为说明页，实际注册入口是 admin-invite.jsp。 --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -56,6 +57,7 @@
     </main>
 
     <script>
+        // 只供本说明页的通用 i18n 链接使用；没有独立注册提交逻辑。
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js" defer></script>

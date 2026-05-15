@@ -13,6 +13,7 @@
     }
     String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "T";
 %>
+<%-- TA 职位详情页：从 URL id 读取岗位，支持申请和 AI 匹配分析。 --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -157,6 +158,7 @@
     </div>
 
     <script>
+        // 注入给 ta-job-detail.js：用于生成 API 路径和判断当前角色是否可申请。
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
         window.APP_CURRENT_ROLE = "<%= currentRole %>";
     </script>

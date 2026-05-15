@@ -13,6 +13,7 @@
     }
     String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "A";
 %>
+<%-- Admin 工作量页：展示 /api/admin/workload-statistics 返回的 TA 工作量统计。 --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -74,6 +75,7 @@
     </div>
 
     <script>
+        // 注入给 admin-dashboard.js；username 仅作前端兜底展示，不参与权限判断。
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
         window.APP_CURRENT_USER_ID = "<%= userId %>";
         window.APP_CURRENT_USERNAME = "<%= username %>";

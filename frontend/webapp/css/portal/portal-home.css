@@ -1,3 +1,7 @@
+/*
+ * 门户首页样式。
+ * 只服务 index.jsp 的介绍和入口区域，不包含登录后角色门户布局。
+ */
 @import url("../common/motion.css");
 
 body {

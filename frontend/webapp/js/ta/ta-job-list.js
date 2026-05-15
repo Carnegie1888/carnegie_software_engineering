@@ -1,3 +1,9 @@
+/*
+ * TA 职位列表脚本，对应 /jsp/ta/job-list.jsp。
+ *
+ * 普通搜索调用 /api/jobs，AI 推荐模式调用 /api/ta/job-recommendations。
+ * AI 模式只重排/标注后端返回的真实岗位，不在前端生成假岗位。
+ */
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
 
@@ -13,7 +19,14 @@
         return;
     }
 
+    /*
+     * 页面状态集中放在这里：
+     * - searchMode 决定普通关键词搜索还是 AI 推荐；
+     * - aiRecommendationsByJobId 只保存后端返回的推荐理由，不生成假岗位；
+     * - currentJobs 用于语言切换后重新渲染现有结果。
+     */
     var state = {
+        // searchMode 控制普通搜索/AI 推荐；currentJobs 始终是实际渲染的岗位数组。
         loading: false,
         loadError: false,
         approximateOnly: false,
@@ -64,6 +77,10 @@
     setSearchMode("search");
     loadJobs("", false);
 
+    /*
+     * 搜索表单统一入口。
+     * 当前是 AI 模式就请求 /api/ta/job-recommendations，否则请求 /api/jobs。
+     */
     function submitSearch() {
         if (state.searchMode === "ai") {
             runAiSearch();
@@ -72,6 +89,10 @@
         loadJobs(searchInput.value.trim(), true);
     }
 
+    /*
+     * 普通职位列表加载。
+     * keyword 会进入 /api/jobs?keyword=...，后端返回 approximateOnly 给页面展示近似匹配提示。
+     */
     function loadJobs(keyword, isUserTriggeredSearch) {
         if (state.loading || state.aiSearchLoading) {
             return;
@@ -131,6 +152,10 @@
             });
     }
 
+    /*
+     * TA 侧 AI 推荐搜索。
+     * 只展示后端返回的真实开放岗位及推荐理由；DeepSeek 不可用时显示失败状态。
+     */
     function runAiSearch() {
         if (state.loading || state.aiSearchLoading) {
             return;
@@ -205,6 +230,10 @@
             });
     }
 
+    /*
+     * 构造普通职位列表 URL。
+     * API 路径必须走 TARecruitment.routes，确保部署 context path 正确。
+     */
     function buildJobsUrl(keyword) {
         var params = new URLSearchParams();
         if (keyword) {
@@ -215,6 +244,10 @@
         });
     }
 
+    /*
+     * 渲染当前职位列表。
+     * 这里同时处理加载错误、空列表、普通搜索空结果和 AI 推荐空结果四种状态。
+     */
     function renderJobs(jobs) {
         var keyword = state.lastKeyword;
         var hasKeywordSearch = state.keywordSearchTriggered;
@@ -263,6 +296,10 @@
         });
     }
 
+    /*
+     * 创建单个职位卡片。
+     * 卡片点击跳转到复用的职位详情页，AI 推荐理由只在 AI 搜索结果中展示。
+     */
     function createJobCard(job) {
         var card = document.createElement("article");
         var jobId = getSafeText(job.jobId, "");
@@ -319,6 +356,9 @@
         return card;
     }
 
+    /*
+     * 把后端枚举状态映射成 CSS class 后缀。
+     */
     function getJobStatusClass(status) {
         if (status === "OPEN") {
             return "open";
@@ -332,6 +372,9 @@
         return "unknown";
     }
 
+    /*
+     * 把后端枚举状态映射成页面可读文案。
+     */
     function getJobStatusLabel(status) {
         if (status === "OPEN") {
             return t("portal.common.open", "Open");
@@ -345,6 +388,9 @@
         return getSafeText(status, "-");
     }
 
+    /*
+     * 拼职位副标题：课程、MO 和截止时间。
+     */
     function buildJobSubtitle(job) {
         var parts = [];
         var courseCode = getSafeText(job.courseCode, "");
@@ -365,6 +411,9 @@
         return parts.join("<span class=\"job-subtitle-separator\" aria-hidden=\"true\">·</span>");
     }
 
+    /*
+     * 拼卡片元信息：名额、薪酬、工作量。
+     */
     function buildJobMeta(job) {
         var parts = [];
 
@@ -380,6 +429,9 @@
         return parts.join("<span class=\"job-meta-separator\" aria-hidden=\"true\">·</span>");
     }
 
+    /*
+     * 技能标签只显示前 4 个，避免职位卡片高度过大。
+     */
     function buildSkillTags(skillsText) {
         var skills = String(skillsText || "")
             .split(/[,;，；]/)
@@ -394,6 +446,9 @@
         }).join("") + "</div>";
     }
 
+    /*
+     * 根据不同空状态生成对应文案。
+     */
     function createEmptyState(mode) {
         var empty = document.createElement("div");
         empty.className = "empty-state";
@@ -425,6 +480,10 @@
         return empty;
     }
 
+    /*
+     * 切换普通搜索/AI 推荐模式。
+     * 只改变控件状态，不自动发请求，避免用户误点切换就触发 AI 调用。
+     */
     function setSearchMode(mode) {
         state.searchMode = mode === "ai" ? "ai" : "search";
         if (searchModeButton) {
@@ -454,6 +513,9 @@
         updateSearchControls();
     }
 
+    /*
+     * 同步搜索按钮、AI 模式按钮和加载态文案。
+     */
     function updateSearchControls() {
         var busy = state.loading || state.aiSearchLoading;
         if (searchButton) {
@@ -474,6 +536,9 @@
         }
     }
 
+    /*
+     * 列表摘要只在搜索、AI 或错误状态下显示，默认首页列表保持简洁。
+     */
     function setListSummary(text) {
         if (!state.lastKeyword && !state.aiSearchActive && !state.loadError) {
             listSummary.hidden = true;
@@ -541,6 +606,9 @@
         }, 900);
     }
 
+    /*
+     * 页面本地 request 保留为兼容包装，内部优先调用公共请求工具。
+     */
     function request(url, options) {
         if (window.TARecruitment && window.TARecruitment.api) {
             return window.TARecruitment.api.request(url, options, { parser: parseJson });
@@ -559,6 +627,9 @@
         return JSON.parse(text);
     }
 
+    /*
+     * 提取统一响应中的数组数据，兼容 data.jobs 和旧顶层 jobs 两种形态。
+     */
     function getPayloadDataArray(payload, key) {
         if (!payload || typeof payload !== "object") {
             return [];
@@ -572,6 +643,9 @@
         return [];
     }
 
+    /*
+     * 提取统一响应中的 data 对象；没有 data 时返回 payload 本身作为兼容兜底。
+     */
     function getPayloadDataObject(payload) {
         if (!payload || typeof payload !== "object") {
             return {};
@@ -582,6 +656,9 @@
         return payload;
     }
 
+    /*
+     * 后端时间字符串转本地短时间展示。
+     */
     function formatDateTime(value) {
         if (typeof value !== "string" || !value.trim()) {
             return "-";

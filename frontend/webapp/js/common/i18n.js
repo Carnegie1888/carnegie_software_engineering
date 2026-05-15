@@ -1,3 +1,9 @@
+/*
+ * AppI18n 全站静态文案字典。
+ *
+ * 登录、注册、首页和各角色门户都通过 data-i18n 或 AppI18n.t 读取这里的文案。
+ * 纯动态服务端错误会先走 localizeServerMessage，再退回服务端英文原文。
+ */
 (function () {
     var STORAGE_KEY = "ta_hiring_locale";
     var DEFAULT_LOCALE = "en";
@@ -107,8 +113,8 @@
                 ai: {
                     title: "AI support for organizer decisions",
                     lead: "Current AI modules are available in the MO area.",
-                    item1: "Skill Match compares applicants against job requirements.",
-                    item2: "Missing Skills highlights capability gaps by applicant group.",
+                    item1: "AI recommendations help MOs review candidates faster.",
+                    item2: "Detail analysis explains how one application fits a job.",
                     item3: "Use AI insights together with manual review before selecting finalists."
                 },
                 faq: {
@@ -386,7 +392,6 @@
                         aria: "TA portal navigation",
                         jobs: "Job List",
                         status: "My Applications",
-                        aiMatch: "AI Match",
                         profile: "Profile",
                         notifications: "Notifications"
                     },
@@ -428,12 +433,6 @@
                     },
                     moApplicantSelection: {
                         title: "Applicant review - TA Hiring System"
-                    },
-                    moAiSkillMatch: {
-                        title: "AI Skill Match - TA Hiring System"
-                    },
-                    moAiMissingSkills: {
-                        title: "AI Missing Skills - TA Hiring System"
                     },
                     adminDashboard: {
                         title: "TA Workload - TA Hiring System"
@@ -975,34 +974,6 @@
                     applicationUpdateNetworkError: "Network error while updating application.",
                     ariaLabel: "Applicant list"
                 },
-                moAiMissingSkills: {
-                    title: "AI Missing Skills",
-                    subtitle: "Identify the most common capability gaps and plan targeted upskilling actions.",
-                    loadGaps: "Load gaps",
-                    uniqueGapSkills: "Unique gap skills",
-                    missingSkillFrequency: "Missing Skill Frequency",
-                    missingCapabilityLead: "Most frequently missing capabilities",
-                    matchScoreBuckets: "Match Score Buckets",
-                    distributionLead: "Distribution by high / medium / low / none",
-                    chooseJobHint: "Choose a job to load missing skills insights."
-                },
-                moAiSkillMatch: {
-                    title: "AI Skill Match",
-                    subtitle: "Review applicant matching scores aligned with your posted job requirements.",
-                    summaryGridAria: "AI skill match summary",
-                    visualGridAria: "AI skill match charts",
-                    averageRingAria: "Average match score chart",
-                    loadResults: "Load results",
-                    totalApplicants: "Total applicants",
-                    highMatch: "High match (>=85)",
-                    mediumMatch: "Medium match (60-84)",
-                    lowMatch: "Low match (<60)",
-                    averageMatchScore: "Average Match Score",
-                    scoreDistribution: "Score Distribution",
-                    chooseJobHint: "Choose a job to load skill match results.",
-                    showingResultsPrefix: "Showing",
-                    matchResultUnit: "applicant match result"
-                },
                 adminDashboard: {
                     title: "TA Workload",
                     subtitle: "Track accepted TA job workload by weekly hours and active work period.",
@@ -1238,13 +1209,8 @@
                     noStructuredSkillData: "No structured skill data available",
                     noKeywordInsights: "No keyword insights available",
                     aiEnhancedApplied: "AI-enhanced matching applied.",
-                    loadingMissingSkillsData: "Loading missing skills data...",
                     unableLoadJobsGapAnalysis: "Unable to load jobs for gap analysis.",
-                    unableLoadMissingSkillsData: "Unable to load missing skills data.",
-                    networkErrorLoadingMissingSkills: "Network error while loading missing skills data.",
-                    noMissingSkillsFound: "No missing skills found for selected data.",
                     noGapSkillsTitle: "No gap skills available",
-                    gapInsightsWhenReady: "When applicants and job data are ready, this panel will show missing skills insights.",
                     noFrequencyData: "No frequency data available.",
                     noScoreBucketData: "No score bucket data available.",
                     repeatedGapSkillHint: "This skill appears as a repeated gap across applicants for the selected job.",
@@ -1287,8 +1253,6 @@
                     moAiAnalysisFailed: "Unable to generate AI analysis right now.",
                     aiAnalysisNetworkError: "Network error while requesting AI analysis.",
                     moAiAnalysisNetworkError: "Network error while requesting AI analysis.",
-                    aiAnalysisFallbackUsed: "AI service is temporarily unavailable. Showing local analysis.",
-                    moAiAnalysisFallbackUsed: "AI service is temporarily unavailable. Showing local analysis.",
                     moAiNoResult: "No analysis result is available yet.",
                     aiNoSummary: "No summary is available yet.",
                     aiNoStrengths: "No clear strengths identified.",
@@ -1437,10 +1401,6 @@
                     queryInvalidChars: "Search query contains unsupported characters.",
                     ownJobsOnly: "You can only search applicants for your own jobs."
                 },
-                skillMatch: {
-                    moOnly: "Only MO accounts can use skill match.",
-                    generated: "Skill match generated."
-                },
                 ai: {
                     moApplicantOnly: "Only MO accounts can use applicant AI search.",
                     taJobOnly: "Only TA accounts can use job AI search.",
@@ -1565,8 +1525,8 @@
                 ai: {
                     title: "AI 辅助招聘决策",
                     lead: "当前 AI 功能主要在 MO 工作区使用。",
-                    item1: "Skill Match 可对比申请人与岗位需求的匹配度。",
-                    item2: "Missing Skills 可识别候选群体的能力缺口。",
+                    item1: "AI 推荐帮助 MO 更快筛选候选人。",
+                    item2: "详情分析解释单个申请与岗位的匹配情况。",
                     item3: "建议将 AI 结果与人工审核结合后再做最终筛选。"
                 },
                 faq: {
@@ -1886,12 +1846,6 @@
                     },
                     moApplicantSelection: {
                         title: "申请审核 - TA 招聘系统"
-                    },
-                    moAiSkillMatch: {
-                        title: "AI 技能匹配 - TA 招聘系统"
-                    },
-                    moAiMissingSkills: {
-                        title: "AI 缺失技能 - TA 招聘系统"
                     },
                     adminDashboard: {
                         title: "TA工作量 - TA 招聘系统"
@@ -2433,34 +2387,6 @@
                     applicationUpdateNetworkError: "更新申请时网络异常。",
                     ariaLabel: "申请人列表"
                 },
-                moAiMissingSkills: {
-                    title: "AI 缺失技能",
-                    subtitle: "识别最常见的能力缺口并制定针对性提升方案。",
-                    loadGaps: "加载缺口",
-                    uniqueGapSkills: "独立缺口技能数",
-                    missingSkillFrequency: "缺失技能频次",
-                    missingCapabilityLead: "最常见的能力缺口",
-                    matchScoreBuckets: "匹配分区间",
-                    distributionLead: "按高 / 中 / 低 / 无进行分布统计",
-                    chooseJobHint: "请选择职位以加载缺失技能分析。"
-                },
-                moAiSkillMatch: {
-                    title: "AI 技能匹配",
-                    subtitle: "根据已发布职位要求查看申请人匹配分数。",
-                    summaryGridAria: "AI 技能匹配概览",
-                    visualGridAria: "AI 技能匹配图表",
-                    averageRingAria: "平均匹配分图表",
-                    loadResults: "加载结果",
-                    totalApplicants: "申请总数",
-                    highMatch: "高匹配（>=85）",
-                    mediumMatch: "中匹配（60-84）",
-                    lowMatch: "低匹配（<60）",
-                    averageMatchScore: "平均匹配分",
-                    scoreDistribution: "分数分布",
-                    chooseJobHint: "请选择职位以加载技能匹配结果。",
-                    showingResultsPrefix: "显示",
-                    matchResultUnit: "条申请人匹配结果"
-                },
                 adminDashboard: {
                     title: "TA工作量",
                     subtitle: "按每周小时数和实际工作期统计已录用 TA 的工作量。",
@@ -2696,13 +2622,8 @@
                     noStructuredSkillData: "暂无结构化技能数据",
                     noKeywordInsights: "暂无关键词洞察",
                     aiEnhancedApplied: "已应用 AI 增强匹配。",
-                    loadingMissingSkillsData: "正在加载缺失技能数据...",
                     unableLoadJobsGapAnalysis: "无法加载用于缺口分析的职位。",
-                    unableLoadMissingSkillsData: "无法加载缺失技能数据。",
-                    networkErrorLoadingMissingSkills: "加载缺失技能数据时网络异常。",
-                    noMissingSkillsFound: "当前数据下未发现缺失技能。",
                     noGapSkillsTitle: "暂无缺口技能",
-                    gapInsightsWhenReady: "当申请人与职位数据准备好后，此面板会显示技能缺口洞察。",
                     noFrequencyData: "暂无频次数据。",
                     noScoreBucketData: "暂无分桶数据。",
                     repeatedGapSkillHint: "该技能在所选职位申请人中多次出现缺口。",
@@ -2745,8 +2666,6 @@
                     moAiAnalysisFailed: "当前无法生成 AI 匹配分析。",
                     aiAnalysisNetworkError: "请求 AI 分析时网络异常，请稍后重试。",
                     moAiAnalysisNetworkError: "请求 AI 分析时网络异常，请稍后重试。",
-                    aiAnalysisFallbackUsed: "AI 服务暂不可用，已展示本地分析结果。",
-                    moAiAnalysisFallbackUsed: "AI 服务暂不可用，已展示本地分析结果。",
                     moAiNoResult: "暂未生成分析结果。",
                     aiNoSummary: "暂未生成总结。",
                     aiNoStrengths: "暂未识别明显优势。",
@@ -2895,10 +2814,6 @@
                     queryInvalidChars: "搜索内容包含不支持的字符。",
                     ownJobsOnly: "只能搜索自己发布职位的申请人。"
                 },
-                skillMatch: {
-                    moOnly: "只有 MO 账号可以使用技能匹配。",
-                    generated: "技能匹配已生成。"
-                },
                 ai: {
                     moApplicantOnly: "只有 MO 账号可以使用申请人 AI 搜索。",
                     taJobOnly: "只有 TA 账号可以使用职位 AI 搜索。",
@@ -2924,6 +2839,10 @@
 
     var currentLocale = DEFAULT_LOCALE;
 
+    /*
+     * 统一外部传入的语言值。
+     * 只支持 en 和 zh-CN，其他区域码统一折叠到这两个页面语言。
+     */
     function normalizeLocale(input) {
         if (typeof input !== "string" || !input.trim()) {
             return "";
@@ -2938,6 +2857,9 @@
         return "";
     }
 
+    /*
+     * 读取用户上次选择的语言。
+     */
     function readSavedLocale() {
         try {
             return normalizeLocale(window.localStorage.getItem(STORAGE_KEY) || "");
@@ -2946,6 +2868,9 @@
         }
     }
 
+    /*
+     * 从浏览器语言中推断首选语言。
+     */
     function readBrowserLocale() {
         var languages = [];
         if (Array.isArray(window.navigator.languages)) {
@@ -2963,10 +2888,16 @@
         return "";
     }
 
+    /*
+     * 初始语言优先级：用户保存值 -> locale-bootstrap 标记 -> 浏览器语言 -> 英文。
+     */
     function resolveInitialLocale() {
         return readSavedLocale() || normalizeLocale(document.documentElement.getAttribute("data-initial-locale") || "") || readBrowserLocale() || DEFAULT_LOCALE;
     }
 
+    /*
+     * 通过点号路径读取字典值，例如 portal.taJobList.searchPlaceholder。
+     */
     function getByPath(locale, key) {
         if (!locale || !key) {
             return "";
@@ -2986,6 +2917,9 @@
         return typeof value === "string" ? value : "";
     }
 
+    /*
+     * 页面和动态脚本统一使用的翻译函数。
+     */
     function t(key, fallback) {
         var localized = getByPath(currentLocale, key) || getByPath(DEFAULT_LOCALE, key);
         if (localized) {
@@ -2994,6 +2928,10 @@
         return typeof fallback === "string" ? fallback : key;
     }
 
+    /*
+     * 服务端英文消息到 i18n key 的映射。
+     * 遗留/待移除：如果后端未来直接返回稳定错误 code，这张英文文本映射表可以删除。
+     */
     var SERVER_MESSAGE_KEYS = {
         "please login first": "server.auth.loginRequired",
         "please log in first": "server.auth.loginRequired",
@@ -3191,8 +3129,6 @@
         "query is too long": "server.search.queryTooLong",
         "query contains invalid characters": "server.search.queryInvalidChars",
         "you can only search applicants for your own jobs": "server.search.ownJobsOnly",
-        "only mo accounts can use skill match": "server.skillMatch.moOnly",
-        "skill match generated": "server.skillMatch.generated",
         "only mo can use applicant ai search": "server.ai.moApplicantOnly",
         "only ta can use job ai search": "server.ai.taJobOnly",
         "ai 搜索暂不可用，请稍后再试": "server.ai.applicantSearchUnavailable",
@@ -3205,6 +3141,9 @@
         "notification not found": "server.notifications.notFound"
     };
 
+    /*
+     * 服务端带变量前缀的消息映射，例如 “username already exists: xxx”。
+     */
     var SERVER_MESSAGE_PREFIX_KEYS = [
         { prefix: "username already exists:", key: "server.auth.usernameExists" },
         { prefix: "email already exists:", key: "server.auth.emailExists" },
@@ -3219,6 +3158,9 @@
         { prefix: "motivation must be", key: "server.applicant.motivationTooLong" }
     ];
 
+    /*
+     * 归一化服务端消息，去掉句号和多余空格后再匹配。
+     */
     function normalizeServerMessage(message) {
         return String(message || "")
             .replace(/\s+/g, " ")
@@ -3227,6 +3169,9 @@
             .toLowerCase();
     }
 
+    /*
+     * 把服务端消息解析成翻译 key。
+     */
     function resolveServerMessageKey(message) {
         var normalized = normalizeServerMessage(message);
         if (!normalized) {
@@ -3243,6 +3188,10 @@
         return "";
     }
 
+    /*
+     * 动态错误本地化入口。
+     * 优先翻译已知服务端消息，未知消息保留原文，避免丢失调试信息。
+     */
     function localizeServerMessage(message, fallbackKey, fallbackText) {
         var raw = typeof message === "string" ? message.trim() : "";
         if (raw) {
@@ -3258,6 +3207,9 @@
         return typeof fallbackText === "string" ? fallbackText : "";
     }
 
+    /*
+     * 记住用户手动切换的语言。
+     */
     function rememberLocale(locale) {
         try {
             window.localStorage.setItem(STORAGE_KEY, locale);
@@ -3266,6 +3218,9 @@
         }
     }
 
+    /*
+     * 刷新 data-i18n 标记的文本节点。
+     */
     function updateTextContent() {
         var textNodes = document.querySelectorAll("[data-i18n]");
         Array.prototype.forEach.call(textNodes, function (node) {
@@ -3277,6 +3232,9 @@
         });
     }
 
+    /*
+     * 刷新 placeholder/title/aria-label/alt/value 等属性翻译。
+     */
     function updateAttribute(selector, keyAttribute, targetAttribute, defaultStoreAttribute) {
         var nodes = document.querySelectorAll(selector);
         Array.prototype.forEach.call(nodes, function (node) {
@@ -3288,6 +3246,9 @@
         });
     }
 
+    /*
+     * 同步语言切换按钮的激活态和 aria-pressed。
+     */
     function syncLocaleButtons() {
         var switchers = document.querySelectorAll("[data-locale-switch]");
         Array.prototype.forEach.call(switchers, function (button) {
@@ -3298,6 +3259,10 @@
         });
     }
 
+    /*
+     * 应用语言到页面。
+     * 末尾派发 app:locale-changed，通知动态渲染的 JS 卡片重新绘制。
+     */
     function applyLocale(locale, persist) {
         var normalized = normalizeLocale(locale) || DEFAULT_LOCALE;
         currentLocale = normalized;
@@ -3319,6 +3284,9 @@
         document.dispatchEvent(new CustomEvent("app:locale-changed", { detail: { locale: normalized } }));
     }
 
+    /*
+     * 绑定所有语言切换按钮。
+     */
     function bindLocaleButtons() {
         var switchers = document.querySelectorAll("[data-locale-switch]");
         Array.prototype.forEach.call(switchers, function (button) {
@@ -3332,6 +3300,9 @@
         });
     }
 
+    /*
+     * 对外暴露给页面脚本的最小 i18n API。
+     */
     window.AppI18n = {
         t: t,
         localizeServerMessage: localizeServerMessage,
@@ -3346,6 +3317,9 @@
         }
     };
 
+    /*
+     * 页面初始化：绑定按钮并应用初始语言。
+     */
     function initialize() {
         bindLocaleButtons();
         applyLocale(resolveInitialLocale(), false);

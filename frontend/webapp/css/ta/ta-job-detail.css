@@ -1,3 +1,7 @@
+/*
+ * TA 职位详情页样式。
+ * 覆盖岗位详情、申请弹窗、申请状态提示和 AI 匹配分析弹窗。
+ */
 @import url("../common/motion.css");
 @import url("../portal/portal-shell.css");
 

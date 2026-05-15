@@ -1,3 +1,9 @@
+/*
+ * TA 申请详情页脚本，对应 /jsp/ta/application-detail.jsp。
+ *
+ * 根据 URL 中的 application id 同时读取申请详情、申请人快照和岗位详情。
+ * 只有 PENDING 状态展示撤回按钮，撤回通过 /api/applications/{applicationId}/transition 完成。
+ */
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
 
@@ -23,6 +29,7 @@
     var withdrawButton = document.getElementById("withdraw-application-btn");
 
     var state = {
+        // application 是主记录；applicant/job 是为了补充页面上的档案提示和岗位摘要。
         applicationId: "",
         application: null,
         applicant: null,

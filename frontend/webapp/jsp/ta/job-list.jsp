@@ -13,6 +13,7 @@
     }
     String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "T";
 %>
+<%-- TA 职位列表页：展示 /api/jobs 和 /api/ta/job-recommendations 的结果。 --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -76,6 +77,7 @@
     </div>
 
     <script>
+        // 注入给 ta-job-list.js：contextPath 用于路由，currentRole 用于控制 TA 视角按钮。
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
         window.APP_CURRENT_ROLE = "<%= currentRole %>";
     </script>

@@ -1,12 +1,19 @@
+/*
+ * MO dashboard 脚本，对应 /jsp/mo/dashboard.jsp。
+ *
+ * 一页内同时处理岗位发布/编辑、我的岗位列表、申请审核、候选人详情和 AI 推荐。
+ * API 统一通过 TARecruitment.routes 生成，避免回退到旧 /jobs 或 /apply 路径。
+ */
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
     var currentUserId = typeof window.APP_CURRENT_USER_ID === "string" ? window.APP_CURRENT_USER_ID : "";
     var SKILL_SEPARATOR_PATTERN = /[,，]/;
     var UNSUPPORTED_SKILL_SEPARATOR_PATTERN = /[;；、|]/;
 
-    // ==========================================
-    // State
-    // ==========================================
+    /*
+     * 岗位管理主状态：
+     * jobs 是“我的发布”列表数据；submitting/deleting/editing 控制按钮禁用和弹窗状态。
+     */
     var state = {
         jobs: [],
         submitting: false,
@@ -14,7 +21,12 @@
         editingJobId: null
     };
 
+    /*
+     * 申请人子视图状态。
+     * MO 从某个职位卡片进入申请人列表后，列表、详情、AI 推荐和审核动作都依赖这里。
+     */
     var svState = {
+        // Selection view state：MO 在“我的发布”里查看某个岗位的申请和 AI 推荐时使用。
         loading: false,
         jobId: "",
         jobTitle: "",
@@ -31,31 +43,29 @@
         reviewingId: ""
     };
 
+    /*
+     * 编辑弹窗实时校验状态。
+     * touched/dirty/feedback 分离，方便只在用户交互后显示对应字段错误。
+     */
     var editFieldValidationState = {
         touchedByKey: {},
         dirtyByKey: {},
         feedbackByKey: {}
     };
 
-    // ==========================================
     // DOM Elements - Create Form
-    // ==========================================
     var form = document.getElementById("job-create-form");
     var publishButton = document.getElementById("publish-btn");
     var resetButton = document.getElementById("reset-btn");
     var messageNode = document.getElementById("form-message");
 
-    // ==========================================
     // DOM Elements - Tab Navigation
-    // ==========================================
     var tabMyJobs = document.getElementById("tab-my-jobs");
     var tabPostJob = document.getElementById("tab-post-job");
     var panelMyJobs = document.getElementById("panel-my-jobs");
     var panelPostJob = document.getElementById("panel-post-job");
 
-    // ==========================================
     // DOM Elements - Job List
-    // ==========================================
     var jobListContainer = document.getElementById("job-list-container");
     var jobsLoading = document.getElementById("jobs-loading");
     var jobList = document.getElementById("job-list");
@@ -1345,6 +1355,10 @@
     // ==========================================
     // Applicant Sub-View
     // ==========================================
+    /*
+     * 初始化“我的发布 -> 申请人列表”子视图。
+     * 子视图不再是独立导航页，而是从职位卡片进入的嵌套流程。
+     */
     function initApplicantSubView() {
         if (!panelApplicants || !subviewBackBtn || !subviewSearchForm) return;
 
@@ -1376,6 +1390,10 @@
         updateSvSearchControls();
     }
 
+    /*
+     * 打开某个职位的申请人子视图。
+     * 会重置搜索/AI/详情状态，再按 jobId 加载该岗位的申请。
+     */
     function openApplicantSubView(jobId, jobTitle) {
         svState.jobId = jobId;
         svState.jobTitle = jobTitle;
@@ -1404,12 +1422,18 @@
         loadSvApplications();
     }
 
+    /*
+     * 关闭申请人子视图，回到“我的发布”列表。
+     */
     function closeApplicantSubView() {
         if (panelApplicants) panelApplicants.classList.add("hidden");
         svState.viewMode = "list";
         switchTab("my-jobs");
     }
 
+    /*
+     * 从申请详情返回申请人列表。
+     */
     function svShowListView() {
         svState.viewMode = "list";
         svState.selectedApplicationId = "";
@@ -1419,6 +1443,10 @@
         renderSvList();
     }
 
+    /*
+     * 切换到单个申请详情。
+     * 标题显示候选人名字，搜索区隐藏，避免详情页误触发列表搜索。
+     */
     function svShowDetailView(applicationId) {
         svState.viewMode = "detail";
         svState.selectedApplicationId = applicationId;
@@ -1437,6 +1465,10 @@
         renderSvDetail(applicationId);
     }
 
+    /*
+     * 加载当前职位下的申请列表。
+     * 后端 /api/applications 返回 MO 可见申请，再在前端按当前 jobId 过滤成子视图数据。
+     */
     function loadSvApplications() {
         if (svState.loading || svState.aiSearchLoading) return;
         svState.loading = true;
@@ -1481,6 +1513,11 @@
             });
     }
 
+    /*
+     * 申请人 AI 推荐搜索。
+     * 请求 /api/mo/applicant-recommendations，后端返回真实申请人列表和推荐理由；
+     * 不在前端补造候选人。
+     */
     function runSvAiSearch() {
         if (svState.loading || svState.aiSearchLoading) return;
         if (!svState.jobId) {
@@ -1557,16 +1594,27 @@
             });
     }
 
+    /*
+     * 清掉 AI 推荐标记。
+     * 普通搜索重新加载时必须重置，避免旧推荐理由贴到新列表上。
+     */
     function clearSvAiRecommendationState() {
         svState.aiSearchActive = false;
         svState.aiRecommendationsById = {};
     }
 
+    /*
+     * 切换子视图搜索模式，只更新控件，不自动发请求。
+     */
     function setSvSearchMode(mode) {
         svState.searchMode = mode === "ai" ? "ai" : "search";
         updateSvSearchControls();
     }
 
+    /*
+     * 把后端推荐理由整理成 applicationId -> reason 的 map。
+     * 兼容 recommendationsByApplicationId 和 recommendations 数组两种响应形态。
+     */
     function buildSvRecommendationMap(data) {
         var map = {};
         var byId = data && data.recommendationsByApplicationId;
@@ -1592,6 +1640,10 @@
         updateSvSearchControls();
     }
 
+    /*
+     * 同步子视图搜索框、AI toggle 和按钮文案。
+     * 详情模式下隐藏搜索表单，避免列表和详情交互混在一起。
+     */
     function updateSvSearchControls() {
         var busy = svState.loading || svState.aiSearchLoading;
         var detailMode = svState.viewMode === "detail";
@@ -1629,6 +1681,10 @@
         }
     }
 
+    /*
+     * 补充加载申请人的档案快照。
+     * 单条详情失败不阻断列表，页面会继续展示 Application 里已有的基本信息。
+     */
     function loadSvApplicantDetails(applications) {
         if (!Array.isArray(applications) || applications.length === 0) return Promise.resolve();
         var requests = applications.map(function (app) {
@@ -1645,6 +1701,10 @@
         return Promise.all(requests);
     }
 
+    /*
+     * 渲染申请人列表或详情。
+     * viewMode=detail 时直接委托给 renderSvDetail。
+     */
     function renderSvList() {
         if (!subviewList) return;
         updateSvSearchControls();
@@ -1679,6 +1739,10 @@
         });
     }
 
+    /*
+     * 给候选人头像容器异步挂载照片。
+     * 失败时保持首字母头像，不把图片加载失败暴露成错误提示。
+     */
     function attachApplicantPhoto(avatarEl, applicationId) {
         if (!avatarEl || !applicationId) return;
         var img = new Image();
@@ -1691,6 +1755,10 @@
         img.src = window.TARecruitment.routes.applications.applicantPhoto(applicationId) + "?v=" + Date.now();
     }
 
+    /*
+     * 创建申请人列表项。
+     * AI 推荐理由只在 AI 搜索结果中展示；普通列表保持申请状态和技能摘要。
+     */
     function createSvApplicantItem(application) {
         var item = document.createElement("article");
         var id = application.applicationId || "";
@@ -1742,6 +1810,9 @@
         return item;
     }
 
+    /*
+     * 渲染单个申请详情。
+     */
     function renderSvDetail(applicationId) {
         if (!subviewList || !applicationId) return;
         updateSvSearchControls();
@@ -1771,6 +1842,10 @@
         subviewList.appendChild(wrapper);
     }
 
+    /*
+     * 创建申请详情卡片。
+     * 卡片合并 Application 基本信息和申请人档案快照，并在 PENDING 状态下显示审核动作。
+     */
     function createSvApplicationCard(application, detail) {
         var card = document.createElement("article");
         card.className = "application-card";
@@ -1845,6 +1920,9 @@
         return card;
     }
 
+    /*
+     * 详情页顶部的岗位/课程/申请时间小指标。
+     */
     function buildSvMetaStat(cls, iconHtml, label, value) {
         return "<div class=\"application-meta-stat " + escapeHtml(cls) + "\">" +
             "<span class=\"application-meta-icon\" aria-hidden=\"true\">" + iconHtml + "</span>" +
@@ -1855,6 +1933,10 @@
         "</div>";
     }
 
+    /*
+     * 构造申请人档案详情块。
+     * detail 为空时展示不可用提示，不阻断 MO 对申请状态的查看。
+     */
     function buildSvDetailBlock(detail, applicationId, profileUpdatedAt) {
         var profileTitle = t("portal.moApplicantSelection.applicantProfile", "Applicant profile");
         if (!detail) {
@@ -1917,6 +1999,9 @@
         "</section>";
     }
 
+    /*
+     * 档案键值对小项。
+     */
     function buildSvDetailItem(label, value) {
         return "<div class=\"detail-item\">" +
             "<span class=\"detail-item-label\">" + escapeHtml(label) + "</span>" +
@@ -1924,6 +2009,10 @@
         "</div>";
     }
 
+    /*
+     * PENDING 申请才显示接受/拒绝按钮。
+     * progressStage 当前只用于展示进度，不改变这里的最终决策入口。
+     */
     function buildSvReviewActionsHtml(status, progressStage, applicationId, reviewingThis) {
         if (status !== "PENDING") return "";
         var dis = reviewingThis ? " disabled" : "";
@@ -1944,6 +2033,10 @@
             "</div></div>";
     }
 
+    /*
+     * 构造单个申请的 AI 匹配分析面板。
+     * 结果来自 /api/mo/application-match-analyses，不在前端生成分析结论。
+     */
     function buildSvAiPanelHtml(applicationId) {
         var aiState = svState.aiByApplicationId[applicationId] || { loading: false, result: null, statusMessage: "" };
         var statusMarkup = aiState.statusMessage
@@ -1977,6 +2070,9 @@
         "</section>";
     }
 
+    /*
+     * 渲染 AI 分析结果主体：分数、等级、总结、优势、风险和建议。
+     */
     function buildSvAiResultHtml(result) {
         return "<section class=\"application-ai-result\">" +
             "<div class=\"application-ai-overview\">" +
@@ -1999,6 +2095,9 @@
         "</section>";
     }
 
+    /*
+     * 渲染 AI 分析中的列表段落，空列表时显示明确兜底文案。
+     */
     function buildSvAiList(heading, items, emptyText) {
         var arr = Array.isArray(items) ? items.filter(function (s) { return typeof s === "string" && s.trim(); }) : [];
         var listItems = arr.length
@@ -2010,12 +2109,18 @@
         "</article>";
     }
 
+    /*
+     * 分数展示限制在 0-100。
+     */
     function formatSvAiScore(score) {
         var n = Number(score);
         if (isNaN(n)) return "-";
         return Math.max(0, Math.min(100, Math.round(n))) + "/100";
     }
 
+    /*
+     * 后端 HIGH/MEDIUM/LOW 转成本地化文案。
+     */
     function formatSvAiLevel(level) {
         var s = safeValue(level, "").toUpperCase();
         if (s === "HIGH") return t("portal.dynamic.aiMatchLevelHigh", "High");
@@ -2024,6 +2129,10 @@
         return s || "-";
     }
 
+    /*
+     * 请求单个申请的 AI 匹配分析。
+     * forceRefresh=false 时复用已有结果，避免展开面板时重复调用 AI。
+     */
     function requestSvAiAnalysis(applicationId, forceRefresh) {
         var aiState = svState.aiByApplicationId[applicationId];
         if (!aiState) {
@@ -2060,6 +2169,9 @@
         });
     }
 
+    /*
+     * 局部刷新 AI 面板，不重绘整个申请详情卡片。
+     */
     function updateSvAiPanel(applicationId) {
         var panelId = "sv-ai-panel-" + applicationId.replace(/[^a-zA-Z0-9_-]/g, "");
         var panel = document.getElementById(panelId);
@@ -2070,6 +2182,10 @@
         }
     }
 
+    /*
+     * 处理 MO 对申请的接受/拒绝。
+     * 成功后回到列表并重新加载，确保状态和职位名额同步。
+     */
     function handleSvReview(applicationId, action) {
         if (svState.reviewingId) return;
         svState.reviewingId = applicationId;
