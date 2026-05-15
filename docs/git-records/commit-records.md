@@ -298,3 +298,4 @@
 | `member6`  | #81    | `docs: 重组交付文档并刷新用户手册材料`         | ✅   | `git commit -m "docs: 重组交付文档并刷新用户手册材料" --author="member6 <member6@edu.com>"`         |
 | `member6`  | #82    | `docs: 修正文档迁移后的路径引用`               | ✅   | `git commit -m "docs: 修正文档迁移后的路径引用" --author="member6 <member6@edu.com>"`               |
 | `member1`  | #83    | `test: 新增成员后端分工测试入口`               | ✅   | `git commit -m "test: 新增成员后端分工测试入口" --author="member1 <member1@edu.com>"`               |
+| `member5`  | #84    | `test: 新增前端成员冒烟测试入口`               | ✅   | `git commit -m "test: 新增前端成员冒烟测试入口" --author="member5 <member5@edu.com>"`               |
