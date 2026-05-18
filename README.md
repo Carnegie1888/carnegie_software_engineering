@@ -163,7 +163,7 @@ cp frontend/webapp/WEB-INF/ai/deepseek.properties.template \
    frontend/webapp/WEB-INF/ai/deepseek.local.properties
 ```
 
-如果没有配置 key 或服务不可用，推荐类 AI 会提示暂不可用，不生成本地假推荐。
+AI 推荐搜索不提供本地兜底数据。如果未配置 key 或服务不可用，前端会显示"AI 推荐暂不可用，请稍后再试。"的错误提示，不会生成任何虚假推荐结果。
 
 ### 常见问题
 
