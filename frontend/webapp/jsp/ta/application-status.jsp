@@ -33,7 +33,7 @@
                         <p class="subtitle" data-i18n="portal.taApplicationStatus.subtitle">Track the status of your submitted applications.</p>
                     </section>
 
-                    <section class="status-panel" aria-label="申请状态列表" data-i18n-aria-label="portal.taApplicationStatus.panelAria">
+                    <section class="status-panel" aria-label="Application status list" data-i18n-aria-label="portal.taApplicationStatus.panelAria">
                         <form id="status-search-form" class="search-form" novalidate>
                             <label for="status-search-input" data-i18n="portal.common.search">Search</label>
                             <div class="search-row">

@@ -1,4 +1,4 @@
-# member5 Division and Current Code Files
+# Sheng Yuhan Division and Current Code Files
 
 [Back to Overview](Overview.md)
 
@@ -6,13 +6,13 @@
 
 | Item | Content |
 | --- | --- |
-| Git author | `member5 <member5@edu.com>` |
+| Contributor | Sheng Yuhan |
 | Standard commit count | 34 |
 | Division overview | Frontend pages and interactions, covering login/register, TA/MO/Admin pages, frontend API routing unification |
 
 ## Division Overview
 
-`member5` primarily took on frontend pages, interactions, and styles. Scope covers login/register, TA profile, TA position list/detail/application status, MO posting and applicant review within dashboard, Admin page request adaptation, and later unified how page JS calls `TARecruitment.routes` and common request utilities. The old MO skill matching page, old MO standalone applicant page, and old Admin registration instruction page have been taken offline, so the current file list only includes pages and scripts that still exist.
+Sheng Yuhan primarily took on frontend pages, interactions, and styles. Scope covers login/register, TA profile, TA position list/detail/application status, MO posting and applicant review within dashboard, Admin page request adaptation, and later unified how page JS calls `TARecruitment.routes` and common request utilities. The old MO skill matching page, old MO standalone applicant page, and old Admin registration instruction page have been taken offline, so the current file list only includes pages and scripts that still exist.
 
 ## Current Corresponding Code Files
 
@@ -73,19 +73,19 @@ Frontend common API route calls:
 
 ## File Overlap and Defense Attribution
 
-member5's current code files have no direct overlap with member1 through member4. member5's defense focus is on specific frontend pages, page interactions, styles, and page JS API call methods. If public portal shell and full-site architecture frontend files overlap with member6's documentation, they should be handled according to member6's leader/architecture explanation.
+Sheng Yuhan's current code files have no direct overlap with Ouyang Xiaojun, Zhou Bohan, Liu Tengyi, and Sun Jialu. Sheng Yuhan's defense focus is on specific frontend pages, page interactions, styles, and page JS API call methods. If public portal shell and full-site architecture frontend files overlap with Wang Bangzhen's documentation, they should be handled according to Wang Bangzhen's leader/architecture explanation.
 
 ## Test Presentation
 
 Run command:
 
 ```bash
-./scripts/test/test-member5.sh
+./scripts/test/test-sheng-yuhan.sh
 ```
 
 Test code:
 
-- `frontend/test/member5-frontend-test.js`
+- `frontend/test/sheng-yuhan-frontend-test.js`
 
 Test coverage points:
 
@@ -96,4 +96,4 @@ Test coverage points:
 
 For defense, you can explain:
 
-`member5`'s test focus is on whether frontend pages can be normally parsed by the browser and whether page requests uniformly go through the common routing utility. This proves that the frontend is not scattered with hand-written interface addresses, but uses `TARecruitment.routes` to adapt deployment paths like `/groupproject`.
+Sheng Yuhan's test focus is on whether frontend pages can be normally parsed by the browser and whether page requests uniformly go through the common routing utility. This proves that the frontend is not scattered with hand-written interface addresses, but uses `TARecruitment.routes` to adapt deployment paths like `/groupproject`.

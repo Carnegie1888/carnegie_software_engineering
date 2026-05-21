@@ -17,7 +17,7 @@
         <div class="page-utility">
             <a class="utility-link" href="<%= contextPath %>/" data-i18n="common.utility.backToPortal">Portal home</a>
             <div class="locale-switch" role="group" data-i18n-aria-label="common.locale.switchAria">
-                <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">中文</button>
+                <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">Chinese</button>
                 <span class="locale-divider">/</span>
                 <button class="locale-btn" type="button" data-locale-switch data-locale="en" data-i18n="common.locale.en">English</button>
             </div>
@@ -33,7 +33,7 @@
             <p class="subtitle" data-i18n="adminInvite.hero.subtitle">Use an invite code from the team to create an Admin account</p>
         </section>
 
-        <section class="register-card" aria-label="管理员邀请注册表单" data-i18n-aria-label="adminInvite.form.aria">
+        <section class="register-card" aria-label="Admin invite registration form" data-i18n-aria-label="adminInvite.form.aria">
             <div id="form-message" class="form-message hidden" role="alert" aria-live="polite"></div>
 
             <div class="invite-contact-hint">

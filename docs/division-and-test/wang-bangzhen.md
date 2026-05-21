@@ -1,4 +1,4 @@
-# member6 Division and Current Code Files
+# Wang Bangzhen Division and Current Code Files
 
 [Back to Overview](Overview.md)
 
@@ -6,13 +6,13 @@
 
 | Item | Content |
 | --- | --- |
-| Git author | `member6 <member6@edu.com>` |
+| Contributor | Wang Bangzhen |
 | Standard commit count | 41 |
 | Division overview | Architecture restructuring, common configuration, documentation/scripts organization, portal shell, common styles, Admin pages and full-site bilingual resources |
 
 ## Division Overview
 
-`member6` is the project leader and overall structure owner. Primarily responsible for directory organization, architecture restructuring, common configuration, documentation/scripts entry points, unified portal shell, full-site common styles, bilingual resources, Admin page restructuring, and later migrated backend old large entries and old package names to the current lightweight layered structure. Although business module files were batch-moved or organized in architecture restructuring commits, the defense attribution still follows each business member's functional division.
+Wang Bangzhen is the project leader and overall structure owner. Primarily responsible for directory organization, architecture restructuring, common configuration, documentation/scripts entry points, unified portal shell, full-site common styles, bilingual resources, Admin page restructuring, and later migrated backend old large entries and old package names to the current lightweight layered structure. Although business module files were batch-moved or organized in architecture restructuring commits, the defense attribution still follows each business contributor's functional division.
 
 ## Current Corresponding Code Files
 
@@ -35,7 +35,7 @@ Backend architecture, routing, and common infrastructure:
 
 Backend business module architecture restructuring notes:
 
-`member6` organized the backend business module package structure, routing, and layered boundaries in `4abe022 refactor: unify backend module architecture and API routes`. This commit covered multiple business domain files, but these files' functional attribution are still respectively recorded in member1 through member4's documentation. member6's test presentation should focus on explaining architecture rules, common entry points, and documentation/scripts, rather than repeatedly claiming all business implementation files.
+Wang Bangzhen organized the backend business module package structure, routing, and layered boundaries in `4abe022 refactor: unify backend module architecture and API routes`. This commit covered multiple business domain files, but these files' functional attribution are still respectively recorded in Ouyang Xiaojun, Zhou Bohan, Liu Tengyi, and Sun Jialu's documentation. Wang Bangzhen's test presentation should focus on explaining architecture rules, common entry points, and documentation/scripts, rather than repeatedly claiming all business implementation files.
 
 Portal shell, common styles, bilingual resources, and home page:
 
@@ -97,12 +97,12 @@ Scripts, runtime configuration, and technical documentation:
 Run command:
 
 ```bash
-./scripts/test/test-member6.sh
+./scripts/test/test-wang-bangzhen.sh
 ```
 
 Test code:
 
-- `frontend/test/member6-architecture-test.js`
+- `frontend/test/wang-bangzhen-architecture-test.js`
 
 Test coverage points:
 
@@ -110,8 +110,8 @@ Test coverage points:
 - No old package names, old Servlets, old API prefixes with version numbers, or old root paths remain in backend source code, frontend pages, scripts, or division documentation.
 - Backend API constants in `ApiRoutes.java` remain clean `/api/...` paths.
 - `frontend/webapp/js/common/ta-recruitment.js` stays synchronized with backend `ApiRoutes` API paths.
-- `package-info.java` and `docs/division-and-test/Overview.md` reflect the current lightweight architecture and member documentation entry points.
+- `package-info.java` and `docs/division-and-test/Overview.md` reflect the current lightweight architecture and contributor documentation entry points.
 
 For defense, you can explain:
 
-`member6`'s test focus is not to repeatedly test every business function, but to verify the overall project structure has not regressed to the old architecture. The script checks whether old package names, old interfaces, old Servlets, numerous hard-coded paths, and deleted AI pages still remain. It also confirms that backend API constants and frontend common routes stay synchronized.
+Wang Bangzhen's test focus is not to repeatedly test every business function, but to verify the overall project structure has not regressed to the old architecture. The script checks whether old package names, old interfaces, old Servlets, numerous hard-coded paths, and deleted AI pages still remain. It also confirms that backend API constants and frontend common routes stay synchronized.

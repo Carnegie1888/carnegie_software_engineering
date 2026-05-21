@@ -44,7 +44,7 @@
                     </section>
 
                     <section class="detail-layout">
-                        <article class="detail-card" aria-label="职位详细信息" data-i18n-aria-label="portal.taJobDetail.detailCardAria">
+                        <article class="detail-card" aria-label="Job details" data-i18n-aria-label="portal.taJobDetail.detailCardAria">
                             <header class="detail-header">
                                 <div class="detail-heading">
                                     <h2 id="job-title" data-i18n="portal.taJobDetail.loadingDetails">Loading job details...</h2>

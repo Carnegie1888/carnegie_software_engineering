@@ -5,8 +5,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/test-common.sh"
 
-# member2 展示 TA 档案、CSV/路径存储和 DeepSeek 推荐配置降级。
-MEMBER="member2"
-prepare_backend_member_test "$MEMBER"
-compile_backend_member_test "$MEMBER" "backend/test/Member2BackendTest.java"
-run_backend_member_test "$MEMBER" "Member2BackendTest"
+# Zhou Bohan demonstrates TA profiles, CSV/path storage, and DeepSeek recommendation config fallback.
+CONTRIBUTOR_ID="zhou-bohan"
+CONTRIBUTOR_LABEL="Zhou Bohan"
+prepare_backend_contributor_test "$CONTRIBUTOR_ID" "$CONTRIBUTOR_LABEL"
+compile_backend_contributor_test "$CONTRIBUTOR_ID" "$CONTRIBUTOR_LABEL" "backend/test/ZhouBohanBackendTest.java"
+run_backend_contributor_test "$CONTRIBUTOR_ID" "$CONTRIBUTOR_LABEL" "ZhouBohanBackendTest"

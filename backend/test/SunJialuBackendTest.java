@@ -5,13 +5,13 @@ import com.example.tarecruitment.application.validator.ApplicationValidator;
 import com.example.tarecruitment.notification.model.Notification;
 
 /**
- * member4 backend test entry point.
+ * Sun Jialu backend test entry point.
  *
- * member4's responsibilities focus on application flow, status transitions, notifications, and admin invite codes.
+ * Sun Jialu's responsibilities focus on application flow, status transitions, notifications, and admin invite codes.
  * This test does not start a Servlet container, but directly tests validators, models, and DAOs,
  * because these classes carry the core business rules that are easiest to explain during defense.
  */
-public class Member4BackendTest {
+public class SunJialuBackendTest {
 
     private static int passed;
 
@@ -22,7 +22,7 @@ public class Member4BackendTest {
         testApplicationDaoTransitions();
         testNotificationCsvRoundTrip();
         testInviteCodeValidation();
-        System.out.println("[member4] PASS total=" + passed);
+        System.out.println("[Sun Jialu] PASS total=" + passed);
     }
 
     /**
@@ -147,10 +147,10 @@ public class Member4BackendTest {
      */
     private static void pass(String message) {
         passed++;
-        System.out.println("[member4] PASS - " + message);
+        System.out.println("[Sun Jialu] PASS - " + message);
     }
 
-    // Custom assertion tool. Throws AssertionError on failure, and shell script will immediately determine test failure for this member.
+    // Custom assertion tool. Throws AssertionError on failure, and shell script will immediately determine test failure for this contributor.
     private static void assertTrue(boolean condition, String message) {
         if (!condition) {
             throw new AssertionError(message);

@@ -1,4 +1,4 @@
-# member2 Division and Current Code Files
+# Zhou Bohan Division and Current Code Files
 
 [Back to Overview](Overview.md)
 
@@ -6,13 +6,13 @@
 
 | Item | Content |
 | --- | --- |
-| Git author | `member2 <member2@edu.com>` |
+| Contributor | Zhou Bohan |
 | Standard commit count | 20 |
 | Division overview | TA profile and file upload, data path/initialization stability, AI recommendation search and matching service |
 
 ## Division Overview
 
-`member2` primarily took on TA profiles, resume/avatar resource upload, data storage path and demo account initialization stability, and later handled AI recommendation search backend integration, including DeepSeek configuration and client. After the old skill matching service and detail page extra analysis flow were taken offline, the AI-related backend scope converged to recommendation search interface.
+Zhou Bohan primarily took on TA profiles, resume/avatar resource upload, data storage path and demo account initialization stability, and later handled AI recommendation search backend integration, including DeepSeek configuration and client. After the old skill matching service and detail page extra analysis flow were taken offline, the AI-related backend scope converged to recommendation search interface.
 
 ## Current Corresponding Code Files
 
@@ -32,7 +32,7 @@ TA profile, resume, avatar, and draft data:
 
 Local data path, CSV storage, and demo data:
 
-- `backend/src/com/example/tarecruitment/common/storage/StoragePaths.java` (**Overlap note: member2 primary; member3's position/config tests depend on this data path capability**)
+- `backend/src/com/example/tarecruitment/common/storage/StoragePaths.java` (**Overlap note: Zhou Bohan primary; Liu Tengyi's position/config tests depend on this data path capability**)
 - `backend/src/com/example/tarecruitment/common/storage/CsvCodec.java`
 - `backend/src/com/example/tarecruitment/demo/DemoAccountBootstrapListener.java`
 - `backend/src/com/example/tarecruitment/demo/DemoDataSeeder.java`
@@ -51,19 +51,19 @@ DeepSeek recommendation search and AI search entry:
 
 ## File Overlap and Defense Attribution
 
-`backend/src/com/example/tarecruitment/common/storage/StoragePaths.java` also appears in member3's documentation because position, account profile, and config tests all need to read the runtime data directory. During defense, the data path infrastructure is presented by member2. Member3 only explains how the position module depends on it.
+`backend/src/com/example/tarecruitment/common/storage/StoragePaths.java` also appears in Liu Tengyi's documentation because position, account profile, and config tests all need to read the runtime data directory. During defense, the data path infrastructure is presented by Zhou Bohan. Liu Tengyi only explains how the position module depends on it.
 
 ## Test Presentation
 
 Run command:
 
 ```bash
-./scripts/test/test-member2.sh
+./scripts/test/test-zhou-bohan.sh
 ```
 
 Test code:
 
-- `backend/test/Member2BackendTest.java`
+- `backend/test/ZhouBohanBackendTest.java`
 
 Test coverage points:
 
@@ -75,4 +75,4 @@ Test coverage points:
 
 For defense, you can explain:
 
-`member2`'s test focus is on TA profiles, CSV data layer, and AI recommendation configuration. The script uses a temporary data directory to simulate a real runtime environment, proving that profiles can be safely written to CSV and duplicate profiles are blocked. Meanwhile, when the AI key is not configured, it doesn't generate fake recommendation results but falls back safely.
+Zhou Bohan's test focus is on TA profiles, CSV data layer, and AI recommendation configuration. The script uses a temporary data directory to simulate a real runtime environment, proving that profiles can be safely written to CSV and duplicate profiles are blocked. Meanwhile, when the AI key is not configured, it doesn't generate fake recommendation results but falls back safely.

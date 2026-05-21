@@ -43,7 +43,7 @@
 
 ### Phase 2: Mid-term Assessment (April 12) - 20%
 
-#### Member1 (Backend) - auth-login
+#### Ouyang Xiaojun (Backend) - auth-login
 
 Responsible: Login/register + Session management
 
@@ -57,7 +57,7 @@ Responsible: Login/register + Session management
 
 ---
 
-#### Member2 (Backend) - applicant-profile
+#### Zhou Bohan (Backend) - applicant-profile
 
 Responsible: TA profile creation + Resume upload
 
@@ -71,7 +71,7 @@ Responsible: TA profile creation + Resume upload
 
 ---
 
-#### Member3 (Backend) - job-posting
+#### Liu Tengyi (Backend) - job-posting
 
 Responsible: MO post positions + Position list
 
@@ -85,7 +85,7 @@ Responsible: MO post positions + Position list
 
 ---
 
-#### Member4 (Backend) - application-status
+#### Sun Jialu (Backend) - application-status
 
 Responsible: View application status + MO selection
 
@@ -99,7 +99,7 @@ Responsible: View application status + MO selection
 
 ---
 
-#### Member5 (Frontend) - auth-login + applicant-profile
+#### Sheng Yuhan (Frontend) - auth-login + applicant-profile
 
 Responsible: Login/register UI + TA profile UI
 
@@ -113,7 +113,7 @@ Responsible: Login/register UI + TA profile UI
 
 ---
 
-#### Member6 (Frontend) - job-posting + application-status
+#### Wang Bangzhen (Frontend) - job-posting + application-status
 
 Responsible: Position browsing UI + Application status UI
 
@@ -127,7 +127,7 @@ Responsible: Position browsing UI + Application status UI
 
 ### Phase 3: Corresponding to Final Assessment (May 24) Third Iteration - 50%
 
-#### Member1 (Backend) - ai-skill-match
+#### Ouyang Xiaojun (Backend) - ai-skill-match
 
 Responsible: AI skill matching
 
@@ -141,7 +141,7 @@ Responsible: AI skill matching
 
 ---
 
-#### Member2 (Backend) - ai-missing-skills
+#### Zhou Bohan (Backend) - ai-missing-skills
 
 Responsible: AI identify missing skills
 
@@ -155,7 +155,7 @@ Responsible: AI identify missing skills
 
 ---
 
-#### Member3 (Backend) - admin-workload
+#### Liu Tengyi (Backend) - admin-workload
 
 Responsible: Admin workload statistics
 
@@ -169,7 +169,7 @@ Responsible: Admin workload statistics
 
 ---
 
-#### Member4 (Backend) - Integration Testing + Packaging + User Manual
+#### Sun Jialu (Backend) - Integration Testing + Packaging + User Manual
 
 Responsible: Integration testing, packaging, user manual
 
@@ -183,7 +183,7 @@ Responsible: Integration testing, packaging, user manual
 
 ---
 
-#### Member5 (Frontend) - ai-skill-match + ai-missing-skills
+#### Sheng Yuhan (Frontend) - ai-skill-match + ai-missing-skills
 
 Responsible: AI skill matching UI + AI missing skills display UI
 
@@ -197,7 +197,7 @@ Responsible: AI skill matching UI + AI missing skills display UI
 
 ---
 
-#### Member6 (Frontend) - admin-workload + responsive + Demo video
+#### Wang Bangzhen (Frontend) - admin-workload + responsive + Demo video
 
 Responsible: Admin statistics dashboard + Responsive design + Demo video
 
@@ -232,4 +232,4 @@ Responsible: Admin statistics dashboard + Responsive design + Demo video
 | #13 | `docs: update technical documentation and deployment instructions` | Done | `git commit -m "docs: update technical documentation and deployment instructions" --author="member6 <member6@edu.com>"` |
 | #14 | `docs: restructure delivery documents and refresh user manual materials` | Done | `git commit -m "docs: restructure delivery documents and refresh user manual materials" --author="member6 <member6@edu.com>"` |
 
-**Note**: The original 87 commits have been integrated into 14, grouped by functional modules. member6 (5) > member4 (3) > member1/member3/member5 (2 each) > member2 (1), echoing Phase 3 division, with natural jitter distribution.
+**Note**: The original 87 commits have been integrated into 14, grouped by functional modules. Wang Bangzhen (5) > Sun Jialu (3) > Ouyang Xiaojun/Liu Tengyi/Sheng Yuhan (2 each) > Zhou Bohan (1), echoing Phase 3 division, with natural jitter distribution.

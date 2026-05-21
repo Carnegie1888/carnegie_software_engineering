@@ -3,22 +3,22 @@ import com.example.tarecruitment.auth.model.User;
 import com.example.tarecruitment.common.service.ServiceResult;
 
 /**
- * member1 backend test entry point.
+ * Ouyang Xiaojun backend test entry point.
  *
  * This is not a JUnit test, but a lightweight main test program that can be run directly via javac/java.
  * This approach aligns with the project's lightweight tech stack of “Servlet + JSP + native JS + CSV + scripts”,
  * without introducing additional Maven, JUnit, or testing framework dependencies.
  *
- * Test scope corresponds to member1's defense responsibilities:
+ * Test scope corresponds to Ouyang Xiaojun's defense responsibilities:
  * 1. Service layer unified result object ServiceResult;
  * 2. User model User CSV storage format;
  * 3. User DAO demo accounts, login verification, password hashing, and duplicate username protection.
  *
- * scripts/test/test-member1.sh will set a temporary TA_HIRING_DATA_DIR for this test,
- * so UserDao writes to the temporary CSV under build/member-tests/member1/data,
+ * scripts/test/test-ouyang-xiaojun.sh will set a temporary TA_HIRING_DATA_DIR for this test,
+ * so UserDao writes to the temporary CSV under build/contributor-tests/ouyang-xiaojun/data,
  * which will not affect Tomcat's real demo data.
  */
-public class Member1BackendTest {
+public class OuyangXiaojunBackendTest {
 
     private static int passed;
 
@@ -27,7 +27,7 @@ public class Member1BackendTest {
         testServiceResult();
         testUserCsvRoundTrip();
         testUserDaoDemoAccountsAndLogin();
-        System.out.println("[member1] PASS total=" + passed);
+        System.out.println("[Ouyang Xiaojun] PASS total=" + passed);
     }
 
     /**
@@ -57,7 +57,7 @@ public class Member1BackendTest {
      * Here, specifically include a displayName with comma to confirm CSV escaping does not break the fields.
      */
     private static void testUserCsvRoundTrip() {
-        User user = new User("member1_user", "secret", "member1@example.test", User.Role.TA);
+        User user = new User("ouyang_xiaojun_user", "secret", "ouyang-xiaojun@example.test", User.Role.TA);
         user.setUserId("user-001");
         user.setDisplayName("Member One, TA");
         user.setRealName("Alice Zhang");
@@ -91,11 +91,11 @@ public class Member1BackendTest {
         assertTrue(dao.verifyLogin("ta_demo", "Pass1234").isPresent(), "demo login by username");
         assertTrue(dao.verifyLogin("mo_demo@local.test", "Pass1234").isPresent(), "demo login by email");
 
-        User created = dao.create(new User("member1_extra", "Pass1234", "member1-extra@example.test", User.Role.TA));
-        assertTrue(dao.findByUsername("MEMBER1_EXTRA").isPresent(), "case-insensitive username lookup");
+        User created = dao.create(new User("ouyang_xiaojun_extra", "Pass1234", "ouyang-xiaojun-extra@example.test", User.Role.TA));
+        assertTrue(dao.findByUsername("OUYANG_XIAOJUN_EXTRA").isPresent(), "case-insensitive username lookup");
         assertTrue(!"Pass1234".equals(created.getPassword()), "password is hashed before storage");
         assertThrows(IllegalArgumentException.class,
-                () -> dao.create(new User("member1_extra", "Pass1234", "member1-dup@example.test", User.Role.TA)),
+                () -> dao.create(new User("ouyang_xiaojun_extra", "Pass1234", "ouyang-xiaojun-dup@example.test", User.Role.TA)),
                 "duplicate username rejected");
         pass("UserDao initializes demo accounts, verifies login, and rejects duplicates");
     }
@@ -105,7 +105,7 @@ public class Member1BackendTest {
      */
     private static void pass(String message) {
         passed++;
-        System.out.println("[member1] PASS - " + message);
+        System.out.println("[Ouyang Xiaojun] PASS - " + message);
     }
 
     // Below are minimalist assertion tools. Custom assertions are used to avoid introducing JUnit dependency.

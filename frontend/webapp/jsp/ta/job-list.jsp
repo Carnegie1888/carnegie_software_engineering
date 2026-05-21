@@ -38,7 +38,7 @@
                         <p class="subtitle" data-i18n="portal.taJobList.subtitle">Browse and apply for open TA positions.</p>
                     </section>
 
-                    <section class="jobs-panel" aria-label="职位列表与筛选" data-i18n-aria-label="portal.taJobList.panelAria">
+                    <section class="jobs-panel" aria-label="Job list and filters" data-i18n-aria-label="portal.taJobList.panelAria">
                         <form id="job-search-form" class="search-form" novalidate>
                             <label for="job-search-input" data-i18n="portal.common.search">Search</label>
                             <div class="search-row">

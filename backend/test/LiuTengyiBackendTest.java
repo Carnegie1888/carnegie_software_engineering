@@ -9,12 +9,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * member3 backend test entry point.
+ * Liu Tengyi backend test entry point.
  *
- * member3's responsibilities focus on job posting/query/validation and account profile synchronization.
+ * Liu Tengyi's responsibilities focus on job posting/query/validation and account profile synchronization.
  * This uses lightweight main tests to cover these business rules instead of starting Tomcat for page tests.
  */
-public class Member3BackendTest {
+public class LiuTengyiBackendTest {
 
     private static int passed;
 
@@ -24,7 +24,7 @@ public class Member3BackendTest {
         testJobEffectiveStatus();
         testJobDaoSearchAndStatus();
         testAccountProfileValidation();
-        System.out.println("[member3] PASS total=" + passed);
+        System.out.println("[Liu Tengyi] PASS total=" + passed);
     }
 
     /**
@@ -124,9 +124,9 @@ public class Member3BackendTest {
      * username format, real name requirement when TA already has a profile, and uploaded file name sanitization.
      */
     private static void testAccountProfileValidation() {
-        assertNull(AccountProfileValidator.validateUsernameFormat("member_3"), "valid username");
+        assertNull(AccountProfileValidator.validateUsernameFormat("liu_tengyi"), "valid username");
         assertEquals("Username cannot end with an underscore",
-                AccountProfileValidator.validateUsernameFormat("member3_"),
+                AccountProfileValidator.validateUsernameFormat("liu_tengyi_"),
                 "username trailing underscore");
         assertEquals("Full name is required.",
                 AccountProfileValidator.validateTaSharedRealName(" ", true),
@@ -141,7 +141,7 @@ public class Member3BackendTest {
      */
     private static void pass(String message) {
         passed++;
-        System.out.println("[member3] PASS - " + message);
+        System.out.println("[Liu Tengyi] PASS - " + message);
     }
 
     // Custom lightweight assertion tool, throws AssertionError on failure to make script exit with non-zero.

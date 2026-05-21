@@ -18,7 +18,7 @@
         <div class="page-utility">
             <a class="utility-link" href="<%= contextPath %>/" data-i18n="common.utility.backToPortal">Portal home</a>
             <div class="locale-switch" role="group" data-i18n-aria-label="common.locale.switchAria">
-                <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">中文</button>
+                <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">Chinese</button>
                 <span class="locale-divider">/</span>
                 <button class="locale-btn" type="button" data-locale-switch data-locale="en" data-i18n="common.locale.en">English</button>
             </div>

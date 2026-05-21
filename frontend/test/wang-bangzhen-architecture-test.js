@@ -8,9 +8,9 @@ const projectRoot = path.resolve(__dirname, "../..");
 let passed = 0;
 
 /*
- * member6 architecture test entry point.
+ * Wang Bangzhen architecture test entry point.
  *
- * member6 is the project leader; the test focus is not to retest every business process,
+ * Wang Bangzhen is the project leader; the test focus is not to retest every business process,
  * but to check if the project still conforms to the final agreed lightweight architecture:
  * - API paths are centralized;
  * - No restoration of old Servlets/old root paths;
@@ -23,7 +23,7 @@ function main() {
   testApiRoutesAreSimpleAndShared();
   testPackageInfoAndDocs();
 
-  console.log(`[member6] PASS total=${passed}`);
+  console.log(`[Wang Bangzhen] PASS total=${passed}`);
 }
 
 /*
@@ -52,7 +52,7 @@ function testRequiredProjectFiles() {
     "scripts/config.example.bat",
     "docs/division-and-test/Overview.md"
   ].forEach((file) => assertExists(file));
-  pass("Project leader files for architecture, shell, scripts, and docs exist");
+  pass("Architecture owner files for architecture, shell, scripts, and docs exist");
 }
 
 /*
@@ -148,7 +148,7 @@ function testApiRoutesAreSimpleAndShared() {
  * Check package-level documentation and division overview.
  *
  * package-info.java explains the current backend main package and lightweight tech stack;
- * Overview.md is used for defense members to jump to their division and test descriptions.
+ * Overview.md is used for contributors to jump to their division and test descriptions.
  */
 function testPackageInfoAndDocs() {
   const packageInfo = fs.readFileSync(
@@ -160,8 +160,15 @@ function testPackageInfoAndDocs() {
     "package-info documents lightweight stack");
 
   const overview = fs.readFileSync(path.join(projectRoot, "docs/division-and-test/Overview.md"), "utf8");
-  ["member1", "member2", "member3", "member4", "member5", "member6"].forEach((member) => {
-    assert(overview.includes(`[${member}.md](${member}.md)`), `Overview links ${member}`);
+  [
+    "ouyang-xiaojun",
+    "zhou-bohan",
+    "liu-tengyi",
+    "sun-jialu",
+    "sheng-yuhan",
+    "wang-bangzhen"
+  ].forEach((fileStem) => {
+    assert(overview.includes(`[${fileStem}.md](${fileStem}.md)`), `Overview links ${fileStem}`);
   });
   pass("Package documentation and division overview reflect the current project structure");
 }
@@ -217,7 +224,7 @@ function isTextFile(file) {
   return /\.(java|jsp|jspf|js|css|md|sh|bat|xml|properties|template)$/.test(file);
 }
 
-// The following are lightweight test helper functions; on failure they throw Error so member scripts fail directly.
+// The following are lightweight test helper functions; on failure they throw Error so contributor scripts fail directly.
 function assertExists(file) {
   assert(fs.existsSync(path.join(projectRoot, file)), `${file} should exist`);
 }
@@ -228,7 +235,7 @@ function relative(file) {
 
 function pass(message) {
   passed += 1;
-  console.log(`[member6] PASS - ${message}`);
+  console.log(`[Wang Bangzhen] PASS - ${message}`);
 }
 
 function assert(condition, message) {

@@ -11,9 +11,9 @@ const jsRoot = path.join(projectRoot, "frontend/webapp/js");
 let passed = 0;
 
 /*
- * member5 frontend test entry point.
+ * Sheng Yuhan frontend test entry point.
  *
- * member5 is mainly responsible for pages, interactions, styles and frontend API call methods.
+ * Sheng Yuhan is mainly responsible for pages, interactions, styles and frontend API call methods.
  * This script does not launch a browser, but performs static checks easy to demonstrate during defense:
  * 1. All page JS passes Node syntax check at least;
  * 2. Page scripts cannot bypass TARecruitment.routes to hardcode API addresses;
@@ -29,7 +29,7 @@ function main() {
   testRolePageAssetsExist();
   testRemovedLegacyPagesStayRemoved();
 
-  console.log(`[member5] PASS total=${passed}`);
+  console.log(`[Sheng Yuhan] PASS total=${passed}`);
 }
 
 /*
@@ -87,7 +87,7 @@ function testPageScriptsUseSharedRoutes(jsFiles) {
 }
 
 /*
- * Check if key page assets maintained by member5 exist.
+ * Check if key page assets maintained by Sheng Yuhan exist.
  *
  * This does not check what pages look like, only confirms main pages for login/register, TA, MO, Admin
  * and shared route file were not lost during directory organization.
@@ -164,7 +164,7 @@ function relative(file) {
 
 function pass(message) {
   passed += 1;
-  console.log(`[member5] PASS - ${message}`);
+  console.log(`[Sheng Yuhan] PASS - ${message}`);
 }
 
 function assert(condition, message) {

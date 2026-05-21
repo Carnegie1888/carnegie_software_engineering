@@ -5,8 +5,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/test-common.sh"
 
-# member1 展示后端基础能力：用户、认证、公共 service 结果和安全工具。
-MEMBER="member1"
-prepare_backend_member_test "$MEMBER"
-compile_backend_member_test "$MEMBER" "backend/test/Member1BackendTest.java"
-run_backend_member_test "$MEMBER" "Member1BackendTest"
+# Ouyang Xiaojun demonstrates backend foundations: users, authentication, shared service results, and security utilities.
+CONTRIBUTOR_ID="ouyang-xiaojun"
+CONTRIBUTOR_LABEL="Ouyang Xiaojun"
+prepare_backend_contributor_test "$CONTRIBUTOR_ID" "$CONTRIBUTOR_LABEL"
+compile_backend_contributor_test "$CONTRIBUTOR_ID" "$CONTRIBUTOR_LABEL" "backend/test/OuyangXiaojunBackendTest.java"
+run_backend_contributor_test "$CONTRIBUTOR_ID" "$CONTRIBUTOR_LABEL" "OuyangXiaojunBackendTest"

@@ -1,4 +1,4 @@
-# member1 Division and Current Code Files
+# Ouyang Xiaojun Division and Current Code Files
 
 [Back to Overview](Overview.md)
 
@@ -6,13 +6,13 @@
 
 | Item | Content |
 | --- | --- |
-| Git author | `member1 <member1@edu.com>` |
+| Contributor | Ouyang Xiaojun |
 | Standard commit count | 18 |
 | Division overview | Backend foundational capabilities, authentication flow, API response and logging utilities, early skill matching implementation, partial testing/stats contribution |
 
 ## Division Overview
 
-`member1` primarily took on backend early foundational capabilities: user authentication, login/register, Session/permission validation, unified response utilities, logging utilities, and early skill matching service implementation. Later also contributed to position filtering response fixes, TA workload statistics, and script logging. The early skill matching entry and old invite tool were later taken offline, so they are no longer listed in the current existing code files.
+Ouyang Xiaojun primarily took on backend early foundational capabilities: user authentication, login/register, Session/permission validation, unified response utilities, logging utilities, and early skill matching service implementation. Later also contributed to position filtering response fixes, TA workload statistics, and script logging. The early skill matching entry and old invite tool were later taken offline, so they are no longer listed in the current existing code files.
 
 ## Current Corresponding Code Files
 
@@ -39,19 +39,19 @@ Backend common response, session, permission, and logging utilities:
 
 ## File Overlap and Defense Attribution
 
-Currently member1 no longer shares the old invite tool with member4. The admin short invite code is explained by member4's `InviteCodeService`.
+Currently Ouyang Xiaojun no longer shares the old invite tool with Sun Jialu. The admin short invite code is explained by Sun Jialu's `InviteCodeService`.
 
 ## Test Presentation
 
 Run command:
 
 ```bash
-./scripts/test/test-member1.sh
+./scripts/test/test-ouyang-xiaojun.sh
 ```
 
 Test code:
 
-- `backend/test/Member1BackendTest.java`
+- `backend/test/OuyangXiaojunBackendTest.java`
 
 Test coverage points:
 
@@ -61,4 +61,4 @@ Test coverage points:
 
 For defense, you can explain:
 
-`member1`'s test focus is on authentication and common backend foundational capabilities. The script compiles the backend source code first, then uses a temporary `TA_HIRING_DATA_DIR` to create isolated test data that won't pollute the real demo data on the machine. Passing the tests proves that login accounts, demo accounts, password hashing, and service return structures work correctly.
+Ouyang Xiaojun's test focus is on authentication and common backend foundational capabilities. The script compiles the backend source code first, then uses a temporary `TA_HIRING_DATA_DIR` to create isolated test data that won't pollute the real demo data on the machine. Passing the tests proves that login accounts, demo accounts, password hashing, and service return structures work correctly.

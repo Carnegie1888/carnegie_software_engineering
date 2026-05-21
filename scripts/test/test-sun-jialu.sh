@@ -5,8 +5,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/test-common.sh"
 
-# member4 展示申请流程、状态流转、通知和管理员邀请码模型。
-MEMBER="member4"
-prepare_backend_member_test "$MEMBER"
-compile_backend_member_test "$MEMBER" "backend/test/Member4BackendTest.java"
-run_backend_member_test "$MEMBER" "Member4BackendTest"
+# Sun Jialu demonstrates application flow, status transitions, notifications, and the admin invite-code model.
+CONTRIBUTOR_ID="sun-jialu"
+CONTRIBUTOR_LABEL="Sun Jialu"
+prepare_backend_contributor_test "$CONTRIBUTOR_ID" "$CONTRIBUTOR_LABEL"
+compile_backend_contributor_test "$CONTRIBUTOR_ID" "$CONTRIBUTOR_LABEL" "backend/test/SunJialuBackendTest.java"
+run_backend_contributor_test "$CONTRIBUTOR_ID" "$CONTRIBUTOR_LABEL" "SunJialuBackendTest"

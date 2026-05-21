@@ -38,7 +38,7 @@
                         <p class="subtitle" data-i18n="portal.adminDashboard.subtitle">Track accepted TA job workload by weekly hours and active work period.</p>
                     </section>
 
-                    <section class="admin-panel" aria-label="管理员工作量统计仪表盘" data-i18n-aria-label="portal.adminDashboard.panelAria">
+                    <section class="admin-panel" aria-label="Admin workload statistics dashboard" data-i18n-aria-label="portal.adminDashboard.panelAria">
                         <form id="workload-filter-form" class="filter-form workload-search-form" novalidate>
                             <div class="field-group workload-search-field">
                                 <label for="workload-search-input" data-i18n="portal.adminDashboard.searchLabel">Search</label>
@@ -58,14 +58,14 @@
 
                         <div id="dashboard-message" class="form-message hidden" role="status" aria-live="polite"></div>
 
-                        <section class="workload-panel" aria-label="纳入统计的工作量" data-i18n-aria-label="portal.adminDashboard.includedWorkloadPanelAria">
+                        <section class="workload-panel" aria-label="Included workload" data-i18n-aria-label="portal.adminDashboard.includedWorkloadPanelAria">
                             <header class="workload-panel-header">
                                 <h2 data-i18n="portal.adminDashboard.includedWorkloadPanel">Included Workload</h2>
                                 <p id="ta-summary" data-i18n="portal.adminDashboard.loadingWorkload">Loading workload...</p>
                             </header>
                             <p class="workload-panel-lead" data-i18n="portal.adminDashboard.includedWorkloadLead">TA cards are sorted by total accepted workload. Click a card to view the counted jobs.</p>
                             <div id="ta-list" class="workload-card-list" aria-live="polite"></div>
-                            <nav id="workload-pagination" class="workload-pagination hidden" aria-label="工作量分页" data-i18n-aria-label="portal.adminDashboard.paginationAria"></nav>
+                            <nav id="workload-pagination" class="workload-pagination hidden" aria-label="Workload pagination" data-i18n-aria-label="portal.adminDashboard.paginationAria"></nav>
                         </section>
 
                     </section>

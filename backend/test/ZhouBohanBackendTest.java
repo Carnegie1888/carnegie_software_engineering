@@ -7,15 +7,15 @@ import com.example.tarecruitment.profile.model.Applicant;
 import java.util.Arrays;
 
 /**
- * member2 backend test entry point.
+ * Zhou Bohan backend test entry point.
  *
- * member2's responsibilities focus on TA profiles, file/path data, CSV storage, and DeepSeek recommendation search configuration.
+ * Zhou Bohan's responsibilities focus on TA profiles, file/path data, CSV storage, and DeepSeek recommendation search configuration.
  * This test also uses main method direct execution, without depending on JUnit.
  *
- * scripts/test/test-member2.sh will point TA_HIRING_DATA_DIR to the temporary directory,
- * so ApplicantDao's applicants.csv will only appear under build/member-tests/member2/data.
+ * scripts/test/test-zhou-bohan.sh will point TA_HIRING_DATA_DIR to the temporary directory,
+ * so ApplicantDao's applicants.csv will only appear under build/contributor-tests/zhou-bohan/data.
  */
-public class Member2BackendTest {
+public class ZhouBohanBackendTest {
 
     private static int passed;
 
@@ -26,7 +26,7 @@ public class Member2BackendTest {
         testApplicantCsvRoundTrip();
         testApplicantDaoDuplicateRules();
         testDeepSeekConfigFallbacks();
-        System.out.println("[member2] PASS total=" + passed);
+        System.out.println("[Zhou Bohan] PASS total=" + passed);
     }
 
     /**
@@ -147,7 +147,7 @@ public class Member2BackendTest {
 
     /**
      * System Properties were temporarily changed during the test and must be restored afterward.
-     * Otherwise, when continuing to run other tests in the same JVM, the configuration left by member2 test may be read.
+     * Otherwise, when continuing to run other tests in the same JVM, the configuration left by Zhou Bohan test may be read.
      */
     private static void restoreProperty(String key, String value) {
         if (value == null) {
@@ -158,11 +158,11 @@ public class Member2BackendTest {
     }
 
     /**
-     * Output current test point pass information for easy step-by-step explanation during each member's defense.
+     * Output current test point pass information for easy step-by-step explanation during each contributor's defense.
      */
     private static void pass(String message) {
         passed++;
-        System.out.println("[member2] PASS - " + message);
+        System.out.println("[Zhou Bohan] PASS - " + message);
     }
 
     // Below are lightweight assertion tools to avoid introducing additional frameworks for testing.

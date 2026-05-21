@@ -551,7 +551,7 @@
     var mapping = textMap();
 
     /*
-     * Dynamic pattern mapping for runtime拼接 text like quantities, upload filenames, statuses.
+     * Dynamic pattern mapping for runtime-composed text like quantities, upload filenames, statuses.
      */
     function dynamicPatternMap() {
         return [
