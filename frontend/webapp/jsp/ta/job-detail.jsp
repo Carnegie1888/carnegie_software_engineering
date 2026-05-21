@@ -13,7 +13,7 @@
     }
     String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "T";
 %>
-<%-- TA 职位详情页：从 URL id 读取岗位并支持申请。 --%>
+<%-- TA job detail page: reads job from URL id and supports applications. --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -158,7 +158,7 @@
     </div>
 
     <script>
-        // 注入给 ta-job-detail.js：用于生成 API 路径和判断当前角色是否可申请。
+        // Injected for ta-job-detail.js: used to generate API paths and check if the current role can apply.
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
         window.APP_CURRENT_ROLE = "<%= currentRole %>";
     </script>

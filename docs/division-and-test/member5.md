@@ -1,22 +1,22 @@
-# member5 分工与当前代码文件
+# member5 Division and Current Code Files
 
-[返回总览](Overview.md)
+[Back to Overview](Overview.md)
 
-## 基本信息
+## Basic Information
 
-| 项目 | 内容 |
+| Item | Content |
 | --- | --- |
 | Git author | `member5 <member5@edu.com>` |
-| 标准提交数 | 34 |
-| 分工概述 | 前端页面与交互，覆盖登录注册、TA/MO/Admin 页面、前端 API 路由统一 |
+| Standard commit count | 34 |
+| Division overview | Frontend pages and interactions, covering login/register, TA/MO/Admin pages, frontend API routing unification |
 
-## 分工概述
+## Division Overview
 
-`member5` 主要承担前端页面、交互和样式。范围覆盖登录注册、TA 档案、TA 职位列表/详情/申请状态、MO 发布与 dashboard 内的申请人审核、Admin 页面请求适配，以及后期统一页面 JS 对 `TARecruitment.routes` 和公共请求工具的调用方式。旧 MO 技能匹配页、旧 MO 独立申请人页和旧 Admin 注册说明页已下线，因此当前文件清单只保留仍存在的页面与脚本。
+`member5` primarily took on frontend pages, interactions, and styles. Scope covers login/register, TA profile, TA position list/detail/application status, MO posting and applicant review within dashboard, Admin page request adaptation, and later unified how page JS calls `TARecruitment.routes` and common request utilities. The old MO skill matching page, old MO standalone applicant page, and old Admin registration instruction page have been taken offline, so the current file list only includes pages and scripts that still exist.
 
-## 当前对应代码文件
+## Current Corresponding Code Files
 
-认证、注册和管理员邀请前端：
+Authentication, registration, and admin invite frontend:
 
 - `frontend/webapp/login.jsp`
 - `frontend/webapp/register.jsp`
@@ -27,7 +27,7 @@
 - `frontend/webapp/js/auth/register.js`
 - `frontend/webapp/js/auth/admin-invite.js`
 
-TA 页面、脚本和样式：
+TA pages, scripts, and styles:
 
 - `frontend/webapp/jsp/ta/dashboard.jsp`
 - `frontend/webapp/jsp/ta/job-list.jsp`
@@ -47,7 +47,7 @@ TA 页面、脚本和样式：
 - `frontend/webapp/js/ta/ta-application-detail.js`
 - `frontend/webapp/js/ta/ta-notifications.js`
 
-MO 页面、脚本和样式：
+MO pages, scripts, and styles:
 
 - `frontend/webapp/jsp/mo/dashboard.jsp`
 - `frontend/webapp/jsp/mo/notifications.jsp`
@@ -55,7 +55,7 @@ MO 页面、脚本和样式：
 - `frontend/webapp/js/mo/mo-dashboard.js`
 - `frontend/webapp/js/mo/mo-notifications.js`
 
-Admin 前端页面请求适配：
+Admin frontend page request adaptation:
 
 - `frontend/webapp/jsp/admin/dashboard.jsp`
 - `frontend/webapp/jsp/admin/invite.jsp`
@@ -66,34 +66,34 @@ Admin 前端页面请求适配：
 - `frontend/webapp/js/admin/admin-invite-management.js`
 - `frontend/webapp/js/admin/admin-notifications.js`
 
-前端公共 API 路由调用：
+Frontend common API route calls:
 
 - `frontend/webapp/js/common/ta-recruitment.js`
 - `frontend/webapp/WEB-INF/jsp/fragments/portal-sidebar.jspf`
 
-## 文件重叠与答辩归属说明
+## File Overlap and Defense Attribution
 
-member5 与 member1 到 member4 的当前代码文件没有直接重叠。member5 的答辩重点放在具体前端页面、页面交互、样式和页面 JS 的 API 调用方式上；公共门户壳层和全站架构类前端文件如果与 member6 文档重叠，应按 member6 的 leader/架构说明处理。
+member5's current code files have no direct overlap with member1 through member4. member5's defense focus is on specific frontend pages, page interactions, styles, and page JS API call methods. If public portal shell and full-site architecture frontend files overlap with member6's documentation, they should be handled according to member6's leader/architecture explanation.
 
-## 测试展示
+## Test Presentation
 
-运行命令：
+Run command:
 
 ```bash
 ./scripts/test/test-member5.sh
 ```
 
-测试代码：
+Test code:
 
 - `frontend/test/member5-frontend-test.js`
 
-测试覆盖点：
+Test coverage points:
 
-- 所有 `frontend/webapp/js/**/*.js` 文件都通过 `node --check` 语法检查。
-- 页面 JS 不直接手写 API 地址或旧根路径，必须通过 `TARecruitment.routes` 生成。
-- 登录、注册、TA、MO、Admin 关键页面和共享 `TARecruitment.routes` 文件存在。
-- 已下线的旧 MO 技能匹配页、旧 MO 独立申请人页和旧 Admin 注册说明页不再出现在当前前端目录。
+- All `frontend/webapp/js/**/*.js` files pass `node --check` syntax validation.
+- Page JS must not directly hardcode API addresses or old root paths, must use `TARecruitment.routes` to generate them.
+- Login, register, TA, MO, Admin key pages and shared `TARecruitment.routes` file exist.
+- The taken offline old MO skill matching page, old MO standalone applicant page, and old Admin registration instruction page no longer appear in the current frontend directory.
 
-答辩时可以这样解释：
+For defense, you can explain:
 
-`member5` 的测试重点是前端页面能否被浏览器正常解析，以及页面请求是否统一走公共路由工具。这样可以证明前端不是散落手写接口地址，而是通过 `TARecruitment.routes` 适配 `/groupproject` 这类部署路径。
+`member5`'s test focus is on whether frontend pages can be normally parsed by the browser and whether page requests uniformly go through the common routing utility. This proves that the frontend is not scattered with hand-written interface addresses, but uses `TARecruitment.routes` to adapt deployment paths like `/groupproject`.

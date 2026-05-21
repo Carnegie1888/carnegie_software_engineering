@@ -8,14 +8,14 @@ const projectRoot = path.resolve(__dirname, "../..");
 let passed = 0;
 
 /*
- * member6 架构测试入口。
+ * member6 architecture test entry point.
  *
- * member6 是项目 leader，测试重点不是重复测每个业务流程，
- * 而是检查项目是否仍符合最终约定的轻量架构：
- * - API 路径集中；
- * - 不恢复旧 Servlet/旧根路径；
- * - 公共门户壳层和技术文档存在；
- * - 后端 ApiRoutes 与前端 TARecruitment.routes 保持同步。
+ * member6 is the project leader; the test focus is not to retest every business process,
+ * but to check if the project still conforms to the final agreed lightweight architecture:
+ * - API paths are centralized;
+ * - No restoration of old Servlets/old root paths;
+ * - Common portal shell and technical documentation exist;
+ * - Backend ApiRoutes stays in sync with frontend TARecruitment.routes.
  */
 function main() {
   testRequiredProjectFiles();
@@ -27,10 +27,10 @@ function main() {
 }
 
 /*
- * 检查 leader 负责维护的关键文件是否还在。
+ * Check if key files maintained by the leader still exist.
  *
- * 这一步对应目录整理、门户壳层、公共样式、脚本入口和分工文档。
- * 如果这些文件缺失，说明项目结构已经偏离最终交付形态。
+ * This step corresponds to directory organization, portal shell, common styles, script entry points and division documentation.
+ * If these files are missing, the project structure has deviated from the final delivery state.
  */
 function testRequiredProjectFiles() {
   [
@@ -56,15 +56,15 @@ function testRequiredProjectFiles() {
 }
 
 /*
- * 检查旧架构残留。
+ * Check for old architecture residues.
  *
- * 这里扫描源码、前端、脚本、README 和分工文档，避免以下内容回流：
- * - 旧包名 authlogin；
- * - 已下线的大 Servlet 入口；
- * - 旧 AI 命名；
- * - 重复 JSON 响应工具；
- * - 带版本号的旧 API 前缀；
- * - 旧根路径接口字符串。
+ * Scans source code, frontend, scripts, README and division documentation to prevent:
+ * - Old package name authlogin;
+ * - Decommissioned large Servlet entries;
+ * - Old AI naming;
+ * - Duplicate JSON response utilities;
+ * - Old API prefixes with version numbers;
+ * - Old root path endpoint strings.
  */
 function testForbiddenArchitectureResidues() {
   const targets = [
@@ -86,7 +86,7 @@ function testForbiddenArchitectureResidues() {
     /["']\/(?:jobs|apply|applicant|check-available|logout)["']/
   ];
 
-  // 这些文件是已下线旧入口的代表文件，当前版本应当不存在。
+  // These files are representative of decommissioned old entries; current version should not exist.
   const obsoleteFiles = [
     "backend/src/com/example/tarecruitment/ai/service/SkillMatchService.java",
     "backend/src/com/example/tarecruitment/ai/web/SkillMatchServlet.java",
@@ -121,10 +121,10 @@ function testForbiddenArchitectureResidues() {
 }
 
 /*
- * 检查后端 API 常量和前端路由工具是否同步。
+ * Check if backend API constants and frontend route utility stay in sync.
  *
- * 后端 ApiRoutes.java 是 API 路径事实来源；
- * 前端 ta-recruitment.js 必须包含对应路径，页面才能通过 TARecruitment.routes 调用。
+ * Backend ApiRoutes.java is the source of truth for API paths;
+ * frontend ta-recruitment.js must contain corresponding paths so pages can call via TARecruitment.routes.
  */
 function testApiRoutesAreSimpleAndShared() {
   const apiRoutesFile = path.join(projectRoot, "backend/src/com/example/tarecruitment/common/api/ApiRoutes.java");
@@ -145,10 +145,10 @@ function testApiRoutesAreSimpleAndShared() {
 }
 
 /*
- * 检查包级说明和分工总览。
+ * Check package-level documentation and division overview.
  *
- * package-info.java 用来说明当前后端主包和轻量技术栈；
- * Overview.md 用来给答辩成员跳转到各自分工与测试说明。
+ * package-info.java explains the current backend main package and lightweight tech stack;
+ * Overview.md is used for defense members to jump to their division and test descriptions.
  */
 function testPackageInfoAndDocs() {
   const packageInfo = fs.readFileSync(
@@ -167,9 +167,9 @@ function testPackageInfoAndDocs() {
 }
 
 /*
- * 收集要扫描的文本文件。
+ * Collect text files to scan.
  *
- * 只扫描源码、脚本、文档这类文本文件，不处理图片、构建产物或二进制文件。
+ * Only scans source code, scripts, documentation text files; does not process images, build artifacts or binary files.
  */
 function scanTextFiles(targets) {
   const result = [];
@@ -192,7 +192,7 @@ function scanTextFiles(targets) {
   return result;
 }
 
-// 递归遍历目录，供 scanTextFiles 使用。
+// Recursively walk directory for use by scanTextFiles.
 function walk(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   return entries.flatMap((entry) => {
@@ -202,9 +202,9 @@ function walk(dir) {
 }
 
 /*
- * 去掉注释后再做残留扫描。
+ * Strip comments before residue scanning.
  *
- * 这样文档或代码注释中解释“不要使用某旧路径”时，不会被误判为运行时残留。
+ * This way, when documentation or code comments explain "do not use some old path", it will not be misidentified as runtime residue.
  */
 function stripComments(source) {
   return source
@@ -212,12 +212,12 @@ function stripComments(source) {
     .replace(/(^|[^:])\/\/.*$/gm, "$1");
 }
 
-// 判断一个文件是否属于本测试需要扫描的文本类型。
+// Determine if a file is a text type that this test needs to scan.
 function isTextFile(file) {
   return /\.(java|jsp|jspf|js|css|md|sh|bat|xml|properties|template)$/.test(file);
 }
 
-// 以下是轻量测试辅助函数，失败时抛 Error，使成员脚本直接失败。
+// The following are lightweight test helper functions; on failure they throw Error so member scripts fail directly.
 function assertExists(file) {
   assert(fs.existsSync(path.join(projectRoot, file)), `${file} should exist`);
 }

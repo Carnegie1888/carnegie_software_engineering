@@ -1,22 +1,22 @@
-# member6 分工与当前代码文件
+# member6 Division and Current Code Files
 
-[返回总览](Overview.md)
+[Back to Overview](Overview.md)
 
-## 基本信息
+## Basic Information
 
-| 项目       | 内容                                                                           |
-| ---------- | ------------------------------------------------------------------------------ |
-| Git author | `member6 <member6@edu.com>`                                                  |
-| 标准提交数 | 41                                                                             |
-| 分工概述   | 架构重组、通用配置、文档脚本整理、门户壳层、公共样式、Admin 页面与全站双语资源 |
+| Item | Content |
+| --- | --- |
+| Git author | `member6 <member6@edu.com>` |
+| Standard commit count | 41 |
+| Division overview | Architecture restructuring, common configuration, documentation/scripts organization, portal shell, common styles, Admin pages and full-site bilingual resources |
 
-## 分工概述
+## Division Overview
 
-`member6` 是项目 leader 和整体结构负责人。主要负责目录整理、架构重组、通用配置、文档/脚本入口、门户统一壳层、全站通用样式、双语资源、Admin 页面重构，以及后期把后端旧大入口与旧包名迁移为当前轻量分层结构。业务模块文件虽然在架构重组提交中被批量移动或整理过，但答辩归属仍以各业务成员的功能分工为主。
+`member6` is the project leader and overall structure owner. Primarily responsible for directory organization, architecture restructuring, common configuration, documentation/scripts entry points, unified portal shell, full-site common styles, bilingual resources, Admin page restructuring, and later migrated backend old large entries and old package names to the current lightweight layered structure. Although business module files were batch-moved or organized in architecture restructuring commits, the defense attribution still follows each business member's functional division.
 
-## 当前对应代码文件
+## Current Corresponding Code Files
 
-后端架构、路由、公共基础设施：
+Backend architecture, routing, and common infrastructure:
 
 - `backend/src/com/example/tarecruitment/common/api/ApiRoutes.java`
 - `backend/src/com/example/tarecruitment/common/service/ServiceResult.java`
@@ -33,11 +33,11 @@
 - `backend/src/com/example/tarecruitment/package-info.java`
 - `frontend/webapp/WEB-INF/web.xml`
 
-后端业务模块架构重组说明：
+Backend business module architecture restructuring notes:
 
-`member6` 在 `4abe022 refactor: 统一后端模块架构与 API 路由` 中整理过后端业务模块的包结构、路由和分层边界。该提交覆盖了多个业务域文件，但这些文件的功能归属仍分别记录在 `member1` 到 `member4` 的文档中；`member6` 的测试展示应重点说明架构规则、公共入口和文档脚本，而不是重复认领所有业务实现文件。
+`member6` organized the backend business module package structure, routing, and layered boundaries in `4abe022 refactor: unify backend module architecture and API routes`. This commit covered multiple business domain files, but these files' functional attribution are still respectively recorded in member1 through member4's documentation. member6's test presentation should focus on explaining architecture rules, common entry points, and documentation/scripts, rather than repeatedly claiming all business implementation files.
 
-门户壳层、公共样式、双语资源和首页：
+Portal shell, common styles, bilingual resources, and home page:
 
 - `frontend/webapp/index.jsp`
 - `frontend/webapp/WEB-INF/jsp/fragments/portal-sidebar.jspf`
@@ -54,7 +54,7 @@
 - `frontend/webapp/js/common/portal-i18n.js`
 - `frontend/webapp/js/common/ta-recruitment.js`
 
-Admin 页面整体重构：
+Admin page overall restructuring:
 
 - `frontend/webapp/jsp/admin/dashboard.jsp`
 - `frontend/webapp/jsp/admin/invite.jsp`
@@ -65,11 +65,11 @@ Admin 页面整体重构：
 - `frontend/webapp/js/admin/admin-invite-management.js`
 - `frontend/webapp/js/admin/admin-notifications.js`
 
-AI 配置模板：
+AI config template:
 
 - `frontend/webapp/WEB-INF/ai/deepseek.properties.template`
 
-脚本、运行配置和技术文档：
+Scripts, runtime configuration, and technical documentation:
 
 - `scripts/config.example.bat`
 - `scripts/config.example.sh`
@@ -92,26 +92,26 @@ AI 配置模板：
 - `docs/deliverables/technical/modules/job-management.md`
 - `docs/deliverables/technical/modules/ta-profile.md`
 
-## 测试展示
+## Test Presentation
 
-运行命令：
+Run command:
 
 ```bash
 ./scripts/test/test-member6.sh
 ```
 
-测试代码：
+Test code:
 
 - `frontend/test/member6-architecture-test.js`
 
-测试覆盖点：
+Test coverage points:
 
-- 负责的架构、门户壳层、公共样式、脚本和文档文件是否存在。
-- 后端源码、前端页面、脚本和分工文档中是否还残留旧包名、旧 Servlet、带版本号的旧 API 前缀或旧根路径。
-- `ApiRoutes.java` 中的后端 API 常量是否保持简洁 `/api/...` 路径。
-- `frontend/webapp/js/common/ta-recruitment.js` 是否同步包含后端 `ApiRoutes` 的 API 路径。
-- `package-info.java` 和 `docs/division-and-test/Overview.md` 是否反映当前轻量架构与成员文档入口。
+- Architecture, portal shell, common styles, scripts, and documentation files under responsibility exist.
+- No old package names, old Servlets, old API prefixes with version numbers, or old root paths remain in backend source code, frontend pages, scripts, or division documentation.
+- Backend API constants in `ApiRoutes.java` remain clean `/api/...` paths.
+- `frontend/webapp/js/common/ta-recruitment.js` stays synchronized with backend `ApiRoutes` API paths.
+- `package-info.java` and `docs/division-and-test/Overview.md` reflect the current lightweight architecture and member documentation entry points.
 
-答辩时可以这样解释：
+For defense, you can explain:
 
-`member6` 的测试重点不是重复测试每个业务功能，而是验证项目整体结构没有回退到旧架构。脚本会检查旧包名、旧接口、旧 Servlet、大量手写路径和已删除 AI 页面是否还残留，并确认后端 API 常量和前端公共路由保持同步。
+`member6`'s test focus is not to repeatedly test every business function, but to verify the overall project structure has not regressed to the old architecture. The script checks whether old package names, old interfaces, old Servlets, numerous hard-coded paths, and deleted AI pages still remain. It also confirms that backend API constants and frontend common routes stay synchronized.

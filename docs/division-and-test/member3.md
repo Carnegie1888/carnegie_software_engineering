@@ -1,22 +1,22 @@
-# member3 分工与当前代码文件
+# member3 Division and Current Code Files
 
-[返回总览](Overview.md)
+[Back to Overview](Overview.md)
 
-## 基本信息
+## Basic Information
 
-| 项目 | 内容 |
+| Item | Content |
 | --- | --- |
 | Git author | `member3 <member3@edu.com>` |
-| 标准提交数 | 19 |
-| 分工概述 | 职位发布/查询/校验、工作量统计接口、账号资料同步、AI 配置模板 |
+| Standard commit count | 19 |
+| Division overview | Position posting/query/validation, workload statistics interface, account profile sync, AI config templates |
 
-## 分工概述
+## Division Overview
 
-`member3` 主要承担职位模块和校验逻辑：职位创建、列表筛选、编辑删除、结构化字段校验、职位有效状态处理。同时承担管理员/MO 工作量统计的一部分后端能力，并在后期补充账号资料同步更新。
+`member3` primarily took on the position module and validation logic: position creation, list filtering, edit/delete, structured field validation, and position active status handling. Also contributed part of the backend capability for admin/MO workload statistics, and later added account profile sync updates.
 
-## 当前对应代码文件
+## Current Corresponding Code Files
 
-职位发布、职位列表、结构化字段和校验：
+Position posting, position list, structured fields, and validation:
 
 - `backend/src/com/example/tarecruitment/job/model/Job.java`
 - `backend/src/com/example/tarecruitment/job/dao/JobDao.java`
@@ -26,48 +26,48 @@
 - `backend/src/com/example/tarecruitment/job/validator/JobValidator.java`
 - `backend/src/com/example/tarecruitment/job/web/JobServlet.java`
 
-账号资料同步：
+Account profile sync:
 
 - `backend/src/com/example/tarecruitment/profile/mapper/AccountProfileResponseMapper.java`
 - `backend/src/com/example/tarecruitment/profile/service/AccountProfileService.java`
 - `backend/src/com/example/tarecruitment/profile/validator/AccountProfileValidator.java`
 - `backend/src/com/example/tarecruitment/profile/web/AccountProfileServlet.java`
 
-工作量统计：
+Workload statistics:
 
-- `backend/src/com/example/tarecruitment/admin/service/WorkloadStatsService.java`（**重叠标注：member3 主归属；member4 的申请流程会影响统计口径**）
-- `backend/src/com/example/tarecruitment/admin/web/WorkloadStatsServlet.java`（**重叠标注：member3 主归属；member4 的申请流程会影响统计口径**）
+- `backend/src/com/example/tarecruitment/admin/service/WorkloadStatsService.java` (**Overlap note: member3 primary; member4's application flow affects statistics calculation**)
+- `backend/src/com/example/tarecruitment/admin/web/WorkloadStatsServlet.java` (**Overlap note: member3 primary; member4's application flow affects statistics calculation**)
 
-相关公共能力：
+Related common capabilities:
 
-- `backend/src/com/example/tarecruitment/common/search/FuzzySearchUtil.java`（**重叠标注：member3 主归属；member4 的申请/统计说明会依赖搜索能力**）
-- `backend/src/com/example/tarecruitment/common/storage/StoragePaths.java`（重叠文件，member2 答辩主归属）
+- `backend/src/com/example/tarecruitment/common/search/FuzzySearchUtil.java` (**Overlap note: member3 primary; member4's application/stats documentation relies on search capability**)
+- `backend/src/com/example/tarecruitment/common/storage/StoragePaths.java` (overlap file, member2 defense primary)
 
-## 文件重叠与答辩归属说明
+## File Overlap and Defense Attribution
 
-- `backend/src/com/example/tarecruitment/admin/service/WorkloadStatsService.java` 和 `backend/src/com/example/tarecruitment/admin/web/WorkloadStatsServlet.java` 同时出现在 member4 文档中，因为工作量统计需要读取申请状态和录用结果。答辩时统计接口和统计规则由 member3 主讲；member4 只说明申请状态如何影响统计结果。
-- `backend/src/com/example/tarecruitment/common/search/FuzzySearchUtil.java` 同时出现在 member4 文档中，因为申请/统计说明会提到筛选和搜索能力。答辩时该搜索工具由 member3 主讲。
-- `backend/src/com/example/tarecruitment/common/storage/StoragePaths.java` 同时出现在 member2 文档中。答辩时该数据路径基础设施由 member2 主讲；member3 只说明职位模块依赖它读取测试数据目录。
+- `backend/src/com/example/tarecruitment/admin/service/WorkloadStatsService.java` and `backend/src/com/example/tarecruitment/admin/web/WorkloadStatsServlet.java` also appear in member4's documentation because workload statistics need to read application status and hiring results. During defense, the statistics interface and rules are presented by member3. Member4 only explains how application status affects statistics results.
+- `backend/src/com/example/tarecruitment/common/search/FuzzySearchUtil.java` also appears in member4's documentation because application/stats documentation will mention filtering and search capability. During defense, the search utility is presented by member3.
+- `backend/src/com/example/tarecruitment/common/storage/StoragePaths.java` also appears in member2's documentation. During defense, the data path infrastructure is presented by member2. Member3 only explains how the position module depends on it for reading test data directory.
 
-## 测试展示
+## Test Presentation
 
-运行命令：
+Run command:
 
 ```bash
 ./scripts/test/test-member3.sh
 ```
 
-测试代码：
+Test code:
 
 - `backend/test/Member3BackendTest.java`
 
-测试覆盖点：
+Test coverage points:
 
-- `JobValidator` 是否接受合法职位，并拒绝危险标题、重复技能和错误分隔符。
-- `Job` 的有效状态是否能根据截止时间从 `OPEN` 自动转为 `CLOSED`。
-- `JobDao` 是否能创建职位、搜索职位字段并更新职位状态。
-- `AccountProfileValidator` 是否能校验用户名、TA 实名和上传文件名。
+- `JobValidator` accepts valid positions and rejects dangerous titles, duplicate skills, and incorrect separators.
+- `Job` active status can automatically change from `OPEN` to `CLOSED` based on deadline.
+- `JobDao` can create positions, search position fields, and update position status.
+- `AccountProfileValidator` validates usernames, TA real names, and upload filenames.
 
-答辩时可以这样解释：
+For defense, you can explain:
 
-`member3` 的测试重点是职位发布、结构化校验和账号资料同步。测试不仅验证“能创建职位”，也验证错误输入会被后端挡住，例如重复技能、危险 HTML 和非法用户名。这样可以说明职位模块不是只靠前端限制，而是后端也有规则兜底。
+`member3`'s test focus is on position posting, structured validation, and account profile sync. The tests verify not only "positions can be created" but also that invalid inputs are blocked by the backend, such as duplicate skills, dangerous HTML, and illegal usernames. This demonstrates that the position module is not just limited by the frontend, but also has backend rules as a safety net.

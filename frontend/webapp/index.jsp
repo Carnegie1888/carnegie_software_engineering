@@ -2,7 +2,7 @@
 <%
     String contextPath = request.getContextPath();
 %>
-<%-- 门户首页：仅展示入口和流程预览，不直接调用业务 API。 --%>
+<%-- Portal home page: displays only entry points and process overview, does not call business APIs directly. --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>

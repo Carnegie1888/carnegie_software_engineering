@@ -13,7 +13,7 @@
     }
     String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "T";
 %>
-<%-- TA 职位列表页：展示 /api/jobs 和 /api/ta/job-recommendations 的结果。 --%>
+<%-- TA job list page: displays results from /api/jobs and /api/ta/job-recommendations. --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -77,7 +77,7 @@
     </div>
 
     <script>
-        // 注入给 ta-job-list.js：contextPath 用于路由，currentRole 用于控制 TA 视角按钮。
+        // Injected for ta-job-list.js: contextPath for routing, currentRole for TA perspective button control.
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
         window.APP_CURRENT_ROLE = "<%= currentRole %>";
     </script>

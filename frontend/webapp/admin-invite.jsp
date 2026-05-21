@@ -2,7 +2,7 @@
 <%
     String contextPath = request.getContextPath();
 %>
-<%-- 当前管理员注册主页面：输入短邀请码并调用 /api/admin/invitations/acceptance。 --%>
+<%-- Current admin registration main page: enters short invite code and calls /api/admin/invitations/acceptance. --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -188,7 +188,7 @@
     </main>
 
     <script>
-        // 注入给 admin-invite.js；该页不再依赖旧邮件 token 参数。
+        // Injected for admin-invite.js; this page no longer depends on the old email token parameter.
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js?v=20260513-admin-invite-i18n" defer></script>

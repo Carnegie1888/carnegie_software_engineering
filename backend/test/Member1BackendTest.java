@@ -3,27 +3,27 @@ import com.example.tarecruitment.auth.model.User;
 import com.example.tarecruitment.common.service.ServiceResult;
 
 /**
- * member1 后端测试入口。
+ * member1 backend test entry point.
  *
- * 这不是 JUnit 测试，而是一个可以直接通过 javac/java 运行的轻量 main 测试程序。
- * 这样做是为了符合当前项目“Servlet + JSP + 原生 JS + CSV + 脚本”的轻量技术栈，
- * 不额外引入 Maven、JUnit 或测试框架。
+ * This is not a JUnit test, but a lightweight main test program that can be run directly via javac/java.
+ * This approach aligns with the project's lightweight tech stack of “Servlet + JSP + native JS + CSV + scripts”,
+ * without introducing additional Maven, JUnit, or testing framework dependencies.
  *
- * 测试范围对应 member1 的答辩职责：
- * 1. service 层统一结果对象 ServiceResult；
-     * 2. 用户模型 User 的 CSV 存储格式；
-     * 3. 用户 DAO 的演示账号、登录验证、密码哈希和重复用户名保护。
+ * Test scope corresponds to member1's defense responsibilities:
+ * 1. Service layer unified result object ServiceResult;
+ * 2. User model User CSV storage format;
+ * 3. User DAO demo accounts, login verification, password hashing, and duplicate username protection.
  *
- * scripts/test/test-member1.sh 会给本测试设置临时 TA_HIRING_DATA_DIR，
- * 所以 UserDao 写入的是 build/member-tests/member1/data 下的临时 CSV，
- * 不会影响 Tomcat 真实演示数据。
+ * scripts/test/test-member1.sh will set a temporary TA_HIRING_DATA_DIR for this test,
+ * so UserDao writes to the temporary CSV under build/member-tests/member1/data,
+ * which will not affect Tomcat's real demo data.
  */
 public class Member1BackendTest {
 
     private static int passed;
 
     public static void main(String[] args) {
-        // main 方法按答辩展示顺序组织：先测公共返回结构，再测用户存储和登录。
+        // main method is organized in defense presentation order: first test common return structure, then test user storage and login.
         testServiceResult();
         testUserCsvRoundTrip();
         testUserDaoDemoAccountsAndLogin();
@@ -31,12 +31,12 @@ public class Member1BackendTest {
     }
 
     /**
-     * 验证 ServiceResult 的基本契约。
+     * Validate ServiceResult basic contract.
      *
-     * Servlet 层最终会把 service 结果转成 HTTP 响应，因此这里确认：
-     * - created() 对应 201 和 success=true；
-     * - forbidden() 对应 403 和 success=false；
-     * - data/message 不会在结果对象中丢失。
+     * Servlet layer ultimately converts service results to HTTP responses, so this confirms:
+     * - created() corresponds to 201 and success=true;
+     * - forbidden() corresponds to 403 and success=false;
+     * - data/message will not be lost in the result object.
      */
     private static void testServiceResult() {
         ServiceResult created = ServiceResult.created("created", "payload");
@@ -51,10 +51,10 @@ public class Member1BackendTest {
     }
 
     /**
-     * 验证 User 模型的 CSV 序列化兼容性。
+     * Validate User model CSV serialization compatibility.
      *
-     * 项目使用 CSV 作为轻量数据层，User.toCsv()/fromCsv() 就是账号数据的持久化协议。
-     * 这里专门放入带逗号的 displayName，确认 CSV 转义不会把字段拆坏。
+     * The project uses CSV as a lightweight data layer, and User.toCsv()/fromCsv() is the persistence protocol for account data.
+     * Here, specifically include a displayName with comma to confirm CSV escaping does not break the fields.
      */
     private static void testUserCsvRoundTrip() {
         User user = new User("member1_user", "secret", "member1@example.test", User.Role.TA);
@@ -73,14 +73,14 @@ public class Member1BackendTest {
     }
 
     /**
-     * 验证 UserDao 的核心认证行为。
+     * Validate UserDao core authentication behavior.
      *
-     * 这个测试会先清空临时测试目录中的用户 CSV，然后重新补齐固定演示账号。
-     * 重点不是测页面，而是测后端数据层是否满足登录注册的基础约束：
-     * - 三个演示账号能被初始化；
-     * - 用户名和邮箱都可以登录；
-     * - 新用户密码会被哈希，不明文保存；
-     * - 重复用户名会被拒绝。
+     * This test first clears the user CSV in the temporary test directory, then re-populates fixed demo accounts.
+     * The focus is not on testing pages, but on whether the backend data layer meets basic login/registration constraints:
+     * - Three demo accounts can be initialized;
+     * - Both username and email can be used for login;
+     * - New user passwords are hashed, not stored in plaintext;
+     * - Duplicate usernames are rejected.
      */
     private static void testUserDaoDemoAccountsAndLogin() {
         UserDao dao = UserDao.getInstance();
@@ -101,14 +101,14 @@ public class Member1BackendTest {
     }
 
     /**
-     * 记录一个通过的测试点，方便答辩时从终端输出直接看到每一步验证结果。
+     * Record a passing test point for easy direct viewing of each verification result from terminal output during defense.
      */
     private static void pass(String message) {
         passed++;
         System.out.println("[member1] PASS - " + message);
     }
 
-    // 下面是极简断言工具。使用自定义断言是为了避免引入 JUnit 依赖。
+    // Below are minimalist assertion tools. Custom assertions are used to avoid introducing JUnit dependency.
     private static void assertTrue(boolean condition, String message) {
         if (!condition) {
             throw new AssertionError(message);
@@ -130,10 +130,10 @@ public class Member1BackendTest {
     }
 
     /**
-     * 验证某段逻辑必须抛出指定异常。
+     * Verify that a piece of logic must throw the specified exception.
      *
-     * 例如重复用户名注册必须抛 IllegalArgumentException；
-     * 如果没有抛异常，说明后端唯一性保护失效。
+     * For example, duplicate username registration must throw IllegalArgumentException;
+     * If no exception is thrown, the backend uniqueness protection has failed.
      */
     private static void assertThrows(Class<? extends Throwable> expectedType, Runnable action, String message) {
         try {

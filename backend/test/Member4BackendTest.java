@@ -5,18 +5,18 @@ import com.example.tarecruitment.application.validator.ApplicationValidator;
 import com.example.tarecruitment.notification.model.Notification;
 
 /**
- * member4 后端测试入口。
+ * member4 backend test entry point.
  *
- * member4 的职责重点是申请流程、状态流转、通知和管理员邀请码。
- * 本测试不启动 Servlet 容器，而是直接测试 validator、model 和 DAO，
- * 因为这些类承载了答辩时最容易讲清楚的核心业务规则。
+ * member4's responsibilities focus on application flow, status transitions, notifications, and admin invite codes.
+ * This test does not start a Servlet container, but directly tests validators, models, and DAOs,
+ * because these classes carry the core business rules that are easiest to explain during defense.
  */
 public class Member4BackendTest {
 
     private static int passed;
 
     public static void main(String[] args) {
-        // 按“输入校验 -> 数据格式 -> 状态流转 -> 通知/短邀请码”的顺序组织输出。
+        // Organized in the order of “input validation -> data format -> status transition -> notification/short invite code”.
         testApplicationValidation();
         testApplicationCsvRoundTrip();
         testApplicationDaoTransitions();
@@ -26,12 +26,12 @@ public class Member4BackendTest {
     }
 
     /**
-     * 验证申请接口的输入校验。
+     * Validate application interface input.
      *
-     * ApplicationValidator 只负责 HTTP 参数层面的安全和格式：
-     * - jobId/applicationId 不能为空；
-     * - coverLetter 不能包含明显 HTML/JS 注入；
-     * - transition action 只能是 accept/reject/withdraw。
+     * ApplicationValidator is only responsible for HTTP parameter-level security and format:
+     * - jobId/applicationId cannot be empty;
+     * - coverLetter cannot contain obvious HTML/JS injection;
+     * - transition action can only be accept/reject/withdraw.
      */
     private static void testApplicationValidation() {
         assertNull(ApplicationValidator.validateJobId("job-001"), "valid job id");
@@ -47,10 +47,10 @@ public class Member4BackendTest {
     }
 
     /**
-     * 验证 Application 模型的 CSV 格式。
+     * Validate Application model CSV format.
      *
-     * 申请数据需要保存申请人、职位、状态和进度阶段。
-     * 这里把 applicantName 设成带逗号的值，确认 CSV 转义不会导致错列。
+     * Application data needs to save applicant, job, status, and progress stage.
+     * Here, applicantName is set to a value with comma to confirm CSV escaping does not cause column misalignment.
      */
     private static void testApplicationCsvRoundTrip() {
         Application application = new Application("job-4", "applicant-4", "Alice, TA", "alice@example.test");
@@ -70,13 +70,13 @@ public class Member4BackendTest {
     }
 
     /**
-     * 验证申请 DAO 的状态流转。
+     * Validate Application DAO status transitions.
      *
-     * 这里模拟两个核心场景：
-     * - MO 接受申请：状态变为 ACCEPTED，进度变为 COMPLETED；
-     * - TA 撤回申请：状态变为 WITHDRAWN。
+     * This simulates two core scenarios:
+     * - MO accepts application: status becomes ACCEPTED, progress becomes COMPLETED;
+     * - TA withdraws application: status becomes WITHDRAWN.
      *
-     * 这些变化都会写入临时 applications.csv，再通过 findById 读回验证。
+     * These changes are written to the temporary applications.csv, then verified by reading back through findById.
      */
     private static void testApplicationDaoTransitions() {
         ApplicationDao dao = ApplicationDao.getInstance();
@@ -103,10 +103,10 @@ public class Member4BackendTest {
     }
 
     /**
-     * 验证系统公告 Notification 的 CSV 往返。
+     * Validate system notification Notification CSV round-trip.
      *
-     * 通知页依赖标题、正文、发布者快照和发布时间。
-     * 这里确认含逗号的标题不会破坏 CSV 字段边界。
+     * Notification page depends on title, content, publisher snapshot, and publish time.
+     * Here, we confirm that a title with comma does not break CSV field boundaries.
      */
     private static void testNotificationCsvRoundTrip() {
         Notification notification = new Notification();
@@ -124,10 +124,10 @@ public class Member4BackendTest {
     }
 
     /**
-     * 验证当前管理员短邀请码流程。
+     * Validate current admin short invite code flow.
      *
-     * InviteCodeService 使用服务端密钥和时间窗口生成 8 位短码。
-     * 测试只校验当前可见流程：当前码可用、大小写/空格可容忍、明显错误码会被拒绝。
+     * InviteCodeService uses server-side key and time window to generate an 8-character short code.
+     * This test only validates the currently visible flow: current code is usable, case sensitivity/spaces are tolerated, and obviously wrong codes are rejected.
      */
     private static void testInviteCodeValidation() {
         InviteCodeService service = InviteCodeService.getInstance();
@@ -143,14 +143,14 @@ public class Member4BackendTest {
     }
 
     /**
-     * 输出当前测试点通过信息，便于答辩时逐条讲解测试过程。
+     * Output current test point pass information for easy step-by-step explanation during defense.
      */
     private static void pass(String message) {
         passed++;
         System.out.println("[member4] PASS - " + message);
     }
 
-    // 自定义断言工具。失败时抛 AssertionError，shell 脚本会立即判定该成员测试失败。
+    // Custom assertion tool. Throws AssertionError on failure, and shell script will immediately determine test failure for this member.
     private static void assertTrue(boolean condition, String message) {
         if (!condition) {
             throw new AssertionError(message);

@@ -11,14 +11,14 @@ const jsRoot = path.join(projectRoot, "frontend/webapp/js");
 let passed = 0;
 
 /*
- * member5 前端测试入口。
+ * member5 frontend test entry point.
  *
- * member5 主要负责页面、交互、样式和前端 API 调用方式。
- * 这个脚本不启动浏览器，而是做答辩时容易展示的静态检查：
- * 1. 所有页面 JS 至少能通过 Node 的语法检查；
- * 2. 页面脚本不能绕过 TARecruitment.routes 直接手写 API 地址；
- * 3. 关键 JSP/JS 资产存在；
- * 4. 已下线的旧 MO 页面和旧 admin 注册说明页不能重新出现。
+ * member5 is mainly responsible for pages, interactions, styles and frontend API call methods.
+ * This script does not launch a browser, but performs static checks easy to demonstrate during defense:
+ * 1. All page JS passes Node syntax check at least;
+ * 2. Page scripts cannot bypass TARecruitment.routes to hardcode API addresses;
+ * 3. Key JSP/JS assets exist;
+ * 4. Removed old MO pages and old admin registration explanation page cannot reappear.
  */
 function main() {
   const jsFiles = walk(jsRoot).filter((file) => file.endsWith(".js"));
@@ -33,10 +33,10 @@ function main() {
 }
 
 /*
- * 使用 node --check 做语法检查。
+ * Use node --check for syntax validation.
  *
- * 这一步不会执行浏览器 API，只检查 JS 文件是否存在语法错误。
- * 对答辩来说，它能快速证明页面脚本不是“打不开的坏 JS”。
+ * This step does not execute browser APIs, only checks if JS files have syntax errors.
+ * For defense, it quickly proves page scripts are not "broken JS that cannot open".
  */
 function testJavaScriptSyntax(jsFiles) {
   jsFiles.forEach((file) => {
@@ -49,13 +49,13 @@ function testJavaScriptSyntax(jsFiles) {
 }
 
 /*
- * 检查页面脚本是否通过公共路由工具生成 API URL。
+ * Check if page scripts generate API URLs through the shared route utility.
  *
- * 项目部署在 /groupproject 这类 context path 下时，硬编码 /api/... 容易失效。
- * 所以普通页面脚本不能直接写 "/api/..."，而要调用 common/ta-recruitment.js
- * 里的 TARecruitment.routes。
+ * When the project is deployed under a context path like /groupproject, hardcoded /api/... easily breaks.
+ * So ordinary page scripts cannot directly write "/api/..." but must call TARecruitment.routes
+ * from common/ta-recruitment.js.
  *
- * common/ta-recruitment.js 本身是集中定义 API 路径的地方，所以它被排除在页面脚本检查之外。
+ * common/ta-recruitment.js itself is the central place for API path definitions, so it is excluded from page script checks.
  */
 function testPageScriptsUseSharedRoutes(jsFiles) {
   const sharedRouteFile = path.join(jsRoot, "common/ta-recruitment.js");
@@ -87,10 +87,10 @@ function testPageScriptsUseSharedRoutes(jsFiles) {
 }
 
 /*
- * 检查 member5 负责展示的关键页面资产是否存在。
+ * Check if key page assets maintained by member5 exist.
  *
- * 这里不判断页面长什么样，只确认登录/注册、TA、MO、Admin 的主要页面和公共路由文件
- * 没有在整理目录时丢失。
+ * This does not check what pages look like, only confirms main pages for login/register, TA, MO, Admin
+ * and shared route file were not lost during directory organization.
  */
 function testRolePageAssetsExist() {
   [
@@ -108,11 +108,11 @@ function testRolePageAssetsExist() {
 }
 
 /*
- * 检查旧页面是否保持下线状态。
+ * Check if old pages remain offline.
  *
- * applicant-selection 已并入 MO dashboard 子视图，旧技能匹配页面也被
- * 后续 AI 推荐搜索流程替代。admin-register 是旧说明页，当前只保留
- * /admin-invite.jsp 的短邀请码注册入口。
+ * applicant-selection has been merged into MO dashboard sub-view, old skill match page is also
+ * replaced by subsequent AI recommendation search flow. admin-register is an old explanation page;
+ * currently only /admin-invite.jsp short invite code registration entry is kept.
  */
 function testRemovedLegacyPagesStayRemoved() {
   [
@@ -130,8 +130,8 @@ function testRemovedLegacyPagesStayRemoved() {
 }
 
 /*
- * 递归收集目录下的文件。
- * Node 标准库没有直接提供 walk，这里保持一个很小的本地实现。
+ * Recursively collect files in a directory.
+ * Node standard library does not directly provide walk; a small local implementation is kept here.
  */
 function walk(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -142,9 +142,10 @@ function walk(dir) {
 }
 
 /*
- * 去掉注释后再搜索路径字面量。
+ * Remove comments before searching for path literals.
  *
- * 这样代码注释里提到 API 路径时不会误报，真正被检查的是运行时字符串。
+ * This way, when API paths are mentioned in code comments, they will not be reported as false positives;
+ * what is really checked is the runtime string.
  */
 function stripComments(source) {
   return source
@@ -152,7 +153,7 @@ function stripComments(source) {
     .replace(/(^|[^:])\/\/.*$/gm, "$1");
 }
 
-// 以下是轻量测试辅助函数，失败时抛 Error，使 shell 脚本返回非 0。
+// The following are lightweight test helper functions; on failure they throw Error so shell script returns non-0.
 function assertExists(file) {
   assert(fs.existsSync(path.join(projectRoot, file)), `${file} should exist`);
 }

@@ -1,22 +1,22 @@
-# member2 分工与当前代码文件
+# member2 Division and Current Code Files
 
-[返回总览](Overview.md)
+[Back to Overview](Overview.md)
 
-## 基本信息
+## Basic Information
 
-| 项目 | 内容 |
+| Item | Content |
 | --- | --- |
 | Git author | `member2 <member2@edu.com>` |
-| 标准提交数 | 20 |
-| 分工概述 | TA 档案与文件上传、数据路径/初始化稳定性、AI 推荐搜索与匹配服务 |
+| Standard commit count | 20 |
+| Division overview | TA profile and file upload, data path/initialization stability, AI recommendation search and matching service |
 
-## 分工概述
+## Division Overview
 
-`member2` 主要承担 TA 档案、简历/头像等资源上传、数据存储路径与演示账号初始化稳定性，并在后期负责 AI 推荐搜索的后端接入，包括 DeepSeek 相关配置和客户端。旧技能匹配服务和详情页额外分析链路下线后，AI 相关后端范围收敛为推荐搜索接口。
+`member2` primarily took on TA profiles, resume/avatar resource upload, data storage path and demo account initialization stability, and later handled AI recommendation search backend integration, including DeepSeek configuration and client. After the old skill matching service and detail page extra analysis flow were taken offline, the AI-related backend scope converged to recommendation search interface.
 
-## 当前对应代码文件
+## Current Corresponding Code Files
 
-TA 档案、简历、头像与草稿资料：
+TA profile, resume, avatar, and draft data:
 
 - `backend/src/com/example/tarecruitment/profile/model/Applicant.java`
 - `backend/src/com/example/tarecruitment/profile/dao/ApplicantDao.java`
@@ -30,14 +30,14 @@ TA 档案、简历、头像与草稿资料：
 - `backend/src/com/example/tarecruitment/profile/web/ApplicantProfileServlet.java`
 - `backend/src/com/example/tarecruitment/profile/web/ApplicantAssetServlet.java`
 
-本地数据路径、CSV 存储与演示数据：
+Local data path, CSV storage, and demo data:
 
-- `backend/src/com/example/tarecruitment/common/storage/StoragePaths.java`（**重叠标注：member2 主归属；member3 的职位/配置测试会依赖该数据路径能力**）
+- `backend/src/com/example/tarecruitment/common/storage/StoragePaths.java` (**Overlap note: member2 primary; member3's position/config tests depend on this data path capability**)
 - `backend/src/com/example/tarecruitment/common/storage/CsvCodec.java`
 - `backend/src/com/example/tarecruitment/demo/DemoAccountBootstrapListener.java`
 - `backend/src/com/example/tarecruitment/demo/DemoDataSeeder.java`
 
-DeepSeek 推荐搜索与 AI 搜索入口：
+DeepSeek recommendation search and AI search entry:
 
 - `backend/src/com/example/tarecruitment/ai/client/DeepSeekAiConfig.java`
 - `backend/src/com/example/tarecruitment/ai/client/DeepSeekApplicantSearchClient.java`
@@ -49,30 +49,30 @@ DeepSeek 推荐搜索与 AI 搜索入口：
 - `backend/src/com/example/tarecruitment/ai/web/TaJobAiSearchServlet.java`
 - `frontend/webapp/WEB-INF/ai/deepseek.properties.template`
 
-## 文件重叠与答辩归属说明
+## File Overlap and Defense Attribution
 
-- `backend/src/com/example/tarecruitment/common/storage/StoragePaths.java` 同时出现在 member3 文档中，因为职位、账号资料和配置测试都需要读取运行时数据目录。答辩时该数据路径基础设施由 member2 主讲；member3 只说明职位模块如何依赖它。
+`backend/src/com/example/tarecruitment/common/storage/StoragePaths.java` also appears in member3's documentation because position, account profile, and config tests all need to read the runtime data directory. During defense, the data path infrastructure is presented by member2. Member3 only explains how the position module depends on it.
 
-## 测试展示
+## Test Presentation
 
-运行命令：
+Run command:
 
 ```bash
 ./scripts/test/test-member2.sh
 ```
 
-测试代码：
+Test code:
 
 - `backend/test/Member2BackendTest.java`
 
-测试覆盖点：
+Test coverage points:
 
-- `CsvCodec` 是否能正确处理逗号和引号，避免破坏 CSV 列。
-- `StoragePaths` 是否通过 `TA_HIRING_DATA_DIR` 生成 applicants、resumes、photos 等运行时目录。
-- `Applicant` 的 CSV 序列化/反序列化是否保留档案字段、技能、简历和照片路径。
-- `ApplicantDao` 是否能创建档案，并拒绝重复用户档案和重复学号。
-- `DeepSeekAiConfig` 在没有真实 API key 或配置为占位符时，是否安全降级为“未配置”。
+- `CsvCodec` correctly handles commas and quotes without breaking CSV columns.
+- `StoragePaths` generates runtime directories like applicants, resumes, photos via `TA_HIRING_DATA_DIR`.
+- `Applicant` CSV serialization/deserialization preserves profile fields, skills, resume, and photo paths.
+- `ApplicantDao` can create profiles and reject duplicate user profiles and duplicate student IDs.
+- `DeepSeekAiConfig` safely degrades to "not configured" when no real API key is present or configured as a placeholder.
 
-答辩时可以这样解释：
+For defense, you can explain:
 
-`member2` 的测试重点是 TA 档案、CSV 数据层和 AI 推荐配置。脚本用临时数据目录模拟真实运行环境，证明档案可以安全写入 CSV，重复档案会被拦截；同时 AI key 没配置时不会生成假的推荐结果，而是走安全降级。
+`member2`'s test focus is on TA profiles, CSV data layer, and AI recommendation configuration. The script uses a temporary data directory to simulate a real runtime environment, proving that profiles can be safely written to CSV and duplicate profiles are blocked. Meanwhile, when the AI key is not configured, it doesn't generate fake recommendation results but falls back safely.

@@ -1,22 +1,22 @@
-# member1 分工与当前代码文件
+# member1 Division and Current Code Files
 
-[返回总览](Overview.md)
+[Back to Overview](Overview.md)
 
-## 基本信息
+## Basic Information
 
-| 项目 | 内容 |
+| Item | Content |
 | --- | --- |
 | Git author | `member1 <member1@edu.com>` |
-| 标准提交数 | 18 |
-| 分工概述 | 后端基础能力、认证流程、接口响应与日志工具、技能匹配早期实现、部分测试/统计补充 |
+| Standard commit count | 18 |
+| Division overview | Backend foundational capabilities, authentication flow, API response and logging utilities, early skill matching implementation, partial testing/stats contribution |
 
-## 分工概述
+## Division Overview
 
-`member1` 主要承担后端早期基础能力：用户认证、登录注册、Session/权限校验、统一响应工具、日志工具，以及技能匹配服务早期实现。后续也补过职位筛选响应修复、TA 工作量统计和脚本日志相关内容。早期技能匹配入口和旧邀请工具后续已被下线，因此不再列入当前仍存在的代码文件。
+`member1` primarily took on backend early foundational capabilities: user authentication, login/register, Session/permission validation, unified response utilities, logging utilities, and early skill matching service implementation. Later also contributed to position filtering response fixes, TA workload statistics, and script logging. The early skill matching entry and old invite tool were later taken offline, so they are no longer listed in the current existing code files.
 
-## 当前对应代码文件
+## Current Corresponding Code Files
 
-后端认证与会话入口：
+Backend authentication and session entry:
 
 - `backend/src/com/example/tarecruitment/auth/model/User.java`
 - `backend/src/com/example/tarecruitment/auth/dao/UserDao.java`
@@ -27,7 +27,7 @@
 - `backend/src/com/example/tarecruitment/auth/web/AccessPolicy.java`
 - `backend/src/com/example/tarecruitment/auth/web/CheckAvailableServlet.java`
 
-后端公共响应、Session、权限和日志工具：
+Backend common response, session, permission, and logging utilities:
 
 - `backend/src/com/example/tarecruitment/common/web/ApiResponses.java`
 - `backend/src/com/example/tarecruitment/common/web/JsonResponseUtil.java`
@@ -37,28 +37,28 @@
 - `backend/src/com/example/tarecruitment/common/service/ServiceResult.java`
 - `backend/src/com/example/tarecruitment/common/util/Logger.java`
 
-## 文件重叠与答辩归属说明
+## File Overlap and Defense Attribution
 
-当前 member1 与 member4 不再共享旧邀请工具；管理员短邀请码由 member4 的 `InviteCodeService` 负责说明。
+Currently member1 no longer shares the old invite tool with member4. The admin short invite code is explained by member4's `InviteCodeService`.
 
-## 测试展示
+## Test Presentation
 
-运行命令：
+Run command:
 
 ```bash
 ./scripts/test/test-member1.sh
 ```
 
-测试代码：
+Test code:
 
 - `backend/test/Member1BackendTest.java`
 
-测试覆盖点：
+Test coverage points:
 
-- `ServiceResult` 是否能稳定表达 service 层的状态码、成功标记、消息和数据。
-- `User` 的 CSV 序列化/反序列化是否保留账号资料字段。
-- `UserDao` 是否能初始化固定演示账号、验证登录、拒绝重复用户名。
+- `ServiceResult` can stably express status codes, success flags, messages, and data from the service layer.
+- `User` CSV serialization/deserialization preserves account profile fields.
+- `UserDao` can initialize fixed demo accounts, validate login, and reject duplicate usernames.
 
-答辩时可以这样解释：
+For defense, you can explain:
 
-`member1` 的测试重点是认证和公共后端基础能力。脚本会先编译后端源码，再使用临时 `TA_HIRING_DATA_DIR` 创建隔离测试数据，不会污染本机真实演示数据。测试通过说明登录账号、演示账号、密码哈希和 service 返回结构这些底层能力可以正常工作。
+`member1`'s test focus is on authentication and common backend foundational capabilities. The script compiles the backend source code first, then uses a temporary `TA_HIRING_DATA_DIR` to create isolated test data that won't pollute the real demo data on the machine. Passing the tests proves that login accounts, demo accounts, password hashing, and service return structures work correctly.

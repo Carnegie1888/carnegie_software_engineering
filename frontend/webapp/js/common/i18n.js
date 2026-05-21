@@ -1,8 +1,8 @@
 /*
- * AppI18n 全站静态文案字典。
+ * AppI18n global static text dictionary.
  *
- * 登录、注册、首页和各角色门户都通过 data-i18n 或 AppI18n.t 读取这里的文案。
- * 纯动态服务端错误会先走 localizeServerMessage，再退回服务端英文原文。
+ * Login, registration, homepage, and role portals all read text from here via data-i18n or AppI18n.t.
+ * Pure dynamic server-side errors first go through localizeServerMessage, then fall back to the server-side English text.
  */
 (function () {
     var STORAGE_KEY = "ta_hiring_locale";
